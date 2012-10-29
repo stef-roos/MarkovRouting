@@ -1,35 +1,53 @@
 package kademliarouting;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import eclipse.Calc;
 
 import Jama.Matrix;
+import eclipse.Calc;
 
-
-public class KademliaUniform {
+public class KademliaBUniform {
+	
 	int bits;
 	int alpha = 3;
 	int beta = 2;
-	int k;
-	int bitperStep;
-	int m;
+	int[] k;
+	int[] bitperStep;
+	int[] m;
 	int n;
 	double[][] notfound;
 	double[][] F;
-	double[][] minNext;
-	double[][] chooseInt;
+	double[][][] minNext;
+	double[][][] chooseInt;
 	
-	public KademliaUniform(int bits, int k, int nodes){
+	public KademliaBUniform(int bits, int[] k, int nodes){
 		this.bits = bits;
 		this.k = k;
-		this.bitperStep = (int)Math.floor(Math.log(k)/Math.log(2));
-		this.m = (int)Math.pow(2, this.bitperStep);
+		this.bitperStep = new int[k.length];
+		this.m = new int[k.length];
+		for (int i = 0; i < k.length; i++){
+		 this.bitperStep[i] = (int)Math.floor(Math.log(k[i])/Math.log(2));
+		 this.m[i] = (int)Math.pow(2, this.bitperStep[i]);
+		}
 		this.n = nodes;
 		this.setNF();
 		this.setDist();
 		//this.setF();
+	}
+	
+	public KademliaBUniform(int bits, int nodes){
+		this(bits, makeK(bits),nodes);
+	}
+	
+	private static int[] makeK(int bits){
+		int[] k = new int[bits+1];
+		for (int i = 0; i < k.length-4; i++){
+			k[i] = 8;
+		}
+		k[k.length-4] = 16;
+		k[k.length-3] = 32;
+		k[k.length-2] = 64;
+		k[k.length-1] = 128;
+		return k;
 	}
 	
 	/**
@@ -39,6 +57,13 @@ public class KademliaUniform {
 	public double[] getRoutingCDF(){
 		double[] done2 = new double[this.bits];
 		double[][] t = getTransitionFirstStep();
+//		for (int j = 0; j < t[0].length; j++){
+//			double s = 0;
+//			for (int i = 0; i < t.length; i++){
+//				s = s + t[i][j];
+//			}
+//			System.out.println(s);
+//		}
 		Matrix t2 = new Matrix(t);
 		Matrix probs2 = new Matrix(getInitial());
 		done2[0] = probs2.getArray()[0][0];
@@ -136,7 +161,7 @@ public class KademliaUniform {
 	 * @return
 	 */
 	public double[][] getNext(int d) {
-		if (d < 2+this.bitperStep){
+		if (d < 2+this.bitperStep[0]){
 			double[][] next = new double[1][1];
 			next[0][0] = 1;
 			return next;
@@ -144,7 +169,7 @@ public class KademliaUniform {
 		double[][] next = new double[d][d];
 		//distribution of additional links into target region
 		double[][] links = this.getExtraLinks(d-1);
-		double[][] f = this.getF(d-this.bitperStep, 1);
+		double[][] f = this.getF(d-this.bitperStep[d], 1);
 		double sum0 = 0;
 		//case: 0 links
 			for (int j = 0; j < links[0].length; j++){
@@ -152,11 +177,11 @@ public class KademliaUniform {
 				for (int i = 1; i < f.length; i++){
 					//distribution P(first)*P(second|first)
 				next[i][d-1-j] = next[i][d-1-j] + 
-						this.notfound[0][d-1-this.bitperStep]*(f[i][0]-f[i-1][0])*links[0][j]; 
+						this.notfound[0][d-1-this.bitperStep[d]]*(f[i][0]-f[i-1][0])*links[0][j]; 
 				//sum0 = sum0 + (f[i][0]-f[i-1][0]);
 			}
 				//case: found
-				next[0][0] = next[0][0] + (1- this.notfound[0][d-1-this.bitperStep])*links[0][j]; 
+				next[0][0] = next[0][0] + (1- this.notfound[0][d-1-this.bitperStep[d]])*links[0][j]; 
 				//sum0 = sum0 + (1- this.notfound[0][d-1-this.bitperStep]); 
 				//System.out.println( j + " sum0 " + sum0 + " links " + links[0][j]);
 				//System.out.println("f " + f[f.length-1][0]+ " " + f[0][0]);
@@ -165,12 +190,12 @@ public class KademliaUniform {
 		//case links > 0
 		double cur;
 		for (int j = 1; j < links.length; j++){
-			f = this.getF(d-this.bitperStep, j+1);
+			f = this.getF(d-this.bitperStep[d], j+1);
 			//case: found
-			next[0][0] = next[0][0] + links[j][0]*(1-this.notfound[j][d-1-this.bitperStep]);
+			next[0][0] = next[0][0] + links[j][0]*(1-this.notfound[j][d-1-this.bitperStep[d]]);
 			for (int i = 1; i < f.length; i++){
 				//case: not found
-				cur = links[j][0]*this.notfound[j][d-1-this.bitperStep]*(f[i][0] - f[i-1][0]);
+				cur = links[j][0]*this.notfound[j][d-1-this.bitperStep[d]]*(f[i][0] - f[i-1][0]);
 				for (int l = i; l < f.length; l++){
 					if (1 - f[i-1][1] > 0){
 					  next[i][l] = next[i][l]+ cur*(f[l][1]-f[l-1][1])/(1-f[i-1][1]);
@@ -219,22 +244,22 @@ public class KademliaUniform {
 	}
 	
 	private double[][] getExtraLinks(int d){
-		double[][] links = new double[this.k][];
-		links[0] = new double[this.bitperStep];
-		int lose = this.k-this.m;
+		double[][] links = new double[this.k[d]][];
+		links[0] = new double[this.bitperStep[d]];
+		int lose = this.k[d]-this.m[d];
 		for (int j = 1; j < links.length; j++){
 			links[j] = new double[1];
 		}
 		double[][] pot = this.getPotLinks(d);
 		for (int j = 0; j < pot.length; j++){
 			for (int i = 0; i < pot[j].length; i++){
-				links[0][i] = links[0][i] + pot[j][i]*this.chooseInt[j+lose][0];
+				links[0][i] = links[0][i] + pot[j][i]*this.chooseInt[d][j+lose][0];
 			}
 		}
 		for (int l = 1; l < links.length; l++){
 		for (int j = Math.max(l-lose,0); j < pot.length; j++){
 			for (int i = 0; i < pot[j].length; i++){
-				links[l][0] = links[l][0] + pot[j][i]*this.chooseInt[j+lose][l];
+				links[l][0] = links[l][0] + pot[j][i]*this.chooseInt[d][j+lose][l];
 			}
 		}
 		}
@@ -249,15 +274,15 @@ public class KademliaUniform {
 	}
 	
 	private double[][] getPotLinks(int d){
-		double[][] links = new double[this.m][this.bitperStep];
-		double[] pure = new double[this.m];
-		double p = Math.pow(1-Math.pow(2, d-this.bitperStep-this.bits),this.n-2);
+		double[][] links = new double[this.m[d]][this.bitperStep[d]];
+		double[] pure = new double[this.m[d]];
+		double p = Math.pow(1-Math.pow(2, d-this.bitperStep[d]-this.bits),this.n-2);
 		for (int i = 0; i < pure.length; i++){
-			pure[i] = Calc.binomDist(m-1, i, p);
+			pure[i] = Calc.binomDist(m[d]-1, i, p);
 		}
 		for (int i = 0; i < pure.length; i++){
-			for (int j = 0; j < this.bitperStep; j++){
-				links[i][j] = pure[i]*this.minNext[i][j];
+			for (int j = 0; j < this.bitperStep[d]; j++){
+				links[i][j] = pure[i]*this.minNext[d][i][j];
 			}
 		}
 //		double sum=0;
@@ -274,7 +299,7 @@ public class KademliaUniform {
 	 * probability not to reach target
 	 */
 	private void setNF(){
-		notfound = new double[k][bits+1];
+		notfound = new double[k[k.length-1]][bits+1];
 		for (int j = 0; j < notfound.length; j++){
 		 for (int i = 0; i < notfound[j].length; i++){
 			double p = Math.pow(0.5, this.bits-i);
@@ -328,11 +353,11 @@ public class KademliaUniform {
 	public double[][] getTransitionFirstStep(){
 		double[][] res = new double[getIndex(1,1,this.bits+1)][this.bits+1];
 		//when close enough => target reached in any case
-		for (int d = 0; d < 2+this.bitperStep; d++){
+		for (int d = 0; d < 2+this.bitperStep[0]; d++){
 		  res[0][d] = 1;
 		}
 		//iterate over all possible distances
-		for (int d = 2+this.bitperStep; d < this.bits +1; d++){
+		for (int d = 2+this.bitperStep[0]; d < this.bits +1; d++){
 			double[][][] f = this.getNext3(d);
 			//iterate over all possible distances of alpha closest contacts
 			for (int a1 = 0; a1 < f.length; a1++){
@@ -426,11 +451,11 @@ public class KademliaUniform {
 	 * @return
 	 */
 	private double[][][] getExtraLinks3(int d){
-		double[][][] links = new double[this.k][][];
-		links[0] = new double[this.bitperStep][this.bitperStep];
-		links[1] = new double[this.bitperStep][1];
+		double[][][] links = new double[this.k[d]][][];
+		links[0] = new double[this.bitperStep[d]][this.bitperStep[d]];
+		links[1] = new double[this.bitperStep[d]][1];
 		//number of links not assigned to any region
-		int lose = this.k-this.m;
+		int lose = this.k[d]-this.m[d];
 		for (int j = 2; j < links.length; j++){
 			links[j] = new double[1][1];
 		}
@@ -441,7 +466,7 @@ public class KademliaUniform {
 		for (int j = 0; j < pot.length; j++){
 			for (int i = 0; i < pot[j].length; i++){
 				 for (int l = 0; l < pot[j][i].length; l++){
-				links[0][i][l] = links[0][i][l] + pot[j][i][l]*this.chooseInt[j+lose][0];
+				links[0][i][l] = links[0][i][l] + pot[j][i][l]*this.chooseInt[d][j+lose][0];
 				 }
 			}
 		}
@@ -450,7 +475,7 @@ public class KademliaUniform {
 			for (int i = 0; i < pot[j].length; i++){
 				 for (int l = 0; l < pot[j][i].length; l++){
 					if (j + lose >= 1){
-				          links[1][i][0] = links[1][i][0] + pot[j][i][l]*this.chooseInt[j+lose][1];
+				          links[1][i][0] = links[1][i][0] + pot[j][i][l]*this.chooseInt[d][j+lose][1];
 					}
 				 }
 			}
@@ -460,7 +485,7 @@ public class KademliaUniform {
 		for (int j = Math.max(l-lose,0); j < pot.length; j++){
 			for (int i = 0; i < pot[j].length; i++){
 				for (int s = 0; s < pot[j][i].length; s++){
-				  links[l][0][0] = links[l][0][0] + pot[j][i][s]*this.chooseInt[j+lose][l];
+				  links[l][0][0] = links[l][0][0] + pot[j][i][s]*this.chooseInt[d][j+lose][l];
 				}
 			}
 		}
@@ -486,12 +511,12 @@ public class KademliaUniform {
 	 * @return
 	 */
 	private double[][][] getPotLinks3(int d){
-		double[][][] links = new double[this.m][this.bitperStep][this.bitperStep];
-		double[] pure = new double[this.m];
-		double p = Math.pow(1-Math.pow(2, d-this.bitperStep-this.bits),this.n-2);
+		double[][][] links = new double[this.m[d]][this.bitperStep[d]][this.bitperStep[d]];
+		double[] pure = new double[this.m[d]];
+		double p = Math.pow(1-Math.pow(2, d-this.bitperStep[d]-this.bits),this.n-2);
 		double s = 0;
 		for (int i = 0; i < pure.length; i++){
-			pure[i] = Calc.binomDist(m-1, i, p);
+			pure[i] = Calc.binomDist(m[d]-1, i, p);
 			
 			
 		}
@@ -509,10 +534,10 @@ public class KademliaUniform {
 //			for (int o = 1; o < sum.length; o++){
 //				sum[o] = sum[o-1] + this.minNext[Math.max(i-1,0)][o];
 //			}
-			if (i < this.m-2){
-             for (int j = 0; j < this.bitperStep; j++){
+			if (i < this.m[d]-2){
+             for (int j = 0; j < this.bitperStep[d]; j++){
 				//double suml = 0; 
-            	 double[][] probs = this.getSecThird(i);
+            	 double[][] probs = this.getSecThird(i,d);
 				for (int l = 0; l <= j; l++){
 				  links[i][j][l] = pure[i]*probs[j][l];
 //				  if (sum[j] > 0){
@@ -525,9 +550,9 @@ public class KademliaUniform {
 				//System.out.println(suml + "i= " + i + "j= " + j + " " + pure[i]*this.minNext[i][j]);
 			}
 			} else {
-				if (i == this.m-1){
-					for (int j = 0; j < this.bitperStep; j++){
-						links[i][j][j] = pure[i]*Math.pow(2, j)/(double)(this.m-1);
+				if (i == this.m[d]-1){
+					for (int j = 0; j < this.bitperStep[d]; j++){
+						links[i][j][j] = pure[i]*Math.pow(2, j)/(double)(this.m[d]-1);
 					}
 				}else {
 					links[i][0][0] = pure[i];
@@ -552,7 +577,7 @@ public class KademliaUniform {
 	 */
 	public double[][][] getNext3(int d) {
 		//close enough => done
-		if (d < 2+this.bitperStep){
+		if (d < 2+this.bitperStep[0]){
 			double[][][] next = new double[1][1][1];
 			next[0][0][0] = 1;
 			return next;
@@ -560,7 +585,7 @@ public class KademliaUniform {
 		double[][][] next = new double[d][d][d];
 		//distribution over number of links
 		double[][][] links = this.getExtraLinks3(d-1);
-		double[][] f = this.getFFirst(d-this.bitperStep, 1);
+		double[][] f = this.getFFirst(d-this.bitperStep[d], 1);
 		
 		//case: links = 0
 		  //case: not found
@@ -569,14 +594,14 @@ public class KademliaUniform {
 				for (int l = 0; l < Math.min(links[0].length,next[i].length); l++){
 					//take distribution over second and third, compute that over first
 				next[i][d-1-j][d-1-l] = next[i][d-1-j][d-1-l] + 
-						this.notfound[0][d-1-this.bitperStep]*(f[i][0]-f[i-1][0])*links[0][j][l]; 
+						this.notfound[0][d-1-this.bitperStep[d]]*(f[i][0]-f[i-1][0])*links[0][j][l]; 
 				}
 			}
 		}
 		 //case found, add all possibilities
 		for (int j = 0; j < Math.min(links[0].length,next[0].length); j++){
 			for (int l = 0; l < Math.min(links[0].length,next[0].length); l++){
-			next[0][0][0] = next[0][0][0] + (1- this.notfound[0][d-1-this.bitperStep])*links[0][j][l]; 
+			next[0][0][0] = next[0][0][0] + (1- this.notfound[0][d-1-this.bitperStep[d]])*links[0][j][l]; 
 			}
 		}
 //		for (int i = 0; i < next.length; i++){
@@ -589,11 +614,11 @@ public class KademliaUniform {
 //		} 
 		//case links = 1
 		double cur;
-		f = this.getFFirst(d-this.bitperStep, 2);
+		f = this.getFFirst(d-this.bitperStep[d], 2);
 		for (int i = 1; i < f.length; i++){
 			//iterate over all poss third contacts (= not in region)
 			for (int j = 0; j < Math.min(links[0].length,next[0].length); j++){
-			cur = links[1][j][0]*this.notfound[1][d-1-this.bitperStep]*(f[i][0] - f[i-1][0]);
+			cur = links[1][j][0]*this.notfound[1][d-1-this.bitperStep[d]]*(f[i][0] - f[i-1][0]);
 			for (int l = i; l < f.length; l++){
 				if (1 - f[i-1][1] > 0){
 				     next[i][l][d-1-j] = next[i][l][d-1-j] + cur*(f[l][1]-f[l-1][1])/(1-f[i-1][1]);
@@ -606,7 +631,7 @@ public class KademliaUniform {
 		//case: found destination
 		for (int j = 0; j < Math.min(links[0].length,next[0].length); j++){
 			//for (int l = 0; l < Math.min(links[0].length,next[0].length); l++){
-			next[0][0][0] = next[0][0][0] + (1- this.notfound[1][d-1-this.bitperStep])*links[1][j][0]; 
+			next[0][0][0] = next[0][0][0] + (1- this.notfound[1][d-1-this.bitperStep[d]])*links[1][j][0]; 
 			//}
 		}
 		
@@ -614,11 +639,11 @@ public class KademliaUniform {
 		//case links > 1
 		double cur2;
 		for (int j = 2; j < links.length; j++){
-			f = this.getFFirst(d-this.bitperStep, j+1);
-			next[0][0][0] = next[0][0][0] + links[j][0][0]*(1-this.notfound[j][d-1-this.bitperStep]);
+			f = this.getFFirst(d-this.bitperStep[d], j+1);
+			next[0][0][0] = next[0][0][0] + links[j][0][0]*(1-this.notfound[j][d-1-this.bitperStep[d]]);
 			for (int i = 1; i < f.length; i++){
 				//dist of first links
-				cur = links[j][0][0]*this.notfound[j][d-1-this.bitperStep]*(f[i][0] - f[i-1][0]);
+				cur = links[j][0][0]*this.notfound[j][d-1-this.bitperStep[d]]*(f[i][0] - f[i-1][0]);
 				for (int l = i; l < f.length; l++){
 					if (1 - f[i-1][1] > 0){
 						//*(dist of second | first)
@@ -654,20 +679,20 @@ public class KademliaUniform {
 	 * @param links
 	 * @return
 	 */
-	private double[][] getSecThird(int links){
-		double[][] all = new double[this.m-1][this.m-1];
+	private double[][] getSecThird(int links, int d){
+		double[][] all = new double[this.m[d]-1][this.m[d]-1];
 		for (int i = 0; i < all.length; i++){
 			for (int j = i+1; j < all.length; j++){
-				all[i][j] = this.get2Prob(i, j, links);
+				all[i][j] = this.get2Prob(i, j, links,m[d]);
 				//System.out.println("i= " + i + " j= " + j + " links= " + links + " res=" + all[i][j]);
 			}
 		}
-		double[][] res = new double[this.bitperStep][this.bitperStep];
+		double[][] res = new double[this.bitperStep[d]][this.bitperStep[d]];
 		for (int i = 0; i < all.length; i++){
 			int a = (int)Math.floor(Math.log(i+1)/Math.log(2));
 			for (int j = i+1; j < all.length; j++){
 				int b = (int)Math.floor(Math.log(j+1)/Math.log(2));
-				res[this.bitperStep-1-a][this.bitperStep-1-b] = res[this.bitperStep-1-a][this.bitperStep-1-b] + all[i][j];
+				res[this.bitperStep[d]-1-a][this.bitperStep[d]-1-b] = res[this.bitperStep[d]-1-a][this.bitperStep[d]-1-b] + all[i][j];
 			}
 		} 
 		return res;
@@ -680,20 +705,20 @@ public class KademliaUniform {
 	 * @param links
 	 * @return
 	 */
-	private double get2Prob(int i, int j, int links){
+	private double get2Prob(int i, int j, int links, int r){
 		double res = 1;
 		for (int l = 0; l <j; l++){
 			if (l == i){
-				res = res*(m-links)/(double)(m-l);  
+				res = res*(r-links)/(double)(r-l);  
 			} 
 			if (l < i){
-				res = res*(links-l)/(double)(m-l);
+				res = res*(links-l)/(double)(r-l);
 			}
 			if (l > i){
-				res = res*(links-l+1)/(double)(m-l);
+				res = res*(links-l+1)/(double)(r-l);
 			}
 		}
-		res = res*(m-links-1)/(double)(m-j); 
+		res = res*(r-links-1)/(double)(r-j); 
 		//System.out.println("i= " + i + " j= " + j + " links= " + links + " res=" + res);
 		return res;
 	}
@@ -706,18 +731,21 @@ public class KademliaUniform {
 	 * number of free links x number of links in target region 
 	 */
 	private void setDist(){
-		this.minNext = new double[m][this.bitperStep];
-		for (int j = 0; j < minNext.length-1; j++){
+		this.minNext = new double[this.bits+1][][];
+		for (int x = 0; x< minNext.length; x++){
+			this.minNext[x] = new double[m[x]][this.bitperStep[x]];
+		for (int j = 0; j < minNext[x].length-1; j++){
+			
 			//double sum = 0;
-			for (int i = 0; i < this.bitperStep; i++){
-				int better = (int)Math.pow(2, this.bitperStep-1-i)-1;
+			for (int i = 0; i < this.bitperStep[x]; i++){
+				int better = (int)Math.pow(2, this.bitperStep[x]-1-i)-1;
 				//System.out.println("better " + better);
 				
 				//System.out.println("factor2 " + factor2);
 				if (better <= j ){
-				this.minNext[j][i] = (double) Calc.binom(j, better)/(double)Calc.binom(m-1, better);
+				this.minNext[x][j][i] = (double) Calc.binom(j, better)/(double)Calc.binom(m[x]-1, better);
 				    if (2*better+1 <= j ){
-				    	this.minNext[j][i] = this.minNext[j][i] - (double) Calc.binom(j, 2*better+1)/(double)Calc.binom(m-1, 2*better+1);
+				    	this.minNext[x][j][i] = this.minNext[x][j][i] - (double) Calc.binom(j, 2*better+1)/(double)Calc.binom(m[x]-1, 2*better+1);
 				    }
 					
 				}	
@@ -726,18 +754,21 @@ public class KademliaUniform {
 			}
 			//System.out.println("j= " +j + " sum="+sum);
 		}	
-		this.minNext[m-1][0] = 1;
+		this.minNext[x][m[x]-1][0] = 1;
+		}
 
-		this.chooseInt = new double[k][];
-		for (int j = 0; j < k; j++){
-			this.chooseInt[j] = new double[j+1];
+		this.chooseInt = new double[bits+1][][];
+		for (int x = 0; x < this.chooseInt.length; x++){
+			this.chooseInt[x] = new double[this.k[x]][];
+		for (int j = 0; j < k[x]; j++){
+			this.chooseInt[x][j] = new double[j+1];
 			for (int i = 0; i < j+1; i++){
-				this.chooseInt[j][i] = Calc.binomDist(j, i, 1/(double)(m-(j-(k-m))));
+				this.chooseInt[x][j][i] = Calc.binomDist(j, i, 1/(double)(m[x]-(j-(k[x]-m[x]))));
 			}
 			
 		}
+		}
 		
 	}
-	
-	
+
 }

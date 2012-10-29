@@ -1,18 +1,16 @@
 package kademliarouting;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import eclipse.Calc;
 
 import Jama.Matrix;
+import eclipse.Calc;
 
-
-public class KademliaRouting {
+public class KademliaB {
+	
 	int bits;
 	int alpha = 3;
 	int beta = 2;
-	int k;
+	int[] k;
 	int n;
 	double[] notfound;
 	double[][] F;
@@ -23,9 +21,30 @@ public class KademliaRouting {
 	 * @param k
 	 * @param nodes
 	 */
-	public KademliaRouting(int bits, int k, int nodes){
+	public KademliaB(int bits, int[] k, int nodes){
 		this.bits = bits;
 		this.k = k;
+		this.n = nodes;
+		this.setNF();
+		//this.setF();
+	}
+	
+	/**
+	 * 
+	 * @param bits: bits the system uses
+	 * @param k
+	 * @param nodes
+	 */
+	public KademliaB(int bits, int nodes){
+		this.bits = bits;
+		this.k = new int[bits+1];
+		for (int i = 0; i < this.k.length-4; i++){
+			k[i] = 8;
+		}
+		k[k.length-4] = 16;
+		k[k.length-3] = 32;
+		k[k.length-2] = 64;
+		k[k.length-1] = 128;
 		this.n = nodes;
 		this.setNF();
 		//this.setF();
@@ -151,7 +170,7 @@ public class KademliaRouting {
 	 * @return
 	 */
 	public double[][] getNext(int d) {
-		if (d < 2){
+		if (d < 5){
 			double[][] next = new double[1][1];
 			next[0][0] = 1;
 			return next;
@@ -186,7 +205,7 @@ public class KademliaRouting {
 		for (int i = 0; i < d; i++){
 			double p = 1-Math.pow(0.5, d-1-i);
 			//prob for beta-th contact 
-			double pA = Math.pow(p, this.k-this.beta);
+			double pA = Math.pow(p, this.k[i]-this.beta);
 			for (int j = this.beta-1; j > -1; j--){
 				pA = pA*p;
 				res[i][j] = 1- pA;
@@ -206,11 +225,12 @@ public class KademliaRouting {
 	 * probability not to find destination for each distance
 	 */
 	private void setNF(){
-		notfound = new double[bits+1];
+		notfound = new double[bits];
 		for (int i = 0; i < notfound.length; i++){
 			double p = Math.pow(0.5, this.bits-i);
-			for (int x = this.k; x < this.n-1; x++){
-				notfound[i] = Math.min(notfound[i] + getRT(x)*Calc.binomDist(this.n-2, x, p),1);
+			for (int x = this.k[i+1]; x < this.n-1; x++){
+				notfound[i] = Math.min(notfound[i] + (1-k[i+1]/(double)(x+1))*Calc.binomDist(this.n-2, x, p),1);
+				
 //				if (Calc.binomDist(this.n-alpha-1, x, p) > 1){
 //					System.out.println("x= " + x + " p=" + p + " " + Calc.binomDist(this.n-alpha-1, x, p));
 //				}
@@ -237,9 +257,9 @@ public class KademliaRouting {
 	 * @param x
 	 * @return
 	 */
-	private double getRT(int x){
+	private double getRT(int x, int l){
 		double res = 1;
-		for (int i = 0; i < this.k; i++){
+		for (int i = 0; i < l; i++){
 			res = res*(double)(x-i)/(double)(x+1-i);
 		}
 		return res;
@@ -343,7 +363,7 @@ public class KademliaRouting {
 		double[][] res  = new double[d][this.alpha];
 		for (int i = 0; i < d; i++){
 			double p = 1-Math.pow(0.5, d-1-i);
-			double pA = Math.pow(p, this.k-this.alpha);
+			double pA = Math.pow(p, this.k[i]-this.alpha);
 			for (int j = this.alpha-1; j > -1; j--){
 				pA = pA*p;
 				res[i][j] = 1- pA;
@@ -357,6 +377,4 @@ public class KademliaRouting {
 		}
 		return res;
 	}
-	
-	
 }

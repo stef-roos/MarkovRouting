@@ -2,20 +2,38 @@ package kademliarouting;
 
 import Jama.Matrix;
 
-public class KademliaLocal {
-	private KademliaUniform uni;
-	private KademliaUniformUpper uniU;
-	private KademliaRouting normal;
-	public KademliaLocal(int bits, int k, int nodes, boolean b){
+public class KademliaBLocal {
+	
+	private KademliaBUniform uni;
+	private KademliaBUniformUpper uniU;
+	private KademliaB normal;
+	
+	public KademliaBLocal(int bits, int[] k, int nodes, boolean b){
 		if (b){
-			uniU = new KademliaUniformUpper(bits,k,nodes);
+			uniU = new KademliaBUniformUpper(bits,k,nodes);
 		} else {
-		   uni = new KademliaUniform(bits,k,nodes);
+		   uni = new KademliaBUniform(bits,k,nodes);
 		}
-		normal = new KademliaRouting(bits,k,nodes);
+		normal = new KademliaB(bits,k,nodes);
 		
 		
 	}
+	
+	public KademliaBLocal(int bits,  int nodes, boolean b){
+		this(bits, makeK(bits),nodes,b);
+		}
+		
+		private static int[] makeK(int bits){
+			int[] k = new int[bits+1];
+			for (int i = 0; i < k.length-4; i++){
+				k[i] = 8;
+			}
+			k[k.length-4] = 16;
+			k[k.length-3] = 32;
+			k[k.length-2] = 64;
+			k[k.length-1] = 128;
+			return k;
+		}
 
 	public double[] getRoutingCDF(){
 		double[] done2 = new double[normal.bits];
@@ -47,4 +65,5 @@ public class KademliaLocal {
 		}
 		return done2;
 	}
+
 }

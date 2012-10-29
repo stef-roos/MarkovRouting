@@ -84,7 +84,7 @@ public class Calc {
 	   */
 	  public static double getEx(double[] cdf){
 		  double res = 0;
-		  for (int i = 1; i < cdf.length; i++){
+		  for (int i = 0; i < cdf.length; i++){
 			  res = res + (1-cdf[i]);
 		  }
 		  return res;
