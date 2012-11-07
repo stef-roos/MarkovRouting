@@ -1,20 +1,18 @@
-package kademliarouting;
+ package kademliarouting;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import eclipse.Calc;
 
 import Jama.Matrix;
+import eclipse.Calc;
 
-
-public class KademliaRouting {
+public class KademliaFile {
+	
 	int bits;
 	int alpha = 3;
 	int beta = 2;
-	int k;
+	int[] k;
 	int n;
-	double[] notfound;
+	double[] found;
 	double[][] F;
 	
 	/**
@@ -23,9 +21,47 @@ public class KademliaRouting {
 	 * @param k
 	 * @param nodes
 	 */
-	public KademliaRouting(int bits, int k, int nodes){
+	public KademliaFile(int bits, int[] k, int nodes){
 		this.bits = bits;
 		this.k = k;
+		this.n = nodes;
+		this.setNF();
+		//this.setF();
+	}
+	
+	/**
+	 * 
+	 * @param bits: bits the system uses
+	 * @param k
+	 * @param nodes
+	 */
+	public KademliaFile(int bits, int nodes){
+		this.bits = bits;
+		this.k = new int[bits+1];
+		for (int i = 0; i < this.k.length-4; i++){
+			k[i] = 8;
+		}
+		k[k.length-4] = 16;
+		k[k.length-3] = 32;
+		k[k.length-2] = 64;
+		k[k.length-1] = 128;
+		this.n = nodes;
+		this.setNF();
+		//this.setF();
+	}
+	
+	/**
+	 * 
+	 * @param bits: bits the system uses
+	 * @param k
+	 * @param nodes
+	 */
+	public KademliaFile(int bits, int nodes, int k1){
+		this.bits = bits;
+		this.k = new int[bits+1];
+		for (int i = 0; i < this.k.length; i++){
+			k[i] = k1;
+		}
 		this.n = nodes;
 		this.setNF();
 		//this.setF();
@@ -40,17 +76,7 @@ public class KademliaRouting {
 		//calculate matrix and dist for first step 
 		double[][] t = getTransitionFirstStep();
 //		HashMap<Integer,int[]> map = this.map();
-//		for (int j = 0; j < t.length; j++){
-//			double sumC = 0;
-//			double sumR = 0; 
-//			for (int i = 0; i < t.length; i++){
-//				sumC = sumC + t[i][j];
-//				sumR = sumR + t[j][i];
-//			}
-//			int[] s = map.get(j);
-//			if (sumC < 0.99)
-//			System.out.println(sumC + " " + sumR + " (" + s[0] +"," + s[1]+ "," + s[2] +")");
-//		}
+		
 		Matrix t2 = new Matrix(t);
 		Matrix probs2 = new Matrix(getInitial());
 		done2[0] = probs2.getArray()[0][0];
@@ -59,6 +85,13 @@ public class KademliaRouting {
 		
 		//calculate matrix for later steps
 		t = this.makeTransitionMatrix();
+//		for (int j = 0; j < t[0].length; j++){
+//			double sumC = 0;
+//			for (int i = 0; i < t.length; i++){
+//				sumC = sumC + t[i][j];
+//			}
+//			System.out.println(sumC);
+//		}
 		t2 = new Matrix(t);
 		//System.out.println(t2.getColumnDimension() + " " +probs2.getRowDimension());
 		for (int i = 2; i < done2.length; i++){
@@ -159,16 +192,26 @@ public class KademliaRouting {
 		double[][] next = new double[d][d];
 		double[][] f = getF(d);
 		//find destination
-		next[0][0] = 1- this.notfound[d-1];
-		for (int i = 1; i < d; i++){
+		double cur;
+		for (int i = 0; i < d; i++){
+			cur = i==0?f[0][0]:(f[i][0] - f[i-1][0]);
+			next[0][0] = next[0][0] +cur*found[i];
 			for (int j = i; j < d; j++){
 				//prob first contact is at distance i
-				next[i][j] = this.notfound[d-1]*(f[i][0] - f[i-1][0]);
+				next[i][j] = cur*(1-found[i]);
+				if (i > 0){
 				if (1 - f[i-1][1] > 0){
 					//prob first contact is at distance i*(second at distance j | first at i)
 				next[i][j] = next[i][j]*(f[j][1]-f[j-1][1])/(1-f[i-1][1]);
 				} else {
 					
+				}
+				} else {
+					if (j > 0){
+					next[i][j] = next[i][j]*(f[j][1]-f[j-1][1]);
+					} else {
+						next[i][j] = next[i][j]*(f[j][1]);
+					}
 				}
 			}
 		}
@@ -186,7 +229,7 @@ public class KademliaRouting {
 		for (int i = 0; i < d; i++){
 			double p = 1-Math.pow(0.5, d-1-i);
 			//prob for beta-th contact 
-			double pA = Math.pow(p, this.k-this.beta);
+			double pA = Math.pow(p, this.k[i]-this.beta);
 			for (int j = this.beta-1; j > -1; j--){
 				pA = pA*p;
 				res[i][j] = 1- pA;
@@ -206,19 +249,16 @@ public class KademliaRouting {
 	 * probability not to find destination for each distance
 	 */
 	private void setNF(){
-		notfound = new double[bits+1];
-		for (int i = 0; i < notfound.length; i++){
-			double p = Math.pow(0.5, this.bits-i);
-			for (int x = this.k; x < this.n-1; x++){
-				notfound[i] = Math.min(notfound[i] + getRT(x)*Calc.binomDist(this.n-2, x, p),1);
-//				if (Calc.binomDist(this.n-alpha-1, x, p) > 1){
-//					System.out.println("x= " + x + " p=" + p + " " + Calc.binomDist(this.n-alpha-1, x, p));
-//				}
-			}
+		found = new double[bits];
+		found[0] = 1;
+		for (int i = 1; i < found.length; i++){
+			double p = Math.pow(0.5, this.bits-i+1);
+			this.found[i] = Math.pow(1-p, this.n-k[i]);
 		}
-//		for (int i = 0; i < this.notfound.length; i++){
-//			System.out.println("Node nf " + this.notfound[i]);
-//		}
+		for (int i = 0; i < this.found.length; i++){
+			System.out.println("Filde nf " + this.found[i]);
+		}
+		
 	}
 	
 //	private void setF(){
@@ -239,9 +279,9 @@ public class KademliaRouting {
 	 * @param x
 	 * @return
 	 */
-	private double getRT(int x){
+	private double getRT(int x, int l){
 		double res = 1;
-		for (int i = 0; i < this.k; i++){
+		for (int i = 0; i < l; i++){
 			res = res*(double)(x-i)/(double)(x+1-i);
 		}
 		return res;
@@ -306,15 +346,17 @@ public class KademliaRouting {
 		res[0][1] = 1;
 		for (int d = 2; d < this.bits +1; d++){
 			double[][] f = this.getFFirst(d);
-			//probability to find target
-			res[0][d] = 1- this.notfound[d-1];
 			//iterate over all non-terminal possibilities
 			for (int a1 = 1; a1 < d; a1++){
+				double cur = a1==0?f[0][0]:(f[a1][0] - f[a1-1][0]);
+						//probability to find target
+				res[0][d] = res[0][d]+cur*this.found[a1];
 				for (int a2 = a1; a2 < d; a2++){
 					for (int a3=a2; a3 < d; a3++){
 						int rowC = this.getIndex(a1, a2, a3);
 						//prob of first contact
-						res[rowC][d] = this.notfound[d-1]*(f[a1][0] - f[a1-1][0]);
+						res[rowC][d] = cur*(1-this.found[a1]);
+						if (a1 != 0){
 						if (1 - f[a1-1][1] > 0){
 							//*(prob of second contact | prob of first contact)
 							res[rowC][d] = res[rowC][d]*(f[a2][1]-f[a2-1][1])/(1-f[a1-1][1]);
@@ -327,6 +369,25 @@ public class KademliaRouting {
 							} else {
 								
 							}
+						} else {
+							if (a2 > 0){
+								res[rowC][d] = res[rowC][d]*(f[a2][1]-f[a2-1][1]);
+								if (1 - f[a2-1][2] > 0){
+									//*(prob of third contact | prob of first and second contact)
+									res[rowC][d] = res[rowC][d]*(f[a3][2]-f[a3-1][2])/(1-f[a2-1][2]);
+									} else {
+										
+									}
+							} else {
+								res[rowC][d] = res[rowC][d]*(f[a2][1]);
+								if (a3 > 0){
+									res[rowC][d] = res[rowC][d]*(f[a3][2]-f[a3-1][2]);
+								} else {
+									res[rowC][d] = res[rowC][d]*(f[a3][2]);
+								}
+							}
+						}
+						
 					}
 				}
 			}
@@ -345,7 +406,7 @@ public class KademliaRouting {
 		double[][] res  = new double[d][this.alpha];
 		for (int i = 0; i < d; i++){
 			double p = 1-Math.pow(0.5, d-1-i);
-			double pA = Math.pow(p, this.k-this.alpha);
+			double pA = Math.pow(p, this.k[i]-this.alpha);
 			for (int j = this.alpha-1; j > -1; j--){
 				pA = pA*p;
 				res[i][j] = 1- pA;
@@ -359,6 +420,5 @@ public class KademliaRouting {
 		}
 		return res;
 	}
-	
-	
+
 }

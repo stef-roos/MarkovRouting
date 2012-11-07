@@ -1,14 +1,12 @@
 package kademliarouting;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import eclipse.Calc;
 
 import Jama.Matrix;
+import eclipse.Calc;
 
-
-public class KademliaRouting {
+public class TargetedAttack {
+	
 	int bits;
 	int alpha = 3;
 	int beta = 2;
@@ -16,6 +14,8 @@ public class KademliaRouting {
 	int n;
 	double[] notfound;
 	double[][] F;
+	double[][] attacked;
+	int a; 
 	
 	/**
 	 * 
@@ -23,12 +23,55 @@ public class KademliaRouting {
 	 * @param k
 	 * @param nodes
 	 */
-	public KademliaRouting(int bits, int k, int nodes){
+	public TargetedAttack(int bits, int k, int nodes, int a){
 		this.bits = bits;
 		this.k = k;
 		this.n = nodes;
+		this.a = a;
 		this.setNF();
 		//this.setF();
+	}
+	
+	public double getAttackEfficiency(){
+		double[] done2 = new double[this.bits];
+		//calculate matrix and dist for first step 
+		double[][] t = getTransitionFirstStep();
+		int index = this.getIndex(1, 1, 1);
+//		HashMap<Integer,int[]> map = this.map();
+//		for (int j = 0; j < t.length; j++){
+//			double sumC = 0;
+//			double sumR = 0; 
+//			for (int i = 0; i < t.length; i++){
+//				sumC = sumC + t[i][j];
+//				sumR = sumR + t[j][i];
+//			}
+//			int[] s = map.get(j);
+//			if (sumC < 0.99)
+//			System.out.println(sumC + " " + sumR + " (" + s[0] +"," + s[1]+ "," + s[2] +")");
+//		}
+		Matrix t2 = new Matrix(t);
+		Matrix probs2 = new Matrix(getInitial());
+		done2[0] = probs2.getArray()[index][0];
+		//System.out.println(done2[0]);
+		probs2 = t2.times(probs2);
+		done2[1] = probs2.getArray()[index][0];
+		//System.out.println(done2[1]);
+		//calculate matrix for later steps
+		t = this.makeTransitionMatrix();
+//		for (int j = 0; j < t[0].length; j++){
+//			double s = 0;
+//			for (int i = 0; i < t.length; i++){
+//				s = s + t[i][j];
+//			}
+//			System.out.println(s);
+//		}
+		t2 = new Matrix(t);
+		//System.out.println(t2.getColumnDimension() + " " +probs2.getRowDimension());
+		for (int i = 2; i < done2.length; i++){
+			probs2 = t2.times(probs2);
+			done2[i] = probs2.getArray()[index][0];
+		}
+		return done2[done2.length-1];
 	}
 	
 	/**
@@ -39,6 +82,7 @@ public class KademliaRouting {
 		double[] done2 = new double[this.bits];
 		//calculate matrix and dist for first step 
 		double[][] t = getTransitionFirstStep();
+		
 //		HashMap<Integer,int[]> map = this.map();
 //		for (int j = 0; j < t.length; j++){
 //			double sumC = 0;
@@ -59,6 +103,13 @@ public class KademliaRouting {
 		
 		//calculate matrix for later steps
 		t = this.makeTransitionMatrix();
+//		for (int j = 0; j < t[0].length; j++){
+//			double s = 0;
+//			for (int i = 0; i < t.length; i++){
+//				s = s + t[i][j];
+//			}
+//			System.out.println(s);
+//		}
 		t2 = new Matrix(t);
 		//System.out.println(t2.getColumnDimension() + " " +probs2.getRowDimension());
 		for (int i = 2; i < done2.length; i++){
@@ -73,10 +124,10 @@ public class KademliaRouting {
 	 * @return
 	 */
 	double[][] getInitial() {
-		double[][] res = new double[this.bits+1][1];
+		double[][] res = new double[this.bits+2][1];
 		double c=1;
 		double sum = 0;
-		for (int i = this.bits; i > 0; i--){
+		for (int i = this.bits; i > 1; i--){
 			c = c/2;
 			res[i][0] = c;
 			sum = sum + c;
@@ -93,18 +144,22 @@ public class KademliaRouting {
 	 */
 	public double[][] makeTransitionMatrix(){
 		//size of matrix
-		int l = getIndex(1,1,this.bits+1);
+		int l = getIndex(1,1,this.bits+2);
 		double[][] matrix = new double[l][l];
 		double[][] next1, next2,next3;
 		int indexC,indexR;
 		int[] next = new int[6];
+		double[][][] nexts = new double[this.bits+2][][];
+		for (int i = 0; i < nexts.length; i++){
+			nexts[i] = this.getNext(i);
+		}
 		//iterate over alpha selected contacts and get distribution of next contacts
-		for (int i1 = 0; i1 < this.bits+1; i1++){
-			next1 = getNext(i1);
-			for (int i2 = i1; i2 < this.bits+1; i2++){
-				next2 = getNext(i2);
-				for (int i3 = i2; i3 < this.bits+1; i3++){
-					next3 = getNext(i3);
+		for (int i1 = 0; i1 < this.bits+2; i1++){
+			next1 = nexts[i1];
+			for (int i2 = i1; i2 < this.bits+2; i2++){
+				next2 = nexts[i2];
+				for (int i3 = i2; i3 < this.bits+2; i3++){
+					next3 = nexts[i3];
 					indexC = getIndex(i1,i2,i3);
 					if (i1 == 0 && i3 > 0){
 						continue;
@@ -151,27 +206,50 @@ public class KademliaRouting {
 	 * @return
 	 */
 	public double[][] getNext(int d) {
-		if (d < 2){
+		if (d == 0){
 			double[][] next = new double[1][1];
 			next[0][0] = 1;
 			return next;
 		}
+		if (d == 1){
+			double[][] next = new double[2][2];
+			next[1][1] = 1;
+			return next;
+		}
+		if (d == 2){
+			double[][] next = new double[2][2];
+			next[0][0] = a < k?1:k/a;
+			next[1][1] = 1 - next[0][0];
+			return next;
+		}
 		double[][] next = new double[d][d];
-		double[][] f = getF(d);
+		double[][] f = getF(d-1);
 		//find destination
 		next[0][0] = 1- this.notfound[d-1];
-		for (int i = 1; i < d; i++){
+		next[1][1] = this.notfound[d-1]*this.attacked[d-1][1];
+		for (int j = 2; j < d; j++){
+			next[1][j] = this.notfound[d-1]*(this.attacked[d-1][0]-this.attacked[d-1][1])*(f[j-1][1] - f[j-2][1]);
+		}
+		for (int i = 2; i < d; i++){
 			for (int j = i; j < d; j++){
 				//prob first contact is at distance i
-				next[i][j] = this.notfound[d-1]*(f[i][0] - f[i-1][0]);
+				next[i][j] = this.notfound[d-1]*(1-this.attacked[d-1][0])*(f[i-1][0] - f[i-2][0]);
 				if (1 - f[i-1][1] > 0){
 					//prob first contact is at distance i*(second at distance j | first at i)
-				next[i][j] = next[i][j]*(f[j][1]-f[j-1][1])/(1-f[i-1][1]);
+				next[i][j] = next[i][j]*(f[j-1][1]-f[j-2][1])/(1-f[i-2][1]);
 				} else {
 					
 				}
 			}
 		}
+		
+//		double sum = 0;
+//		for (int i = 0; i < d; i++){
+//			for (int j = i; j < d; j++){
+//				sum = sum + next[i][j];
+//			}
+//		}
+//		System.out.println(sum + " d=" +d);
 		return next;
 	}
 	
@@ -206,19 +284,36 @@ public class KademliaRouting {
 	 * probability not to find destination for each distance
 	 */
 	private void setNF(){
-		notfound = new double[bits+1];
-		for (int i = 0; i < notfound.length; i++){
-			double p = Math.pow(0.5, this.bits-i);
-			for (int x = this.k; x < this.n-1; x++){
-				notfound[i] = Math.min(notfound[i] + getRT(x)*Calc.binomDist(this.n-2, x, p),1);
+		notfound = new double[bits+2];
+		attacked = new double[bits+2][3];
+		attacked[1][2] = a==0?0:1;
+		attacked[1][1] = a==0?0:1;
+		attacked[1][0] = a==0?0:1;
+		notfound[0] = 0;
+		notfound[1] = 1;
+		for (int i = 2; i < notfound.length; i++){
+			double p = Math.pow(0.5, this.bits-i+1);
+			for (int x = 0; x < this.n-1; x++){
+				double xp = Calc.binomDist(this.n-2, x, p);
+				if (x >= this.k-a){
+				notfound[i] = Math.min(notfound[i] + (1-k/(double)(a+x+1))*xp,1);
+				}
+				double s = 0;
+				for (int j = 0; j < 3; j++){
+					s = s + this.getRT(x+a, j);
+					//System.out.println(s);
+					attacked[i][j] = (1 -s)*xp;
+				}
 //				if (Calc.binomDist(this.n-alpha-1, x, p) > 1){
 //					System.out.println("x= " + x + " p=" + p + " " + Calc.binomDist(this.n-alpha-1, x, p));
 //				}
 			}
 		}
-//		for (int i = 0; i < this.notfound.length; i++){
-//			System.out.println("Node nf " + this.notfound[i]);
+		
+//      for (int i = 0; i < this.notfound.length; i++){
+//			//System.out.println("attacked " + this.attacked[i][0] + " " + this.attacked[i][1] + " " + this.attacked[i][2] + " ");
 //		}
+//		
 	}
 	
 //	private void setF(){
@@ -239,11 +334,9 @@ public class KademliaRouting {
 	 * @param x
 	 * @return
 	 */
-	private double getRT(int x){
-		double res = 1;
-		for (int i = 0; i < this.k; i++){
-			res = res*(double)(x-i)/(double)(x+1-i);
-		}
+	private double getRT(int x,int c){
+		if (c > a) return 0;
+		double res = (double)(Calc.binom(this.k, c)*Calc.binom(x-this.k, a-c))/(double)Calc.binom(x, a);
 		return res;
 	}
 	
@@ -301,35 +394,28 @@ public class KademliaRouting {
 	 * @return
 	 */
 	private double[][] getTransitionFirstStep(){
-		double[][] res = new double[getIndex(1,1,this.bits+1)][this.bits+1];
+		double[][] res = new double[getIndex(1,1,this.bits+2)][this.bits+2];
 		res[0][0] = 1;
-		res[0][1] = 1;
-		for (int d = 2; d < this.bits +1; d++){
-			double[][] f = this.getFFirst(d);
+		for (int d = 1; d < this.bits +2; d++){
+			double[][][] next = this.getNextFirst(d);
+			//double sum = 0;
+			
 			//probability to find target
-			res[0][d] = 1- this.notfound[d-1];
 			//iterate over all non-terminal possibilities
-			for (int a1 = 1; a1 < d; a1++){
+			for (int a1 = 0; a1 < d; a1++){
 				for (int a2 = a1; a2 < d; a2++){
 					for (int a3=a2; a3 < d; a3++){
 						int rowC = this.getIndex(a1, a2, a3);
+						//System.out.println(rowC );
 						//prob of first contact
-						res[rowC][d] = this.notfound[d-1]*(f[a1][0] - f[a1-1][0]);
-						if (1 - f[a1-1][1] > 0){
-							//*(prob of second contact | prob of first contact)
-							res[rowC][d] = res[rowC][d]*(f[a2][1]-f[a2-1][1])/(1-f[a1-1][1]);
-							} else {
-								
-							}
-						if (1 - f[a2-1][2] > 0){
-							//*(prob of third contact | prob of first and second contact)
-							res[rowC][d] = res[rowC][d]*(f[a3][2]-f[a3-1][2])/(1-f[a2-1][2]);
-							} else {
-								
-							}
+						res[rowC][d] = res[rowC][d] +next[a1][a2][a3];
+						//sum = sum + next[a1][a2][a3];
+						
 					}
 				}
 			}
+			//System.out.println("d= " + d  + " sum = " + sum);
+			
 		}
 		
 		return res;
@@ -359,6 +445,67 @@ public class KademliaRouting {
 		}
 		return res;
 	}
-	
-	
+
+	public double[][][] getNextFirst(int d) {
+		if (d == 0){
+			double[][][] next = new double[1][1][1];
+			next[0][0][0] = 1;
+			return next;
+		}
+		if (d == 1){
+			double[][][] next = new double[2][2][2];
+			next[1][1][1] = 1;
+			return next;
+		}
+		double[][][] next = new double[d][d][d];
+		double[][] f = getFFirst(d-1);
+		//find destination
+		next[0][0][0] = 1- this.notfound[d-1];
+		next[1][1][1] = this.notfound[d-1]*this.attacked[d-1][2];
+		for (int j = 2; j < d; j++){
+			next[1][1][j] = this.notfound[d-1]*(this.attacked[d-1][1]-this.attacked[d-1][2])*(f[j-1][2] - f[j-2][2]);
+		}
+		for (int i = 2; i < d; i++){
+			for (int j = i; j < d; j++){
+				//prob first contact is at distance i
+				next[1][i][j] = this.notfound[d-1]*(this.attacked[d-1][0]-this.attacked[d-1][1])*(f[i-1][1] - f[i-2][1]);
+				if (1 - f[i-1][2] > 0){
+					//prob first contact is at distance i*(second at distance j | first at i)
+				next[1][i][j] = next[1][i][j]*(f[j-1][2]-f[j-2][2])/(1-f[i-2][2]);
+				} else {
+					
+				}
+			}
+		}
+		for (int k = 2; k < d; k++){
+		for (int i = k; i < d; i++){
+			for (int j = i; j < d; j++){
+				//prob first contact is at distance i
+				next[k][i][j] = this.notfound[d-1]*(1-this.attacked[d-1][0])*(f[k-1][0] - f[k-2][0]);
+				if (1 - f[k-1][1] > 0){
+					//prob first contact is at distance i*(second at distance j | first at i)
+				next[k][i][j] = next[k][i][j]*(f[i-1][1]-f[i-2][1])/(1-f[k-2][1]);
+				} else {
+					
+				}
+				if (1 - f[i-1][2] > 0){
+					//prob first contact is at distance i*(second at distance j | first at i)
+				next[k][i][j] = next[k][i][j]*(f[j-1][2]-f[j-2][2])/(1-f[i-2][2]);
+				} else {
+					
+				}
+			}
+		}
+		}
+//		double sum = 0;
+//		for (int k = 0; k < d; k++){
+//			for (int i = k; i < d; i++){
+//				for (int j = i; j < d; j++){
+//					sum = sum + next[k][i][j];
+//				}
+//			}
+//		}
+//		System.out.println("d= " + d  + " sum = " + sum);
+		return next;
+	}
 }

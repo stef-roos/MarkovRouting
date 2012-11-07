@@ -1,18 +1,55 @@
+/* ===========================================================
+ * GTNA : Graph-Theoretic Network Analyzer
+ * ===========================================================
+ *
+ * (C) Copyright 2009-2011, by Benjamin Schiller (P2P, TU Darmstadt)
+ * and Contributors
+ *
+ * Project Info:  http://www.p2p.tu-darmstadt.de/research/gtna/
+ *
+ * GTNA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GTNA is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * ---------------------------------------
+ * KademilaFile2.java
+ * ---------------------------------------
+ * (C) Copyright 2009-2011, by Benjamin Schiller (P2P, TU Darmstadt)
+ * and Contributors 
+ *
+ * Original Author: stef;
+ * Contributors:    -;
+ *
+ * Changes since 2011-05-17
+ * ---------------------------------------
+ *
+ */
 package kademliarouting;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import eclipse.Calc;
 
 import Jama.Matrix;
+import eclipse.Calc;
 
-
-public class KademliaRouting {
+/**
+ * @author stef
+ *
+ */
+public class KademliaFile2 {
+	
 	int bits;
 	int alpha = 3;
 	int beta = 2;
-	int k;
+	int[] k;
 	int n;
 	double[] notfound;
 	double[][] F;
@@ -23,9 +60,47 @@ public class KademliaRouting {
 	 * @param k
 	 * @param nodes
 	 */
-	public KademliaRouting(int bits, int k, int nodes){
+	public KademliaFile2(int bits, int[] k, int nodes){
 		this.bits = bits;
 		this.k = k;
+		this.n = nodes;
+		this.setNF();
+		//this.setF();
+	}
+	
+	/**
+	 * 
+	 * @param bits: bits the system uses
+	 * @param k
+	 * @param nodes
+	 */
+	public KademliaFile2(int bits, int nodes){
+		this.bits = bits;
+		this.k = new int[bits+1];
+		for (int i = 0; i < this.k.length-4; i++){
+			k[i] = 8;
+		}
+		k[k.length-4] = 16;
+		k[k.length-3] = 32;
+		k[k.length-2] = 64;
+		k[k.length-1] = 128;
+		this.n = nodes;
+		this.setNF();
+		//this.setF();
+	}
+	
+	/**
+	 * 
+	 * @param bits: bits the system uses
+	 * @param k
+	 * @param nodes
+	 */
+	public KademliaFile2(int bits, int nodes, int k1){
+		this.bits = bits;
+		this.k = new int[bits+1];
+		for (int i = 0; i < this.k.length; i++){
+			k[i] = k1;
+		}
 		this.n = nodes;
 		this.setNF();
 		//this.setF();
@@ -151,7 +226,7 @@ public class KademliaRouting {
 	 * @return
 	 */
 	public double[][] getNext(int d) {
-		if (d < 2){
+		if (d < 5){
 			double[][] next = new double[1][1];
 			next[0][0] = 1;
 			return next;
@@ -186,7 +261,7 @@ public class KademliaRouting {
 		for (int i = 0; i < d; i++){
 			double p = 1-Math.pow(0.5, d-1-i);
 			//prob for beta-th contact 
-			double pA = Math.pow(p, this.k-this.beta);
+			double pA = Math.pow(p, this.k[i]-this.beta);
 			for (int j = this.beta-1; j > -1; j--){
 				pA = pA*p;
 				res[i][j] = 1- pA;
@@ -206,19 +281,18 @@ public class KademliaRouting {
 	 * probability not to find destination for each distance
 	 */
 	private void setNF(){
-		notfound = new double[bits+1];
+		notfound = new double[bits];
 		for (int i = 0; i < notfound.length; i++){
 			double p = Math.pow(0.5, this.bits-i);
-			for (int x = this.k; x < this.n-1; x++){
-				notfound[i] = Math.min(notfound[i] + getRT(x)*Calc.binomDist(this.n-2, x, p),1);
+			for (int x = this.k[i+1]+1; x < this.n; x++){
+				notfound[i] = Math.min(notfound[i] + (1-k[i+1]/(double)(x))*Calc.binomDist(this.n-1, x, p),1);
+				
 //				if (Calc.binomDist(this.n-alpha-1, x, p) > 1){
 //					System.out.println("x= " + x + " p=" + p + " " + Calc.binomDist(this.n-alpha-1, x, p));
 //				}
 			}
 		}
-//		for (int i = 0; i < this.notfound.length; i++){
-//			System.out.println("Node nf " + this.notfound[i]);
-//		}
+		
 	}
 	
 //	private void setF(){
@@ -239,9 +313,9 @@ public class KademliaRouting {
 	 * @param x
 	 * @return
 	 */
-	private double getRT(int x){
+	private double getRT(int x, int l){
 		double res = 1;
-		for (int i = 0; i < this.k; i++){
+		for (int i = 0; i < l; i++){
 			res = res*(double)(x-i)/(double)(x+1-i);
 		}
 		return res;
@@ -345,7 +419,7 @@ public class KademliaRouting {
 		double[][] res  = new double[d][this.alpha];
 		for (int i = 0; i < d; i++){
 			double p = 1-Math.pow(0.5, d-1-i);
-			double pA = Math.pow(p, this.k-this.alpha);
+			double pA = Math.pow(p, this.k[i]-this.alpha);
 			for (int j = this.alpha-1; j > -1; j--){
 				pA = pA*p;
 				res[i][j] = 1- pA;
@@ -359,6 +433,5 @@ public class KademliaRouting {
 		}
 		return res;
 	}
-	
-	
+
 }
