@@ -12,11 +12,12 @@ public class MainKadTypeR {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		double[] kadfile = (new KademliaFile2(15,1000,8)).getRoutingCDF();
-		double[] kad = (new KademliaFileUniform(15,8,1000)).getRoutingCDF();
-		for (int i = 0; i < kadfile.length; i++){
-			System.out.println(i + " " +kadfile[i] + " " +kad[i]);
-		}
+		System.out.println(getExpectedNeighbors(1000,8,160));
+//		double[] kadfile = (new KademliaFile2(15,1000,8)).getRoutingCDF();
+//		double[] kad = (new KademliaFileUniform(15,8,1000)).getRoutingCDF();
+//		for (int i = 0; i < kadfile.length; i++){
+//			System.out.println(i + " " +kadfile[i] + " " +kad[i]);
+//		}
 //		//int k = Integer.parseInt(args[0]);
 //		int n = Integer.parseInt(args[0]);
 //		int bits = Math.max((int)(Math.log(n)/Math.log(2)) + 2,10);
@@ -84,6 +85,22 @@ public class MainKadTypeR {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static double getExpectedNeighbors(int n, int k, int b){
+		double p = 0.5;
+		double exp = 0;
+		for (int i = 0; i < b; i++){
+			double sum = Calc.binomDist(n-1, 0, p);
+			for (int j = 1; j < k+1; j++){
+				exp = exp + 1 - sum;
+				sum = sum + Calc.binomDist(n-1, j, p);
+			}
+			p = p*0.5;
+			System.out.println(exp + " " +i);
+		}
+		
+		return exp;
 	}
 
 }
