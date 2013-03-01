@@ -14,31 +14,44 @@ public class MainChord {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		int type = Integer.parseInt(args[0]);
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(args[1]));
-			double[] cdf;
-		    for (int i = 1; i < 101; i++){
-			  int n = i*100;
-			  
-			  int b = (int)Math.ceil(Math.log(n)/Math.log(2))+1;
-			  System.out.println(n + " " + b);
-			  switch (type) {
-			  case 0: cdf = ChordFile.getRoutingCDF(b, n);
-			         break;
-			  case 1: cdf = ChordFileExt.getRoutingCDF(b, n);
-		         break;   
-		      default: cdf = ExactChordRouting.getRoutingCDFNode(b,n);   
-			  }
-			  bw.write(n + " " + Calc.getEx(cdf));
-			  bw.newLine();
-		    }
-		    bw.flush();
-		    bw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		System.out.println(Math.pow(14/(double)16, 4));
+//		double[][] t = ExactChordRouting.getTransitionMatrixNode(4, 6);
+//		for (int i = 0; i < t.length; i++){
+//			String line = "" +t[i][0];
+//			for (int j = 1; j < t.length; j++){
+//				line = line +  " & " + (double)Math.round(t[i][j]*100)/100;
+//			}
+//			System.out.println(line + " \\\\");
+//		}
+//		int type = Integer.parseInt(args[0]);
+//		int extrabits = Integer.parseInt(args[2]);
+//		int upto = Integer.parseInt(args[3]);
+//		int step = Integer.parseInt(args[4]);
+//		try {
+//			BufferedWriter bw = new BufferedWriter(new FileWriter(args[1]));
+//			double[] cdf;
+//			int n = 0;
+//		    for (int i = 1; i <= upto/step; i++){
+//			  n = n + step;
+//			  
+//			  int b = (int)Math.ceil(Math.log(n)/Math.log(2))+extrabits;
+//			  System.out.println(n + " " + b);
+//			  switch (type) {
+//			  case 0: cdf = ChordFile.getRoutingCDF(b, n);
+//			         break;
+//			  case 1: cdf = ChordFileExt.getRoutingCDF(b, n);
+//		         break;   
+//		      default: cdf = ExactChordRouting.getRoutingCDFNode(b,n);   
+//			  }
+//			  bw.write(n + " " + Calc.getEx(cdf));
+//			  bw.newLine();
+//		    }
+//		    bw.flush();
+//		    bw.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 //		try {
 //			BufferedWriter bw = new BufferedWriter(new FileWriter("attacksIncluded.txt"));
