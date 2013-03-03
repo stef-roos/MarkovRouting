@@ -1,17 +1,19 @@
 package kadtype;
 
+import java.util.Arrays;
+
 public abstract class KadType {
-	private int b;
-	private int alpha;
-	private int beta;
-	private int[] k;
-	private double[][] l;
+	protected int b;
+	protected int alpha;
+	protected int beta;
+	protected int[] k;
+	protected double[][] l;
 	//type of L: only one case matrix or a special case e.g. kad
 	public static enum LType{
 		SIMPLE, SPECIAL, ALL
 	}
-	private LType ltype;
-	private double[] success;
+	protected LType ltype;
+	protected double[] success;
 	
 	public KadType(int b, int alpha, int beta, int[] k, double[][] l, LType ltype){
 		this.b = b;
@@ -57,7 +59,7 @@ public abstract class KadType {
 	}
 	
 	public double[][] getT1(int n){
-		double[] lookup = new double[alpha];
+		int[] lookup = new int[alpha];
 		lookup[0] = b+1;
 		double[][] t = new double[getIndex(lookup)][b+1];
 		for (int d= 0; d <= this.b; d++){
@@ -74,7 +76,7 @@ public abstract class KadType {
 
 
 	public double[][] getT2(int n){
-		double[] lookup = new double[alpha];
+		int[] lookup = new int[alpha];
 		lookup[0] = b+1;
 		int index = getIndex(lookup);
 		double[][] t = new double[index][index];
@@ -88,7 +90,7 @@ public abstract class KadType {
 	 * @param state (s_1,...,s_alpha)
 	 * @return
 	 */
-	protected abstract int getIndex(double[] lookups);
+	protected abstract int getIndex(int[] lookups);
 	
 	/**
 	 * compute a vector of the probabilities that a node at dist d
@@ -151,10 +153,41 @@ public abstract class KadType {
 	 */
    protected abstract double[][] getCDFs(int d, int c);
    
+   /**
+    * fill matrix t according to cdfs
+    * @param cdfs: cumulative distribution functions over next values
+    * @param t: transition matrix
+    * @param indexOld: index of the previous state
+    * @param mindist: closest contact in previous step
+    */
    protected abstract void processCDFs(double[][] cdfs, double[][] t, int indexOld, int mindist);
 	
+   /**
+    * construct the transition matrix for the second step
+    * @param n: #nodes
+    * @param t2: transition matrix
+    */
   protected abstract void constructT2(int n, double[][] t2);	
 	 
+  /**
+   * get lowest alpha values in vals
+   * @param vals
+   * @return
+   */
+  protected int[] topAlpha(int[][] vals){
+	  int[] top = new int[this.alpha];
+	  int[] all = new int[this.alpha*beta];
+	  for (int a = 0; a < vals.length; a++){
+		  for (int b = 0; b < beta; b++){
+			  all[a*beta+b] = vals[a][b];
+		  }
+	  }
+	  Arrays.sort(all);
+	  for (int i = 0; i < top.length; i++){
+		  top[i] = all[i];
+	  }
+	  return top;
+  }
 	
 	//STATIC methods for matrix computations
     
