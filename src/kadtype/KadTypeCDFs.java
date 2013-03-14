@@ -199,6 +199,13 @@ public abstract class KadTypeCDFs extends KadType {
 		    	res[i][0] = 1 - diff*(1-p);
 		    	p = p*0.5;
 		    }
+		    for (int i = 0; i < res.length-1; i++){
+		    	for (int j = 0; j < res[i].length; j++){
+		    		if (!(res[i][j]< 1)){
+		    			System.out.println(res[i][j]);
+		    		}
+		    	}
+		    }
 		    return res;
 		}  
 		if (this.ltype == LType.ALL){
