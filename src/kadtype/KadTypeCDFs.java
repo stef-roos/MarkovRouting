@@ -8,12 +8,38 @@ package kadtype;
 
 public abstract class KadTypeCDFs extends KadType {
 
+	/**
+	 * constructor: see super
+	 * @param b
+	 * @param alpha
+	 * @param beta
+	 * @param k
+	 * @param l
+	 * @param ltype
+	 */
 	public KadTypeCDFs(int b, int alpha, int beta, int[] k, double[][] l,
 			LType ltype) {
 		super(b, alpha, beta, k, l, ltype);
 	}
 	
+	public KadTypeCDFs(int b, int alpha, int beta, int k, double[][] l,
+			LType ltype) {
+		super(b, alpha, beta, k, l, ltype);
+	}
+	
+	/**
+	 * constructor: see super
+	 * @param b
+	 * @param alpha
+	 * @param beta
+	 * @param k
+	 * @param l
+	 */
 	public KadTypeCDFs(int b, int alpha, int beta, int[] k, int l) {
+		super(b, alpha, beta, k, l);
+	}
+	
+	public KadTypeCDFs(int b, int alpha, int beta, int k, int l) {
 		super(b, alpha, beta, k, l);
 	}
 
@@ -28,18 +54,33 @@ public abstract class KadTypeCDFs extends KadType {
 		
 	}
 	
+	/**
+	 * index for alpha=3
+	 * index(a,b,c) = c(c+1)(2c+1)/12+b(b+1)/2+a+1
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @return
+	 */
     private int getIndexThree(int a, int b, int c){
     	int index = (int) Math.round(0.5 * c * (c + 1)
 				* ((double) (2 * c + 1) / (double) 6 + 0.5));
-		index = index + (int) Math.round(0.5 * b * (b + 1)) + a + 1;
+		index = index + (int) Math.round(0.5 * b * (b + 1)) + a+1;
 		return index;
 	}
     
+    /**
+     * index for alpha=4
+     * @param a
+     * @param b
+     * @param c
+     * @param d
+     * @return
+     */
     private int getIndexFour(int a, int b, int c, int d){
-    	int index = (int) Math.pow(Math.round(0.5 * d * (d + 1)),2);
-    	index = index +(int) Math.round(0.5 * c * (c + 1)
-				* ((double) (2 * c + 1) / (double) 6 + 0.5));
-		index = index + (int) Math.round(0.5 * b * (b + 1)) + a + 1;
+    	int index = (int)(Math.pow(d*(d+1)*0.5,2)/6.0 + 7.0/12.0*d*(d+1)*(2*d+1)/6.0
+    			+ d*(d+1)/6.0);
+    	index = index + this.getIndexThree(a, b, c);
 		return index;
 	}
 
@@ -64,6 +105,11 @@ public abstract class KadTypeCDFs extends KadType {
 		}
 	}
 
+	/**
+	 * cdf for distance after next step for one returned values
+	 * @param d
+	 * @return
+	 */
 	private double[][] getCDFsOne(int d){
 		if (this.ltype == LType.SIMPLE){
 			int digit = (int)this.l[0][0];
@@ -94,6 +140,11 @@ public abstract class KadTypeCDFs extends KadType {
 		return null;
 	}
 	
+	/**
+	 * cdf for distance after next step for two returned values
+	 * @param d
+	 * @return
+	 */
 	private double[][] getCDFsTwo(int d){
 		if (this.ltype == LType.SIMPLE){
 			int digit = (int)this.l[0][0];
@@ -102,6 +153,7 @@ public abstract class KadTypeCDFs extends KadType {
 			}
 		    double[][] res = new double[d-digit+1][2];
 		    double p = 1;
+		    //probability prop to fraction of remaining ID space size
 		    for (int i = res.length-1; i > -1; i--){
 		    	res[i][0] = 1 - Math.pow(1-p, this.k[d]);
 		    	res[i][1] = 1 - Math.pow(1-p, this.k[d]-1);
@@ -126,6 +178,11 @@ public abstract class KadTypeCDFs extends KadType {
 		return null;
 	}
 	
+	/**
+	 * cdf for distance after next step for three returned values
+	 * @param d
+	 * @return
+	 */
 	private double[][] getCDFsThree(int d){
 		if (this.ltype == LType.SIMPLE){
 			int digit = (int)this.l[0][0];
@@ -151,7 +208,7 @@ public abstract class KadTypeCDFs extends KadType {
 		      double p = 1;
 		      for (int i = res.length-a; i > -1; i--){
 		    	  double diff = Math.pow(1-p, this.k[d]-2);
-			    	res[i][2*d+a+1] = 1 - diff;
+			    	res[i][2*d+a-1] = 1 - diff;
 			    	diff = diff*(1-p);
 			    	res[i][d+a-1] = 1 - diff;
 			    	res[i][a-1] = 1 - diff*(1-p);
@@ -164,6 +221,11 @@ public abstract class KadTypeCDFs extends KadType {
 		return null;
 	}
 	
+	/**
+	 * cdf for distance after next step for four returned values
+	 * @param d
+	 * @return
+	 */
 	private double[][] getCDFsFour(int d){
 		if (this.ltype == LType.SIMPLE){
 			int digit = (int)this.l[0][0];
@@ -191,9 +253,9 @@ public abstract class KadTypeCDFs extends KadType {
 		      double p = 1;
 		      for (int i = res.length-a; i > -1; i--){
 		    	  double diff = Math.pow(1-p, this.k[d]-3);
-		    	  res[i][3*d+a+1] = 1 - diff;
+		    	  res[i][3*d+a-1] = 1 - diff;
 			    	diff = diff*(1-p);
-			    	res[i][2*d+a+1] = 1 - diff;
+			    	res[i][2*d+a-1] = 1 - diff;
 			    	diff = diff*(1-p);
 			    	res[i][d+a-1] = 1 - diff;
 			    	res[i][a-1] = 1 - diff*(1-p);
