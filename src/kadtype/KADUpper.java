@@ -1,10 +1,8 @@
 package kadtype;
 
-import kadtype.KadType.LType;
+public class KADUpper extends Alpha3Beta2Upper {
 
-public class KADLower extends Alpha3Beta2Lower {
-
-	public KADLower(int b) {
+	public KADUpper(int b) {
 		super(b, 10, makeL(b), LType.ALL);
 		// TODO Auto-generated constructor stub
 	}
