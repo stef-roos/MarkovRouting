@@ -11,6 +11,15 @@ public abstract class KadLower extends KadTypeCDFs {
 		super(b, alpha, beta, k, l);
 	}
 	
+	public KadLower(int b, int alpha, int beta, int k, double[][] l,
+			LType ltype) {
+		super(b, alpha, beta, k, l, ltype);
+	}
+
+	public KadLower(int b, int alpha, int beta, int k, int l) {
+		super(b, alpha, beta, k, l);
+	}
+	
 	protected void makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
 		int[][] max = new int[d1][2];
 		for (int i=0; i < d1; i++){
@@ -33,14 +42,18 @@ public abstract class KadLower extends KadTypeCDFs {
 	
 	protected void recusivecombine(int[][] returned, double[][] t, int index, 
 			int a, int c, int n, int[][] max, boolean[][] contain, double p){
-		while (a < this.alpha && (returned[a][c] > max.length-1 || max[returned[a][c]][0] == a)){
-			if (max[returned[a][c]][0] == a){
+		while (a < this.alpha && 
+				(returned[a][c] > max.length-1 
+						|| max[returned[a][c]][0] == a)){
+			if (returned[a][c] < max.length){
 				contain[a][c] = true;
 			}else {
 				contain[a][c] = false;
 			}
-			a = (a*this.alpha+c+1)/this.alpha;
-			c = (a*this.alpha+c+1) % this.alpha;
+			int anew = (a*this.beta+c+1)/this.beta;
+			c = (a*this.beta+c+1) % this.beta;
+			a = anew;
+			//System.out.println("a= " + a + " c= " + c + " returned-length " + returned.length);
 		}
 		if (a < this.alpha){
 			//compute p'
@@ -67,8 +80,8 @@ public abstract class KadLower extends KadTypeCDFs {
 				pdash = pdash + binom*m/(double)(m+count);
 				binom = binom*(ndash-m-1)/(double)(m+1)*prob/(1-prob); 
 			}
-			int adash = (a*this.alpha+c+1)/this.alpha;
-			int cdash = (a*this.alpha+c+1) % this.alpha;
+			int adash = (a*this.beta+c+1)/this.beta;
+			int cdash = (a*this.beta+c+1) % this.beta;
 			contain[a][c] = true;
 			this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*pdash);
 			contain[a][c] = false;

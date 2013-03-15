@@ -93,6 +93,7 @@ public abstract class KadType {
 		dist = matrixMulti(m,dist);
 		cdf[1] = dist[0];
 		m = getT2(n);
+		
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];
@@ -130,9 +131,11 @@ public abstract class KadType {
 		for (int d= 0; d <= this.b; d++){
 			t[0][d] = this.success[d];
 			//distributions over the other distances
+			if (t[0][d] < 1){
 			double[][] fd = this.getCDFs(d,alpha);
 			//compute other entries of t_1
 			processCDFsT1(fd,t,d,d);
+			}
 		}
 		
 		return t;
@@ -148,6 +151,7 @@ public abstract class KadType {
 		lookup[alpha-1] = b+1;
 		int index = getIndex(lookup);
 		double[][] t = new double[index][index];
+		t[0][0] = 1;
 		int[] old = new int[this.alpha];
 		constructT2(n,t,old,0);
 		return t;
@@ -169,6 +173,7 @@ public abstract class KadType {
 	 */
 	protected void setSuccess(int n) {
 		this.success = new double[this.b+1];
+		this.success[0] = 1;
 		if (this.ltype == LType.SIMPLE){
 			//case: always resolve by constant l more steps
 			int m = (int)l[0][0];
@@ -267,6 +272,7 @@ public abstract class KadType {
 		 }
 		 int oldindex = this.getIndex(old);
 		 t2[0][oldindex] = 1-nsucc;
+		 if (nsucc > 0)
 		 this.processCDFsT2(n, t2, old, oldindex,nsucc);
 	  }
   }
