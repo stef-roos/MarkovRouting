@@ -1,6 +1,7 @@
 package kadtype;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 public abstract class KadType {
 	protected int b;
@@ -87,13 +88,43 @@ public abstract class KadType {
 //			double sum = 0;
 //			for (int i = 0; i < m.length; i++){
 //				sum = sum + m[i][j];
+//				
 //			}
 //			System.out.println(sum);
 //		}
 		dist = matrixMulti(m,dist);
 		cdf[1] = dist[0];
 		m = getT2(n);
+//		HashMap<Integer, int[]> map = new HashMap<Integer, int[]>();
+//		for (int i = 0; i < this.b+1; i++){
+//			for (int j = i; j < this.b+1; j++){
+//				for (int k = j; k < this.b+1; k++){
+//					int[] lookup = {i,j,k};
+//					map.put(getIndex(lookup), lookup);
+//				}
+//			}
+//		}
+//		int[] lookup = {0,0,this.b+1};
+		//int count = this.getIndex(lookup);
 		
+		
+//		double sum = 0;
+//		for (int i = 0; i < m.length; i++){
+//			sum = sum + m[i][0];
+//		}
+//		System.out.println(sum);
+//		for (int j = 0; j < m[0].length; j++){
+//		double sum = 0;
+//		for (int i = 0; i < m.length; i++){
+//			sum = sum + m[i][j];
+//			
+//		}
+//		if (sum > 0.999) {
+//			int[] look = map.get(j);
+//			if (look != null && look[0] != 0)
+//		System.out.println(sum + " " +j + " ["+look[0]+","+look[1]+","+look[2]+"]");
+//		}
+//	   }
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];
@@ -203,7 +234,7 @@ public abstract class KadType {
 			for (int m = 0; m < l.length; m++){
 				double[] p = new double[b+1];
 				p[0] = 0;
-				double q = Math.pow(2, -m);
+				double q = Math.pow(2, -m-1);
 				for (int d=b; d > 0;d--){
 					p[d] = q;
 					q = q*0.5;
@@ -231,6 +262,13 @@ public abstract class KadType {
 		this.cdfs = new double[b+1][][];
 		for (int i = 0; i < cdfs.length; i++){
 			this.cdfs[i] = this.getCDFs(i, this.beta);
+//			for (int j = 0; j < this.cdfs[i].length-1; j++){
+//				for (int k = 0; k < this.cdfs[i][j].length; k++){
+//				if (!(this.cdfs[i][j][k] < 1)){
+//					System.out.println(this.cdfs[i][j][k]  + " i="+i+" j="+j+" k="+k);
+//				}
+//				}
+//			}
 		}
 	}
 	 
@@ -312,12 +350,16 @@ public abstract class KadType {
 	  double p = returned[0]==0?cdf[0][0]:cdf[returned[0]][0]-cdf[returned[0]-1][0];
 	  for (int i = 1; i < returned.length; i++){
 		  double q = returned[i]==0?cdf[0][i]:cdf[returned[i]][i]-cdf[returned[i]-1][i];
-		  p = returned[i-1]==0?(p * q):(p*q/(1-cdf[returned[i-1]-1][i]));
-		  if (!(p <= 1)){
-			 System.out.println(p + " i="+i+": "+returned[i] + " cdf " +cdf[returned[i]][i]);
+		  if (returned[i-1] == 0){
+			  p = p*q;
+		  } else {
+			  if (cdf[returned[i-1]-1][i] >= 1){
+				  return 0;
+			  } else {
+				  p = p*q/(1-cdf[returned[i-1]-1][i]);
+			  }
 		  }
 	  }
-	  
 	  return p;
   }
   
@@ -339,10 +381,27 @@ public abstract class KadType {
   protected double getProb(int[] returned, double[][] cdf, int l){
 	  int d = cdf.length;
 	  double p = returned[0]==0?cdf[0][l-1]:cdf[returned[0]][l-1]-cdf[returned[0]-1][l-1];
+//	  if (p < 0.0){
+//		  System.out.println(p +  " d= " + d + " l="+l +" returned");
+//	  }
 	  for (int i = 1; i < returned.length; i++){
 		  double q = returned[i]==0?cdf[0][i*d+l-1]:cdf[returned[i]][i*d+l-1]-cdf[returned[i]-1][i*d+l-1];
-		  p = returned[i-1]==0?(p * q):(p*q/(1-cdf[returned[i-1]-1][i*d+l-1]));
-	  }
+//		  if (q < 0.0){
+//			  System.out.println(q +  " d= " + d + " l="+l );
+//		  }
+		  if (returned[i-1]==0){
+			  p = p*q;
+		  } else {
+			  if (cdf[returned[i-1]-1][i*d+l-1] >= 1){
+				  return 0;
+			  } else {
+				  p = p*q/(1-cdf[returned[i-1]-1][i*d+l-1]);
+			  }
+		  }
+      }
+//	  if (p < 0){
+//	  System.out.println(p +  " returned: 0: " + returned[0] + " 1: " + returned[1] );
+//  }
 	  return p;
   }
   
@@ -352,8 +411,19 @@ public abstract class KadType {
 	  for (int i = 1; i < returned.length; i++){
 		  double q = returned[i]==0?this.cdfs[nr][0][i]:
 			  this.cdfs[nr][returned[i]][i]-this.cdfs[nr][returned[i]-1][i];
-		  p = returned[i-1]==0?(p * q):(p*q/(1-this.cdfs[nr][returned[i-1]-1][i]));
+		  if (returned[i-1] == 0){
+			  p = p*q;
+		  } else {
+			  if (this.cdfs[nr][returned[i-1]-1][i] >= 1){
+				  return 0;
+			  } else {
+				  p = p*q/(1-this.cdfs[nr][returned[i-1]-1][i]);
+			  }
+		  }
 	  }
+//	  if (!(p <= 1) && (returned[0] < nr-1 || returned[1] < nr-1)){
+//		  System.out.println(p + " nr= " + nr + " returned: 0: " + returned[0] + " 1: " + returned[1] );
+//	  }
 	  return p;
   }
   
@@ -364,7 +434,15 @@ public abstract class KadType {
 	  for (int i = 1; i < returned.length; i++){
 		  double q = returned[i]==0?this.cdfs[nr][0][i*d+l-1]:
 			  this.cdfs[nr][returned[i]][i*d+l-1]-this.cdfs[nr][returned[i]-1][i*d+l-1];
-		  p = returned[i-1]==0?(p * q):(p*q/(1-this.cdfs[nr][returned[i-1]-1][i*d+l-1]));
+		  if (returned[i-1]==0){
+			  p = p*q;
+		  } else {
+			  if (this.cdfs[nr][returned[i-1]-1][i*d+l-1] >= 1){
+				  return 0;
+			  } else {
+				  p = p*q/(1-this.cdfs[nr][returned[i-1]-1][i*d+l-1]);
+			  }
+		  }
 	  }
 	  return p;
   }
@@ -380,6 +458,8 @@ public abstract class KadType {
     	}
     	return res;
     }
+    
+    
 
     
 }

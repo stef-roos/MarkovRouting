@@ -12,7 +12,10 @@ public class MainKadTypeR {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		System.out.println(getExpectedNeighbors(1000,8,160));
+		double[] kad= (new KademliaRouting(10,8,100)).getRoutingCDF();
+		for (int i = 0; i < kad.length; i++){
+			System.out.println(i  + " " +kad[i]);
+		}
 //		double[] kadfile = (new KademliaFile2(15,1000,8)).getRoutingCDF();
 //		double[] kad = (new KademliaFileUniform(15,8,1000)).getRoutingCDF();
 //		for (int i = 0; i < kadfile.length; i++){

@@ -78,7 +78,7 @@ public abstract class KadTypeCDFs extends KadType {
      * @return
      */
     private int getIndexFour(int a, int b, int c, int d){
-    	int index = (int)(Math.pow(d*(d+1)*0.5,2)/6.0 + 7.0/12.0*d*(d+1)*(2*d+1)/6.0
+    	int index = (int)(Math.pow(d*(d+1)*0.5,2)/6.0 + 6.0/12.0*d*(d+1)*(2*d+1)/6.0
     			+ d*(d+1)/6.0);
     	index = index + this.getIndexThree(a, b, c);
 		return index;
@@ -133,6 +133,9 @@ public abstract class KadTypeCDFs extends KadType {
 		    	res[i][a-1] = 1 - Math.pow(1-p, this.k[d]);
 		    	p = p*0.5;
 		      }
+		      for (int i = res.length-a+1; i < res.length; i++){
+			    	res[i][a-1] = 1;
+		     }
 			 }
 			}
 		    return res;
@@ -171,6 +174,10 @@ public abstract class KadTypeCDFs extends KadType {
 		    	res[i][d + a-1] = 1 - Math.pow(1-p, this.k[d]-1);
 		    	p = p*0.5;
 		      }
+		      for (int i = res.length-a+1; i < res.length; i++){
+		    	  res[i][d+a-1] = 1;
+			    	res[i][a-1] = 1;
+		     }
 			 }
 			}
 		    return res;
@@ -199,13 +206,6 @@ public abstract class KadTypeCDFs extends KadType {
 		    	res[i][0] = 1 - diff*(1-p);
 		    	p = p*0.5;
 		    }
-		    for (int i = 0; i < res.length-1; i++){
-		    	for (int j = 0; j < res[i].length; j++){
-		    		if (!(res[i][j]< 1)){
-		    			System.out.println(res[i][j]);
-		    		}
-		    	}
-		    }
 		    return res;
 		}  
 		if (this.ltype == LType.ALL){
@@ -221,6 +221,11 @@ public abstract class KadTypeCDFs extends KadType {
 			    	res[i][a-1] = 1 - diff*(1-p);
 			    	p = p*0.5;
 		      }
+		      for (int i = res.length-a+1; i < res.length; i++){
+		    	  res[i][2*d+a-1] = 1;
+			      res[i][d+a-1] = 1;
+			    	res[i][a-1] = 1;
+		     }
 			 }
 			}
 		    return res;
@@ -268,6 +273,12 @@ public abstract class KadTypeCDFs extends KadType {
 			    	res[i][a-1] = 1 - diff*(1-p);
 			    	p = p*0.5;
 		      }
+		      for (int i = res.length-a+1; i < res.length; i++){
+		    	  res[i][3*d+a-1] = 1;
+		    	  res[i][2*d+a-1] = 1;
+			      res[i][d+a-1] = 1;
+			    	res[i][a-1] = 1;
+		     }
 			 }
 			}
 		    return res;

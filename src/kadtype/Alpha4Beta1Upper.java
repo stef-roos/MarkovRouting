@@ -64,7 +64,7 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 					for (int k1 = 0; k1 < this.cdfs[old[2]].length; k1++) {
 						returned[2][0] = k1;
 						double p3 = this.getProb(returned[2], old[2]);
-						for (int m1 = 0; m1 < this.cdfs[old[2]].length; m1++) {
+						for (int m1 = 0; m1 < this.cdfs[old[3]].length; m1++) {
 							returned[3][0] = m1;
 							double p4 = this.getProb(returned[3], old[3]);
 							int[] next = this.topAlpha(returned);
@@ -83,7 +83,7 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 				}
 				for (int i1 = 0; i1 < this.cdfs[old[0]].length; i1++) {
 					returned[0][0] = i1;
-					double p1 = this.getProb(returned[0], old[0])
+					double p1 = this.getProb(returned[0], old[0],a1)
 							* l[old[0]][a1];
 					for (int a2 = 1; a2 <= old[1]; a2++) {
 						if (l[old[1]][a2] == 0) {
@@ -91,7 +91,7 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 						}
 						for (int j1 = 0; j1 < this.cdfs[old[1]].length; j1++) {
 							returned[1][0] = j1;
-							double p2 = this.getProb(returned[1], old[1])
+							double p2 = this.getProb(returned[1], old[1],a2)
 									* l[old[1]][a2];
 							for (int a3 = 1; a3 <= old[2]; a3++) {
 								if (l[old[2]][a3] == 0) {
@@ -100,7 +100,7 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 								for (int k1 = 0; k1 < this.cdfs[old[2]].length; k1++) {
 									returned[2][0] = k1;
 									double p3 = this.getProb(returned[2],
-											old[2]) * l[old[2]][a3];
+											old[2],a3) * l[old[2]][a3];
 									for (int a4 = 1; a4 <= old[3]; a4++) {
 										if (l[old[2]][a4] == 0) {
 											continue;
@@ -108,8 +108,8 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 										for (int m1 = 0; m1 < this.cdfs[old[3]].length; m1++) {
 											returned[3][0] = m1;
 											double p4 = this.getProb(
-													returned[2], old[2])
-													* l[old[2]][a3];
+													returned[3], old[3],a4)
+													* l[old[3]][a4];
 											int[] next = this
 													.topAlpha(returned);
 											int newindex = this.getIndex(next);

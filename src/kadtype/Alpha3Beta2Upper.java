@@ -88,7 +88,7 @@ public class Alpha3Beta2Upper extends KadTypeCDFs{
 						returned[0][0] = i1;
 						for (int i2 = i1; i2 < this.cdfs[old[0]].length; i2++){
 							returned[0][1] = i2;
-							   double p1 = this.getProb(returned[0], old[0])*l[old[0]][a1];
+							   double p1 = this.getProb(returned[0], old[0],a1)*l[old[0]][a1];
 							   for (int a2= 1; a2 <= old[1]; a2++){
 								   if (l[old[1]][a2] == 0){
 									   continue;
@@ -97,7 +97,7 @@ public class Alpha3Beta2Upper extends KadTypeCDFs{
 								returned[1][0] = j1;
 								for (int j2 = j1; j2 < this.cdfs[old[1]].length; j2++){
 									returned[1][1] = j2;
-									double p2 = this.getProb(returned[1], old[1])*l[old[1]][a2];
+									double p2 = this.getProb(returned[1], old[1],a2)*l[old[1]][a2];
 									for (int a3 = 1; a3 <= old[2]; a3++){
 										if (l[old[2]][a3] == 0){
 											continue;
@@ -106,7 +106,7 @@ public class Alpha3Beta2Upper extends KadTypeCDFs{
 										returned[2][0] = k1;
 										for (int k2 = k1; k2 < this.cdfs[old[2]].length; k2++){
 											returned[2][1] = k2;
-											double p3 = this.getProb(returned[2], old[2])*l[old[2]][a3];;
+											double p3 = this.getProb(returned[2], old[2],a3)*l[old[2]][a3];;
 											int[] next = this.topAlpha(returned);
 											int newindex = this.getIndex(next);
 											t2[newindex][oldindex] = t2[newindex][oldindex] +

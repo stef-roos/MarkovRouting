@@ -20,7 +20,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 		super(b, alpha, beta, k, l);
 	}
 	
-	protected void makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
+	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
 		int[][] max = new int[d1][2];
 		for (int i=0; i < d1; i++){
 			for (int j=0; j < this.alpha; j++){
@@ -37,10 +37,10 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 			}
 		}
 		boolean[][] contain = new boolean[this.alpha][this.beta];
-		this.recusivecombine(returned, t, index, 0, 0, n, max, contain, p);
+		return this.recusivecombine(returned, t, index, 0, 0, n, max, contain, p);
 	}
 	
-	protected void recusivecombine(int[][] returned, double[][] t, int index, 
+	protected double recusivecombine(int[][] returned, double[][] t, int index, 
 			int a, int c, int n, int[][] max, boolean[][] contain, double p){
 		while (a < this.alpha && 
 				(returned[a][c] > max.length-1 
@@ -83,9 +83,10 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 			int adash = (a*this.beta+c+1)/this.beta;
 			int cdash = (a*this.beta+c+1) % this.beta;
 			contain[a][c] = true;
-			this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*pdash);
+			double rep = this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*pdash);
 			contain[a][c] = false;
-			this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*(1-pdash));
+			rep = rep +this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*(1-pdash));
+			return rep;
 		}else {
 			//Evaluation
 			int[][] combi = new int[this.alpha][this.beta];
@@ -101,6 +102,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 			int[] next = this.topAlpha(combi);
 			int indexN = this.getIndex(next);
 			t[indexN][index] = t[indexN][index] + p;
+			return p;
 		}
 		
 	}
