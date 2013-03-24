@@ -1,6 +1,13 @@
 package kadtype;
 
+/**
+ * class for lower bounds
+ * @author stefanie
+ *
+ */
+
 public abstract class KadTypeLower extends KadTypeCDFs {
+	//probability to be a distinct node, depending on distance and count
 	protected double[][] distinctP;
 
 	public KadTypeLower(int b, int alpha, int beta, int[] k, double[][] l,
@@ -21,10 +28,15 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 		super(b, alpha, beta, k, l);
 	}
 	
+	/**
+	 * setting distinctP
+	 * @param n
+	 */
 	private void setDistinct(int n){
 		distinctP = new double[this.b+1][(this.alpha-1)*this.beta];
 		for (int c = 0; c < distinctP[0].length; c++){
 			for (int i = 0; i < distinctP.length; i++){
+				//iterate over possible number of nodes in region
 				double prob = Math.pow(2, i-this.b-1);
 				double binom = Math.pow(1-prob, n);
 				double p = 0;
@@ -38,10 +50,21 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 		
 	}
 	
+	/**
+	 * consider distinct possibilities
+	 * @param returned
+	 * @param t
+	 * @param index
+	 * @param d1
+	 * @param n
+	 * @param p
+	 * @return
+	 */
 	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
 		if (this.distinctP == null){
 			this.setDistinct(n);
 		}
+		//find maximal distinct set
 		int[][] max = new int[d1][2];
 		for (int i=0; i < d1; i++){
 			for (int j=0; j < this.alpha; j++){
@@ -61,8 +84,22 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 		return this.recusivecombine(returned, t, index, 0, 0, n, max, contain, p);
 	}
 	
+	/**
+	 * recursively find new state + probability
+	 * @param returned
+	 * @param t
+	 * @param index
+	 * @param a
+	 * @param c
+	 * @param n
+	 * @param max
+	 * @param contain
+	 * @param p
+	 * @return
+	 */
 	protected double recusivecombine(int[][] returned, double[][] t, int index, 
 			int a, int c, int n, int[][] max, boolean[][] contain, double p){
+		//set if unique
 		while (a < this.alpha && 
 				(returned[a][c] > max.length-1 
 						|| max[returned[a][c]][0] == a)){
@@ -101,8 +138,10 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 			}
 			int adash = (a*this.beta+c+1)/this.beta;
 			int cdash = (a*this.beta+c+1) % this.beta;
+			//case: distinct
 			contain[a][c] = true;
 			double rep = this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*pdash);
+			//case: not distinct
 			contain[a][c] = false;
 			rep = rep +this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*(1-pdash));
 			return rep;
