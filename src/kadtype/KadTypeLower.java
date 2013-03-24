@@ -1,6 +1,7 @@
 package kadtype;
 
 public abstract class KadTypeLower extends KadTypeCDFs {
+	protected double[][] distinctP;
 
 	public KadTypeLower(int b, int alpha, int beta, int[] k, double[][] l,
 			LType ltype) {
@@ -20,7 +21,27 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 		super(b, alpha, beta, k, l);
 	}
 	
+	private void setDistinct(int n){
+		distinctP = new double[this.b+1][(this.alpha-1)*this.beta];
+		for (int c = 0; c < distinctP[0].length; c++){
+			for (int i = 0; i < distinctP.length; i++){
+				double prob = Math.pow(2, i-this.b-1);
+				double binom = Math.pow(1-prob, n);
+				double p = 0;
+				for (int m = 0; m < n; m++){
+					p = p + binom*m/(double)(m+c+1);
+					binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+				}
+				distinctP[i][c] = p;
+			}
+		}
+		
+	}
+	
 	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
+		if (this.distinctP == null){
+			this.setDistinct(n);
+		}
 		int[][] max = new int[d1][2];
 		for (int i=0; i < d1; i++){
 			for (int j=0; j < this.alpha; j++){
@@ -57,8 +78,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 		}
 		if (a < this.alpha){
 			//compute p'
-			double pdash = 0;
-			int ndash = n - this.alpha*(this.beta+1);
+			double pdash;
 			int count = max[returned[a][c]][1];
 			for (int i = 0; i < a; i++){
 				if (max[returned[a][c]][0] != i){
@@ -74,11 +94,10 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 					count--;
 				}
 			}
-			double prob = Math.pow(2, returned[a][c]-this.b-1);
-			double binom = Math.pow(1-prob, ndash);
-			for (int m = 0; m < ndash; m++){
-				pdash = pdash + binom*m/(double)(m+count);
-				binom = binom*(ndash-m-1)/(double)(m+1)*prob/(1-prob); 
+			if (count == 0){
+				pdash = 1;
+			} else {
+				pdash = this.distinctP[returned[a][c]][count-1];
 			}
 			int adash = (a*this.beta+c+1)/this.beta;
 			int cdash = (a*this.beta+c+1) % this.beta;
