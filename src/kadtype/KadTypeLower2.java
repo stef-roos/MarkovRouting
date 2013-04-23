@@ -1,31 +1,27 @@
 package kadtype;
 
-/**
- * class for lower bounds
- * @author stefanie
- *
- */
+import kadtype.KadType.LType;
 
-public abstract class KadTypeLower extends KadTypeCDFs {
+public abstract class KadTypeLower2 extends KadTypeCDFs {
 	//probability to be a distinct node, depending on distance and count
 	protected double[][] distinctP;
 	protected double[][] distinctPMax;
 
-	public KadTypeLower(int b, int alpha, int beta, int[] k, double[][] l,
+	public KadTypeLower2(int b, int alpha, int beta, int[] k, double[][] l,
 			LType ltype) {
 		super(b, alpha, beta, k, l, ltype);
 	}
 
-	public KadTypeLower(int b, int alpha, int beta, int[] k, int l) {
+	public KadTypeLower2(int b, int alpha, int beta, int[] k, int l) {
 		super(b, alpha, beta, k, l);
 	}
 	
-	public KadTypeLower(int b, int alpha, int beta, int k, double[][] l,
+	public KadTypeLower2(int b, int alpha, int beta, int k, double[][] l,
 			LType ltype) {
 		super(b, alpha, beta, k, l, ltype);
 	}
 
-	public KadTypeLower(int b, int alpha, int beta, int k, int l) {
+	public KadTypeLower2(int b, int alpha, int beta, int k, int l) {
 		super(b, alpha, beta, k, l);
 	}
 	
@@ -75,7 +71,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 	 * @param p
 	 * @return
 	 */
-	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
+	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p, int[] old){
 		if (this.distinctP == null){
 			this.setDistinct(n);
 		}
@@ -96,7 +92,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 			}
 		}
 		boolean[][] contain = new boolean[this.alpha][this.beta];
-		return this.recusivecombine(returned, t, index, 0, 0, max, contain, p);
+		return this.recusivecombine(returned, t, index, 0, 0, max, contain, p,old);
 	}
 	
 	/**
@@ -113,72 +109,8 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 	 * @return
 	 */
 	protected double recusivecombine(int[][] returned, double[][] t, int index, 
-			int a, int c, int[][] max, boolean[][] contain, double p){
-//		//set if unique
-//		while (a < this.alpha && 
-//				(returned[a][c] > max.length-1 
-//						|| max[returned[a][c]][0] == a)){
-//			if (returned[a][c] < max.length){
-//				contain[a][c] = true;
-//			}else {
-//				contain[a][c] = false;
-//			}
-//			int anew = (a*this.beta+c+1)/this.beta;
-//			c = (a*this.beta+c+1) % this.beta;
-//			a = anew;
-//			//System.out.println("a= " + a + " c= " + c + " returned-length " + returned.length);
-//		}
-//		if (a < this.alpha){
-//			//compute p'
-//			double pdash;
-//			int count = max[returned[a][c]][1];
-//			for (int i = 0; i < a; i++){
-//				if (max[returned[a][c]][0] != i){
-//					for (int j = 0; j < this.beta; j++){
-//						if (returned[a][c] == returned[i][j] && contain[i][j]){
-//							count++;
-//						}
-//					}
-//				}
-//			}
-//			for (int j = 0; j < c; j++){
-//				if (returned[a][c] == returned[a][j] && contain[a][j]){
-//					count--;
-//				}
-//			}
-//			if (count == 0){
-//				pdash = 1;
-//			} else {
-//				pdash = this.distinctP[returned[a][c]][count-1];
-//			}
-//			int adash = (a*this.beta+c+1)/this.beta;
-//			int cdash = (a*this.beta+c+1) % this.beta;
-//			//case: distinct
-//			contain[a][c] = true;
-//			double rep = this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*pdash);
-//			//case: not distinct
-//			contain[a][c] = false;
-//			rep = rep +this.recusivecombine(returned, t, index, adash, cdash, count, max, contain, p*(1-pdash));
-//			return rep;
-//		}else {
-//			//Evaluation
-//			int[][] combi = new int[this.alpha][this.beta];
-//			for (int i = 0; i < this.alpha; i++){
-//				for (int j = 0; j < this.beta; j++){
-//					if (contain[i][j]){
-//						combi[i][j] = returned[i][j]; 
-//					} else {
-//						combi[i][j] = b;
-//					}
-//				}
-//			}
-//			int[] next = this.topAlpha(combi);
-//			int indexN = this.getIndex(next);
-//			t[indexN][index] = t[indexN][index] + p;
-//			return p;
-//		}
-		
-		//set if unique
+			int a, int c, int[][] max, boolean[][] contain, double p, int[] old){
+
 				while (a < this.alpha && returned[a][c] < max.length &&
 						max[returned[a][c]][0] == a){
 					contain[a][c] = true;
@@ -219,10 +151,10 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 					int cdash = (a*this.beta+c+1) % this.beta;
 					//case: distinct
 					contain[a][c] = true;
-					double rep = this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*pdash);
+					double rep = this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*pdash, old);
 					//case: not distinct
 					contain[a][c] = false;
-					rep = rep +this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*(1-pdash));
+					rep = rep +this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*(1-pdash), old);
 					return rep;
 				}else {
 					//Evaluation
@@ -237,10 +169,59 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 						}
 					}
 					int[] next = this.topAlpha(combi);
+					//start alternative
+					if (next[next.length-1] == b){
+						return this.getNextBest(next,p,old,index,t);
+					} else {
 					int indexN = this.getIndex(next);
 					t[indexN][index] = t[indexN][index] + p;
 					return p;
+					}
 				}
+	}
+	
+	private double getNextBest(int[] next, double p, int[] old, int index, double[][] t){
+		if (this.beta == 1){
+			return this.getNextBestStart(next, p, old, index, t);
+		}
+		int count = 0;
+		for (int i = next.length; i > 0; i++){
+			if (next[i] == b){
+				count++;
+			} else {
+				break;
+			}
+		}
+		if (count == 1){
+			return this.getNextBest1(next, p, old, index, t);
+		} else {
+			if (count == 2){
+				return this.getNextBest2(next, p, old, index, t);
+			} else {
+				throw new IllegalArgumentException(count + " non-distinct contacts should not happen");
+			}
+		}
+	}
+	
+	private double getNextBest1(int[] next, double p, int[] old, int index, double[][] t){
+		for (int i = old[old.length-1]; i <= b; i++){
+			
+		}
+		return p;
+	}
+	
+	private double getNextBest2(int[] next, double p, int[] old, int index, double[][] t){
+		for (int i = old[old.length-1]; i <= b; i++){
+			
+		}
+		return p;
+	}
+	
+	private double getNextBestStart(int[] next, double p, int[] old, int index, double[][] t){
+		for (int i = old[old.length-1]; i <= b; i++){
+			
+		}
+		return p;
 	}
 
 }
