@@ -3,7 +3,6 @@ package kadtype;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
 
 import eclipse.Calc;
 
@@ -13,11 +12,11 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		double[] cdf = (new KademliaUpper(10,4)).getRoutingLength(10000); 
-//		for (int i = 0; i < cdf.length; i++){
-//			System.out.println(i + " " +cdf[i]);
-//		}
-		testTimingSimple(args);
+		double[] cdf = (new KADLower2(13)).getRoutingLength(100000); 
+		for (int i = 0; i < cdf.length; i++){
+			System.out.println(i + " " +cdf[i]);
+		}
+		
 
 	}
 	
