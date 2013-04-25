@@ -4,7 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import eclipse.Calc;
+//import eclipse.Calc;
 
 public class Test {
 
@@ -152,7 +152,7 @@ public class Test {
 			bw.write("0 0"); 
 			for (int i = 0; i < cdfs.length; i++){
 				bw.newLine();
-				bw.write((i+1)*step + " " + Calc.getEx(cdfs[i]));
+				//bw.write((i+1)*step + " " + Calc.getEx(cdfs[i]));
 			}
 			bw.flush();
 			bw.close();
