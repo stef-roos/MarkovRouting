@@ -55,6 +55,7 @@ public abstract class Eclipse extends KadTypeCDFs{
      */
 	@Override
 	public double[][] getT1(int n){
+		this.setAttackProb(n);
 		int[] lookup = new int[alpha];
 		lookup[this.alpha-1] = b+2;
 		double[][] t = new double[getIndex(lookup)][b+1];
@@ -78,6 +79,7 @@ public abstract class Eclipse extends KadTypeCDFs{
      */
 	@Override
 	public double[][] getT2(int n){
+		this.setCDFs();
 		int[] lookup = new int[alpha];
 		lookup[alpha-1] = b+2;
 		int index = getIndex(lookup);
@@ -175,7 +177,11 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
 			  }
 			  for (int j = 1; j < this.alpha; j++){
+				  if (!(this.attackProb[d][j] >=0 &&  this.attackProb[d][j] <= 1)){
+					  System.out.println("d="+d + " j="+j + "p="+this.attackProb[d][j]);
+				  }
 				  this.attackProb[d][j] = this.attackProb[d][j]/this.attackProb[d][j-1];
+				  
 			  }
 			}
 		}
@@ -236,15 +242,16 @@ public abstract class Eclipse extends KadTypeCDFs{
 				if (other == kd-i){
 					double init = 1;
 					for (int f = 0; f < i; f++){
-						init = (double)(this.attackers - f)/(double)(i-f);
+						init = init*(double)(this.attackers - f)/(double)(i-f);
 					}
 					for (int f = 0; f < kd; f++){
-						init = (double)(all - f)/(double)(kd-f);
+						init = init*(double)(kd - f)/(double)(all-f);
 					}
 					psnew[i] = init;
 				} else {
 					psnew[i] = psold[i]*other/(double)(other-kd+i)*(all-kd)/(double)all;
 				}
+				//System.out.println("other = " + other + " i=" + i + " p=" +psnew[i]);
 			}
 		}
 		return psnew;

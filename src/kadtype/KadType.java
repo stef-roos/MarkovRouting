@@ -33,7 +33,7 @@ public abstract class KadType {
 		this.k = k;
 		this.l = l;
 		this.ltype = ltype;
-		this.setCDFs();
+		//this.setCDFs();
 	}
 	
 	/**
@@ -140,6 +140,7 @@ public abstract class KadType {
      * @return
      */
 	public double[][] getT2(int n){
+		this.setCDFs();
 		int[] lookup = new int[alpha];
 		lookup[alpha-1] = b+1;
 		int index = getIndex(lookup);
