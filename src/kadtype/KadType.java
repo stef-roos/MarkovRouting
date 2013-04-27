@@ -15,7 +15,7 @@ public abstract class KadType {
 	}
 	protected LType ltype;
 	protected double[] success;
-	double[][][] cdfs;
+	protected double[][][] cdfs;
 	
 	/**
 	 * 
@@ -84,47 +84,9 @@ public abstract class KadType {
 		double[] dist = getI();
 		cdf[0] = 0;
 		double[][]  m = getT1(n);
-//		for (int j = 0; j < m[0].length; j++){
-//			double sum = 0;
-//			for (int i = 0; i < m.length; i++){
-//				sum = sum + m[i][j];
-//				
-//			}
-//			System.out.println(sum);
-//		}
 		dist = matrixMulti(m,dist);
 		cdf[1] = dist[0];
 		m = getT2(n);
-//		HashMap<Integer, int[]> map = new HashMap<Integer, int[]>();
-//		for (int i = 0; i < this.b+1; i++){
-//			for (int j = i; j < this.b+1; j++){
-//				for (int k = j; k < this.b+1; k++){
-//					int[] lookup = {i,j,k};
-//					map.put(getIndex(lookup), lookup);
-//				}
-//			}
-//		}
-//		int[] lookup = {0,0,this.b+1};
-		//int count = this.getIndex(lookup);
-		
-		
-//		double sum = 0;
-//		for (int i = 0; i < m.length; i++){
-//			sum = sum + m[i][0];
-//		}
-//		System.out.println(sum);
-//		for (int j = 0; j < m[0].length; j++){
-//		double sum = 0;
-//		for (int i = 0; i < m.length; i++){
-//			sum = sum + m[i][j];
-//			
-//		}
-//		if (sum > 0.999) {
-//			int[] look = map.get(j);
-//			if (look != null && look[0] != 0)
-//		System.out.println(sum + " " +j + " ["+look[0]+","+look[1]+","+look[2]+"]");
-//		}
-//	   }
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];

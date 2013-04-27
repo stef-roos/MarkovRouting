@@ -72,12 +72,14 @@ public abstract class KadTypeLower2 extends KadTypeCDFs {
 	 * @return
 	 */
 	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p, int[] old){
+		boolean zero = false;
+		
 		if (this.distinctP == null){
 			this.setDistinct(n);
 		}
 		//find maximal distinct set
-		int[][] max = new int[d1][2];
-		for (int i=0; i < d1; i++){
+		int[][] max = new int[Math.max(d1,1)][2];
+		for (int i=0; i < max.length; i++){
 			for (int j=0; j < this.alpha; j++){
 				int count = 0;
 				for (int m=0; m < this.beta; m++){
@@ -110,21 +112,23 @@ public abstract class KadTypeLower2 extends KadTypeCDFs {
 	 */
 	protected double recusivecombine(int[][] returned, double[][] t, int index, 
 			int a, int c, int[][] max, boolean[][] contain, double p, int[] old){
-
-				while (a < this.alpha && returned[a][c] < max.length &&
-						max[returned[a][c]][0] == a){
+		//System.out.println("a= " + a + " c= " + c + "re" + returned[a][c]);
+               while (a < this.alpha && ((returned[a][c] < max.length &&
+						max[returned[a][c]][0] == a) || returned[a][c] == this.b)){
 					contain[a][c] = true;
 					int anew = (a*this.beta+c+1)/this.beta;
 					c = (a*this.beta+c+1) % this.beta;
 					a = anew;
 					//System.out.println("a= " + a + " c= " + c + " returned-length " + returned.length);
 				}
+               //System.out.println("After while a= " + a + " c= " + c + "re" + returned[a][c]);
 				if (a < this.alpha){
 					//compute p'
 					double pdash;
 					
 					if (returned[a][c] < max.length){
 					int count = max[returned[a][c]][1];
+					//System.out.println("Count start: " + count);
 					for (int i = 0; i < a; i++){
 						if (max[returned[a][c]][0] != i){
 							for (int j = 0; j < this.beta; j++){
@@ -134,11 +138,13 @@ public abstract class KadTypeLower2 extends KadTypeCDFs {
 							}
 						}
 					}
+					//System.out.println("Count <a: " + count);
 					for (int j = 0; j < c; j++){
 						if (returned[a][c] == returned[a][j] && contain[a][j]){
 							count--;
 						}
 					}
+					//System.out.println("Count <b: " + count);
 					if (count == 0){
 						pdash = 1;
 					} else {
@@ -149,6 +155,7 @@ public abstract class KadTypeLower2 extends KadTypeCDFs {
 					}
 					int adash = (a*this.beta+c+1)/this.beta;
 					int cdash = (a*this.beta+c+1) % this.beta;
+					//System.out.println("Adash a= " + adash + " c= " + cdash + "re" + returned[a][c]);
 					//case: distinct
 					contain[a][c] = true;
 					double rep = this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*pdash, old);

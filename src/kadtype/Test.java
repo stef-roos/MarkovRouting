@@ -12,12 +12,11 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		double[] cdf = (new KADLower2(13)).getRoutingLength(100000); 
+		double[] cdf = (new KademliaLower2(10,8)).getRoutingLength(1000); ; 
 		for (int i = 0; i < cdf.length; i++){
 			System.out.println(i + " " +cdf[i]);
 		}
 		
-
 	}
 	
 	public static void testPerformance(String[] args){
