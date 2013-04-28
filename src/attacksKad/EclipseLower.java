@@ -45,7 +45,7 @@ public abstract class EclipseLower extends Eclipse {
 					}
 					distinctP[i][c] = p;
 				}
-				distinctP[0][c] = 1;
+				distinctP[0][c] = 1-c/(double)this.attackers;;
 			}
 			this.distinctPMax = new double[this.b+1][this.alpha-1];
 			for (int c = 0; c < distinctPMax[0].length; c++){
@@ -61,7 +61,7 @@ public abstract class EclipseLower extends Eclipse {
 					}
 					distinctPMax[i][c] = p;
 				}
-				distinctPMax[0][c] = 1;
+				distinctPMax[0][c] = 1-c/(double)this.attackers;
 			}
 		}
 		
@@ -80,7 +80,7 @@ public abstract class EclipseLower extends Eclipse {
 				this.setDistinct(n);
 			}
 			//find maximal distinct set
-			int[][] max = new int[Math.max(d1,1)][2];
+			int[][] max = new int[Math.max(d1+1,1)][2];
 			for (int i=0; i < max.length; i++){
 				for (int j=0; j < this.alpha; j++){
 					int count = 0;
@@ -114,7 +114,7 @@ public abstract class EclipseLower extends Eclipse {
 		 */
 		protected double recusivecombine(int[][] returned, double[][] t, int index, 
 				int a, int c, int[][] max, boolean[][] contain, double p, int[] old){
-			//System.out.println("a= " + a + " c= " + c + "re" + returned[a][c]);
+			//System.out.println("a= " + a + " c= " + c);// + "re" + returned[a][c] + " max" + max.length);
 	               while (a < this.alpha && ((returned[a][c] < max.length &&
 							max[returned[a][c]][0] == a) || returned[a][c] == this.b || returned[a][c] == 0)){
 						contain[a][c] = true;
@@ -123,7 +123,7 @@ public abstract class EclipseLower extends Eclipse {
 						a = anew;
 						//System.out.println("a= " + a + " c= " + c + " returned-length " + returned.length);
 					}
-	               //System.out.println("After while a= " + a + " c= " + c + "re" + returned[a][c]);
+	               //System.out.println("After while a= " + a + " c= " + c );//+ "re" + returned[a][c]);
 					if (a < this.alpha){
 						//compute p'
 						double pdash;
@@ -153,6 +153,9 @@ public abstract class EclipseLower extends Eclipse {
 							pdash = this.distinctP[returned[a][c]][count-1];
 						}
 						} else {
+							if (a == 0){
+								System.out.println("a=0!! re: " + returned[a][c] + " max: " + max.length + " old0= " + old[0]);
+							}
 							pdash = this.distinctPMax[returned[a][c]][a-1];
 						}
 						int adash = (a*this.beta+c+1)/this.beta;

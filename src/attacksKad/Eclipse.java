@@ -5,7 +5,7 @@ import kadtype.KadTypeCDFs;
 
 public abstract class Eclipse extends KadTypeCDFs{
 	protected int attackers;
-	double[][] attackProb;
+	double[][][] attackProb;
 	
 	/**
 	 * constructor: see super
@@ -59,16 +59,19 @@ public abstract class Eclipse extends KadTypeCDFs{
 		int[] lookup = new int[alpha];
 		lookup[this.alpha-1] = b+2;
 		double[][] t = new double[getIndex(lookup)][b+1];
-		for (int d= 1; d <= this.b; d++){
-			t[0][d] = this.success[d];
+		for (int d= 0; d <= this.b; d++){
+			t[0][d] = this.success[d+1];
 			//distributions over the other distances
 			if (t[0][d] < 1){
+				if (d == 0){
+					t[1][d] = 1 - this.success[d+1];
+				} else{
 			double[][] fd = this.getCDFs(d,alpha);
 			//compute other entries of t_1
 			processCDFsT1(fd,t,d,d);
+				}
 			}
 		}
-		
 		return t;
 	}
 	
@@ -90,36 +93,59 @@ public abstract class Eclipse extends KadTypeCDFs{
 		return t;
 	}
 	
+	 /**
+	    * increase index to b+1
+	    */
+	  protected void constructT2(int n, double[][] t2, int[] old, int tofill){
+		  if (tofill < this.alpha){
+			  //set next entry
+		  int start=(tofill==0?0:old[tofill-1]);
+		     for (int i = start; i <= this.b+1; i++){
+			   old[tofill] = i;
+			   this.constructT2(n, t2, old, tofill+1);
+		     }
+		  } else {
+			  //compute possibilities for next states
+			  //prob to be successful in next step
+				int oldindex = this.getIndex(old);
+			 double nsucc = 1;
+			 for (int i = 0; i < old.length; i++){
+				 nsucc = nsucc*(1-this.success[old[i]]);
+			 }
+			 
+			 t2[0][oldindex] = 1-nsucc;
+			 //not successful => system-specific
+			 if (nsucc > 0)
+			 this.processCDFsT2(n, t2, old, oldindex,nsucc);
+		  }
+	  }
 	/**
-	 * compute a vector of the probabilities that a node at dist d
-	 * has link to target
-	 * NEEDS TO BE OVERRIDEN IN CASE ltype==SPECIAL
-	 * @param n
+	 *include attackers 
 	 */
 	protected void setSuccess(int n) {
-		this.success = new double[this.b+1];
+		this.success = new double[this.b+2];
 		this.success[0] = 0;
 		if (this.ltype == LType.SIMPLE){
 			//case: always resolve by constant l more steps
 			int m = (int)l[0][0];
-			double[] p = new double[b+1];
+			double[] p = new double[b+2];
 			p[0] = 0;
 			//probability to be in fraction in id space
 			double q = Math.pow(2, -m);
-			for (int d=b; d > 1;d--){
+			for (int d=b+1; d > 0;d--){
 				p[d] = q;
 				q = q*0.5;
 			}
-			for (int d=b; d > 0;d--){
+			for (int d=b+1; d > 0;d--){
 				double binom = Math.pow(1-p[d],n-2);
-			  for (int i = 0; i < n-1; i++){
+			  for (int i = this.attackers; i < this.attackers+n-1; i++){
 				  //prob to be successful if there are i nodes besides target in region 
-				  if (i < k[d]){
+				  if (i < k[d-1]){
 				         this.success[d] = this.success[d] + binom;
 				  } else{
-						 this.success[d] = this.success[d] + binom*(double)(k[d])/(double)(i+1);
+						 this.success[d] = this.success[d] + binom*(double)(k[d-1])/(double)(i+1);
 				  }
-				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+				  binom = binom*(n-2-(i-this.attackers))/(double)(i-this.attackers+1)*p[d]/(1-p[d]);
 			  }
 			}
 		}
@@ -149,100 +175,210 @@ public abstract class Eclipse extends KadTypeCDFs{
 	}
 	
 	private void setAttackProb(int n){
-		this.attackProb = new double[this.b+1][this.alpha];
+		this.attackProb = new double[this.b+2][this.alpha][this.alpha*this.beta];
+		for (int i = 0; i < this.alpha; i++){
+			for (int j= 0; j < this.alpha; j++){
+				this.attackProb[0][i][j] = 1;
+			}
+		}
 		if (this.ltype == LType.SIMPLE){
 			//case: always resolve by constant l more steps
 			int m = (int)l[0][0];
-			double[] p = new double[b+1];
+			double[] p = new double[b+2];
 			p[0] = 0;
 			//probability to be in fraction in id space
 			double q = Math.pow(2, -m);
-			for (int d=b; d > 0;d--){
+			for (int d=b+1; d > 0;d--){
 				p[d] = q;
 				q = q*0.5;
 			}
-			for (int d=b; d > 0;d--){
+			for (int d=b+1; d > 0;d--){
 				double binom = Math.pow(1-p[d],n-2);
-				double[] ps = new double[this.alpha];
+				double[][] ps = new double[this.alpha*this.beta][this.alpha];
 			  for (int i = 0; i < n-1; i++){
 				  //prob to be successful if there are i nodes besides target in region 
-                  ps = this.getAtt(i,k[d],ps);
-                  for (int j = 0; j < ps.length; j++){
+				  for (int at = 0; at < this.alpha*this.beta; at++){
+					  if (this.attackers - at < 1){
+						  for (int j = 0; j < this.alpha; j++){
+						    this.attackProb[d][j][at] = 0;
+						  }
+					  } else {
+                  ps[at] = this.getAtt(i,k[d-1],ps[at],this.attackers-at);
+                  for (int j = 0; j < ps[at].length; j++){
                 	  double pa = 1;
                 	  for (int c = 0; c <= j; c++){
-                		  pa = pa - ps[c];
+                		  pa = pa - ps[at][c];
                 	  }
-                	  this.attackProb[d][j] = this.attackProb[d][j] +pa*binom;
+                	  this.attackProb[d][j][at] = this.attackProb[d][j][at] +pa*binom;
                   }
-				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
-			  }
-			  for (int j = 1; j < this.alpha; j++){
-				  if (!(this.attackProb[d][j] >=0 &&  this.attackProb[d][j] <= 1)){
-					  System.out.println("d="+d + " j="+j + "p="+this.attackProb[d][j]);
 				  }
-				  this.attackProb[d][j] = this.attackProb[d][j]/this.attackProb[d][j-1];
-				  
-			  }
-			}
-		}
-		
-		if (this.ltype == LType.ALL){
-			//case: always resolve by constant l more steps
-			for (int a = 1; a <= b; a++){
-			double[] p = new double[b+1];
-			p[0] = 0;
-			//probability to be in fraction in id space
-			double q = Math.pow(2, -a);
-			for (int d=b; d > 0;d--){
-				p[d] = q;
-				q = q*0.5;
-			}
-			for (int d=b; d > 0;d--){
-				if (l[d][a] > 0){
-				double binom = Math.pow(1-p[d],n-2);
-				double[] ps = new double[this.alpha];
-			  for (int i = 0; i < n-1; i++){
-				  //prob to be successful if there are i nodes besides attackers in region 
-                  ps = this.getAtt(i,k[d],ps);
-                  for (int j = 0; j < ps.length; j++){
-                	  double pa = 1;
-                	  for (int c = 0; c <= j; c++){
-                		  pa = pa - ps[c];
-                	  }
-                	  this.attackProb[d][j] = this.attackProb[d][j] +pa*binom;
-                  }
+				  }
 				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
 			  }
 			  
-			  for (int j = 0; j < this.alpha; j++){
-				  this.attackProb[d][j] = this.attackProb[d][j]*l[d][a];
+//			  for (int j = 1; j < this.alpha; j++){
+//				  for (int at = 0; at < this.alpha; at++){
+//				  this.attackProb[d][j][at] = this.attackProb[d][j][at]/this.attackProb[d][j-1][at];
+//				  }
+//				  
+//			  }
+			}
+		}
+		
+//		if (this.ltype == LType.ALL){
+//			//case: always resolve by constant l more steps
+//			for (int a = 1; a <= b; a++){
+//			double[] p = new double[b+1];
+//			p[0] = 0;
+//			//probability to be in fraction in id space
+//			double q = Math.pow(2, -a);
+//			for (int d=b; d > 0;d--){
+//				p[d] = q;
+//				q = q*0.5;
+//			}
+//			for (int d=b; d > 0;d--){
+//				if (l[d][a] > 0){
+//				double binom = Math.pow(1-p[d],n-2);
+//				double[] ps = new double[this.alpha];
+//			  for (int i = 0; i < n-1; i++){
+//				  //prob to be successful if there are i nodes besides attackers in region 
+//				  
+//                  ps = this.getAtt(i,k[d],ps);
+//                  for (int j = 0; j < ps.length; j++){
+//                	  double pa = 1;
+//                	  for (int c = 0; c <= j; c++){
+//                		  pa = pa - ps[c];
+//                	  }
+//                	  this.attackProb[d][j] = this.attackProb[d][j] +pa*binom;
+//                  }
+//				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+//			  }
+//			  
+//			  for (int j = 0; j < this.alpha; j++){
+//				  this.attackProb[d][j] = this.attackProb[d][j]*l[d][a];
+//			  }
+//				}
+//			}
+//			}
+//			for (int d = 0; d < b+1; d++){
+//				for (int j = 1; j < this.alpha; j++){
+//					  this.attackProb[d][j] = this.attackProb[d][j]/this.attackProb[d][j-1];
+//				}
+//			}
+//		}
+	}
+	
+	 /**
+	   * add probability for attack in first step
+	   */
+	  protected double getProb(int[] returned, double[][] cdf, int d){
+		  if (returned[0] > 0){
+			  int[] re = new int[returned.length];
+			  for (int j = 0; j < returned.length; j++){
+				  re[j] = returned[j]-1;
+				
+			 }
+//			  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
+//			 + " attack: " + (1-this.attackProb[d][0][0]) + " normal: " + this.getProb(re, cdf) + " case: not");
+			  return (1-this.attackProb[d][0][0])*this.getProb(re, cdf);
+		  } else {
+			  int count = 1;
+			  for (int j = 1; j < returned.length; j++){
+				  if (returned[j] == 0){
+					  count++;
+				  }else{
+					  break;
+				  }
 			  }
-				}
+			  if (count > this.attackers){
+				  return 0;
+			  }
+			  if (count == returned.length){
+//				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
+//							 + " attack: " + this.attackProb[d][this.alpha-1][0] + " normal: " + 1 + " case: all" );
+				  return this.attackProb[d][this.alpha-1][0];
+				  
+			  }else {
+				  int[] re = new int[this.alpha-count];
+				  for (int j = count; j < this.alpha; j++){
+					  re[j-count] = returned[j]-1;
+				  }
+//				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
+//							 + " attack: " + this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0]) 
+//							 + " attackPart: " + this.attackProb[d][count][0] 
+//							 + " normal: " + this.getProb(re, cdf) + " case: part");
+				  return this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0])*this.getProb(re, cdf);
+			 }
+		 }
+	  }
+	
+	protected double getProb(int[] returned, int nr, int d, int c){
+		if (d == 0){
+			if (returned[1] == 0){
+				return 1;
+			} else {
+				return 0;
 			}
+		}
+		if (returned[0] > 0){
+			int[] re = new int[returned.length];
+			for (int j = 0; j < returned.length; j++){
+				  re[j] = returned[j]-1;
 			}
-			for (int d = 0; d < b+1; d++){
-				for (int j = 1; j < this.alpha; j++){
-					  this.attackProb[d][j] = this.attackProb[d][j]/this.attackProb[d][j-1];
-				}
-			}
+//			System.out.println("d= "+d+" re0= "+(returned[0]) + " re1= "+(returned[1])
+//					+ " attack: "+(1-this.attackProb[d][0][c]) + " normal "+this.getProb(re, nr));
+			
+			return (1-this.attackProb[d][0][c])*this.getProb(re, nr);
+		} else{
+			int count = 1;
+			  for (int j = 1; j < returned.length; j++){
+				  if (returned[j] == 0){
+					  count++;
+				  }else{
+					  break;
+				  }
+			  }
+			  if (count + c > this.attackers){
+				  return 0;
+			  }
+			  if (count == returned.length){
+				  //System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][count-1][c] + " normal "+1);
+				  return this.attackProb[d][count-1][c];
+			  }else {
+				  int[] re = new int[returned.length-count];
+				  for (int j = count; j < returned.length; j++){
+					  re[j-count] = returned[j]-1;
+				  }
+//				  System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])
+//						  + " normal "+this.getProb(re, nr));
+				   return this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])*this.getProb(re, nr);
+				  
+			  }
 		}
 	}
 
-	private double[] getAtt(int other, int kd, double[] psold){
+	private double[] getAtt(int other, int kd, double[] psold, int curAtt){
 		double[] psnew = new double[this.alpha];
-		int all = this.attackers + other;
+		int all = curAtt + other;
 		for (int i = 0; i < psnew.length; i++){
-			if (this.attackers < i){
+			if (curAtt < i){
 				psnew[i] = 0;
 				continue;
 			}
 			if (other < kd-i){
-				psnew[i] = 0;
+				if (curAtt == i){
+					psnew[i] = 1;
+					for (int j = 0; j < i; j++){
+						psnew[i] = psnew[i] - psnew[j];
+					}
+				} else {
+				   psnew[i] = 0;
+				}
 			} else {
 				if (other == kd-i){
 					double init = 1;
 					for (int f = 0; f < i; f++){
-						init = init*(double)(this.attackers - f)/(double)(i-f);
+						init = init*(double)(curAtt - f)/(double)(i-f);
 					}
 					for (int f = 0; f < kd; f++){
 						init = init*(double)(kd - f)/(double)(all-f);
@@ -257,219 +393,6 @@ public abstract class Eclipse extends KadTypeCDFs{
 		return psnew;
 	}
 	
-	//CDFs
-	@Override
-	protected double[][] getCDFs(int d, int c) {
-		if (d==0){
-			int count = d*c;
-			if (this.ltype == LType.SIMPLE){
-				count = c;
-			}
-			double[][] res = new double[1][count];
-			for (int i = 0; i < res[0].length; i++){
-				res[0][i] = 1;
-			}
-		}
-		switch (c) {
-		case 1: return this.getCDFsOne(d); 
-		case 2: return this.getCDFsTwo(d); 
-		case 3: return this.getCDFsThree(d); 
-		case 4: return this.getCDFsFour(d); 
-		default: throw new IllegalArgumentException("Only implemented for alpha/beta <= 4");
-		}
-	}
 
-	/**
-	 * cdf for distance after next step for one returned values
-	 * @param d
-	 * @return
-	 */
-	private double[][] getCDFsOne(int d){
-		if (this.ltype == LType.SIMPLE){
-			int digit = (int)this.l[0][0];
-			if (d-digit < 1){
-				return new double[][]{new double[]{1}};
-			}
-		    double[][] res = new double[d-digit+1][1];
-		    double p = 1;
-		    res[0][0] = this.attackProb[d][0];
-		    for (int i = res.length-1; i > 0; i--){
-		    	res[i][0] = (1 - Math.pow(1-p, this.k[d]))*(1-this.attackProb[d][0])+res[0][0];
-		    	p = p*0.5;
-		    }
-		    
-		    return res;
-		}  
-//		if (this.ltype == LType.ALL){
-//			double[][] res = new double[d][d];
-//			for (int a = 1; a < d+1; a++){
-//				if (l[d][a] > 0){
-//		      double p = 1;
-//		      for (int i = res.length-a; i > -1; i--){
-//		    	res[i][a-1] = (1 - Math.pow(1-p, this.k[d]))*(1-this.attackProb[d][0]);
-//		    	p = p*0.5;
-//		      }
-//		      for (int i = res.length-a+1; i < res.length; i++){
-//			    	res[i][a-1] = 1;
-//		     }
-//			 }
-//			}
-//		    return res;
-//		} 
-		return null;
-	}
-	
-	/**
-	 * cdf for distance after next step for two returned values
-	 * @param d
-	 * @return
-	 */
-	private double[][] getCDFsTwo(int d){
-		if (this.ltype == LType.SIMPLE){
-			int digit = (int)this.l[0][0];
-			if (d-digit < 1){
-				return new double[][]{new double[]{1,1}};
-			}
-		    double[][] res = new double[d-digit+1][2];
-		    double p = 1;
-		    //probability prop to fraction of remaining ID space size
-		    res[0][0] = this.attackProb[d][0];
-		    res[0][1] = this.attackProb[d][1];
-		    for (int i = res.length-1; i > 0; i--){
-		    	res[i][0] = (1 - Math.pow(1-p, this.k[d]))*(1-this.attackProb[d][0]) +res[0][0];
-		    	res[i][1] = (1 - Math.pow(1-p, this.k[d]-1))*(1-this.attackProb[d][1])+res[0][1];
-		    	p = p*0.5;
-		    }
-		    
-		    return res;
-		}  
-//		if (this.ltype == LType.ALL){
-//			double[][] res = new double[d][2*d];
-//			for (int a = 1; a < d+1; a++){
-//				if (l[d][a] > 0){
-//		      double p = 1;
-//		      for (int i = res.length-a; i > -1; i--){
-//		    	res[i][a-1] = 1 - Math.pow(1-p, this.k[d]);
-//		    	res[i][d + a-1] = 1 - Math.pow(1-p, this.k[d]-1);
-//		    	p = p*0.5;
-//		      }
-//		      for (int i = res.length-a+1; i < res.length; i++){
-//		    	  res[i][d+a-1] = 1;
-//			    	res[i][a-1] = 1;
-//		     }
-//			 }
-//			}
-//		    return res;
-//		} 
-		return null;
-	}
-	
-	/**
-	 * cdf for distance after next step for three returned values
-	 * @param d
-	 * @return
-	 */
-	private double[][] getCDFsThree(int d){
-		if (this.ltype == LType.SIMPLE){
-			int digit = (int)this.l[0][0];
-			if (d-digit < 1){
-				return new double[][]{new double[]{1,1,1}};
-			}
-		    double[][] res = new double[d-digit+1][3];
-		    double p = 1;
-		    res[0][0] = this.attackProb[d][0];
-		    res[0][1] = this.attackProb[d][1];
-		    res[0][2] = this.attackProb[d][2];
-		    for (int i = res.length-1; i > 0; i--){
-		    	double diff = Math.pow(1-p, this.k[d]-2);
-		    	res[i][2] = (1 - diff)*(1-this.attackProb[d][2])+res[0][2];
-		    	diff = diff*(1-p);
-		    	res[i][1] = (1 - diff)*(1-this.attackProb[d][1])+res[0][1];
-		    	res[i][0] = (1 - diff*(1-p))*(1-this.attackProb[d][0])+res[0][0];
-		    	p = p*0.5;
-		    }
-		    return res;
-		}  
-//		if (this.ltype == LType.ALL){
-//			double[][] res = new double[d][3*d];
-//			for (int a = 1; a < d+1; a++){
-//				if (l[d][a] > 0){
-//		      double p = 1;
-//		      for (int i = res.length-a; i > -1; i--){
-//		    	  double diff = Math.pow(1-p, this.k[d]-2);
-//			    	res[i][2*d+a-1] = 1 - diff;
-//			    	diff = diff*(1-p);
-//			    	res[i][d+a-1] = 1 - diff;
-//			    	res[i][a-1] = 1 - diff*(1-p);
-//			    	p = p*0.5;
-//		      }
-//		      for (int i = res.length-a+1; i < res.length; i++){
-//		    	  res[i][2*d+a-1] = 1;
-//			      res[i][d+a-1] = 1;
-//			    	res[i][a-1] = 1;
-//		     }
-//			 }
-//			}
-//		    return res;
-//		} 
-		return null;
-	}
-	
-	/**
-	 * cdf for distance after next step for four returned values
-	 * @param d
-	 * @return
-	 */
-	private double[][] getCDFsFour(int d){
-		if (this.ltype == LType.SIMPLE){
-			int digit = (int)this.l[0][0];
-			if (d-digit < 1){
-				return new double[][]{new double[]{1,1,1,1}};
-			}
-		    double[][] res = new double[d-digit+1][4];
-		    double p = 1;
-		    res[0][0] = this.attackProb[d][0];
-		    res[0][1] = this.attackProb[d][1];
-		    res[0][2] = this.attackProb[d][2];
-		    res[0][3] = this.attackProb[d][3];
-		    for (int i = res.length-1; i > 0; i--){
-		    	double diff = Math.pow(1-p, this.k[d]-3);
-		    	res[i][3] = (1 - diff)*(1-this.attackProb[d][3])+res[0][3];
-		    	diff = diff*(1-p);
-		    	res[i][2] = (1 - diff)*(1-this.attackProb[d][2])+res[0][2];
-		    	diff = diff*(1-p);
-		    	res[i][1] = (1 - diff)*(1-this.attackProb[d][1])+res[0][1];
-		    	res[i][0] = (1 - diff*(1-p))*(1-this.attackProb[d][0])+res[0][0];
-		    	p = p*0.5;
-		    }
-		    return res;
-		}  
-//		if (this.ltype == LType.ALL){
-//			double[][] res = new double[d][4*d];
-//			for (int a = 1; a < d+1; a++){
-//				if (l[d][a] > 0){
-//		      double p = 1;
-//		      for (int i = res.length-a; i > -1; i--){
-//		    	  double diff = Math.pow(1-p, this.k[d]-3);
-//		    	  res[i][3*d+a-1] = 1 - diff;
-//			    	diff = diff*(1-p);
-//			    	res[i][2*d+a-1] = 1 - diff;
-//			    	diff = diff*(1-p);
-//			    	res[i][d+a-1] = 1 - diff;
-//			    	res[i][a-1] = 1 - diff*(1-p);
-//			    	p = p*0.5;
-//		      }
-//		      for (int i = res.length-a+1; i < res.length; i++){
-//		    	  res[i][3*d+a-1] = 1;
-//		    	  res[i][2*d+a-1] = 1;
-//			      res[i][d+a-1] = 1;
-//			    	res[i][a-1] = 1;
-//		     }
-//			 }
-//			}
-//		    return res;
-//		} 
-		return null;
-	}
 
 }

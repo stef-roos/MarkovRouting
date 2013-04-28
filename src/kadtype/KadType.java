@@ -84,14 +84,36 @@ public abstract class KadType {
 		double[] dist = getI();
 		cdf[0] = 0;
 		double[][]  m = getT1(n);
+		
 		dist = matrixMulti(m,dist);
 		cdf[1] = dist[0];
 		m = getT2(n);
+//		HashMap<Integer,String> map = this.getMap();
+//		for (int i = 0; i < m[0].length; i++){
+//			double sum=0;
+//			for (int j = 0; j < m.length; j++){
+//				sum = sum + m[j][i];
+//			}
+//			System.out.println(i+ " sum: " + sum + " " + map.get(i));
+//		}
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];
 		}
 		return cdf;
+	}
+	
+	private HashMap<Integer,String> getMap(){
+		HashMap<Integer,String> map = new HashMap<Integer,String>();
+		map.put(0, "S");
+		for (int i = 0; i < this.b+2; i++){
+			for (int j = i; j < this.b+2; j++){
+				for (int z = j; z < this.b+2; z++){
+					map.put(this.getIndex(new int[]{i,j,z}), i+ ","+j+","+z);
+				}
+			}
+		}
+		return map;
 	}
 	
 
@@ -322,7 +344,7 @@ public abstract class KadType {
   protected double getProb(int[] returned, double[][] cdf){
 	  double p = returned[0]==0?cdf[0][0]:cdf[returned[0]][0]-cdf[returned[0]-1][0];
 	  for (int i = 1; i < returned.length; i++){
-		  double q = returned[i]==0?cdf[0][i]:cdf[returned[i]][i]-cdf[returned[i]-1][i];
+		   double q = returned[i]==0?cdf[0][i]:cdf[returned[i]][i]-cdf[returned[i]-1][i];
 		  if (returned[i-1] == 0){
 			  p = p*q;
 		  } else {
@@ -371,8 +393,15 @@ public abstract class KadType {
    * @return
    */
   protected double getProb(int[] returned, int nr){
-	  double p = returned[0]==0?this.cdfs[nr][0][0]:
+	  double p = 0;
+	  try{
+	      p = returned[0]==0?this.cdfs[nr][0][0]:
 		  this.cdfs[nr][returned[0]][0]-this.cdfs[nr][returned[0]-1][0];
+	  }catch (ArrayIndexOutOfBoundsException e){
+		  System.out.println("nr=" + nr + " retruned " + returned[0]);
+		  e.printStackTrace();
+		  System.exit(0);
+	  }
 	  for (int i = 1; i < returned.length; i++){
 		  double q = returned[i]==0?this.cdfs[nr][0][i]:
 			  this.cdfs[nr][returned[i]][i]-this.cdfs[nr][returned[i]-1][i];

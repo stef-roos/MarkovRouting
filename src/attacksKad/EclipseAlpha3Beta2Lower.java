@@ -2,26 +2,24 @@ package attacksKad;
 
 import kadtype.KadType.LType;
 
-public class EclipseAlpha3Beta2Upper extends Eclipse {
+public class EclipseAlpha3Beta2Lower extends EclipseLower {
 
-	
-
-	public EclipseAlpha3Beta2Upper(int b, int[] k, double[][] l,
+	public EclipseAlpha3Beta2Lower(int b, int[] k, double[][] l,
 			LType ltype, int att) {
 		super(b, 3, 2, k, l, ltype,att);
 		
 	}
 	
-	public EclipseAlpha3Beta2Upper(int b, int[] k, int l, int att) {
+	public EclipseAlpha3Beta2Lower(int b, int[] k, int l, int att) {
 		super(b, 3, 2, k, l,att);
 	}
 	
-	public EclipseAlpha3Beta2Upper(int b, int k, double[][] l,
+	public EclipseAlpha3Beta2Lower(int b, int k, double[][] l,
 			LType ltype, int att) {
 		super(b, 3, 2, k, l, ltype,att);
 	}
 	
-	public EclipseAlpha3Beta2Upper(int b, int k, int l, int att) {
+	public EclipseAlpha3Beta2Lower(int b, int k, int l, int att) {
 		super(b, 3, 2, k, l,att);
 	}
 
@@ -102,16 +100,15 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 									}
 								}
 								double p3 = this.getProb(returned[2], old[2]-1,old[2],c+c2);
-								int[] next = this.topAlpha(returned);
+								//int[] next = this.topAlpha(returned);
 //								if (next[1] == 0){
 //									if (p1*p2*p3 > 0){
 //										System.out.println("Problem ["+old[0]+","+old[1]+","+old[2]+"] to ["+returned[0][0]+","+ returned[0][1]+"] " +
 //												"["+returned[1][0]+","+ returned[1][1]+"] " + "["+returned[2][0]+","+ returned[2][1]+"] ");
 //									}
 //								}
-								int newindex = this.getIndex(next);
-								t2[newindex][oldindex] = t2[newindex][oldindex] +
-										nsucc*p1*p2*p3;
+								this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3,old);
+								
 							}
 						}
 						
@@ -165,7 +162,5 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 			
 		
 	}
-
-	
 
 }
