@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import util.Calc;
+
 //import eclipse.Calc;
 
 public class Test {
@@ -12,11 +14,29 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		double[] cdf = (new KademliaLower2(10,8)).getRoutingLength(1000); ; 
+		//System.out.println(getExpDeg(10000,8,15));
+		double[] cdf = (new KademliaUpper(17,8)).getRoutingLength(100000); ; 
 		for (int i = 0; i < cdf.length; i++){
 			System.out.println(i + " " +cdf[i]);
 		}
-		
+//		double sum = 0;
+//		for (int i = 0; i < 10001; i++){
+//			sum = sum + Calc.binomDist(10000, i, 0.25);
+//		}
+//		System.out.println(sum);
+	}
+	
+	public static double getExpDeg(int n, int k, int b){
+		double exp = 0;
+		for (int i = 0; i < b+1; i++){
+			double sum = 1;
+			double p = Math.pow(2, -i-1);
+			for (int j= 0; j <k; j++){
+				exp = exp +sum;
+				sum = sum -Calc.binomDist(n, j, p);
+			}
+		}
+		return exp;
 	}
 	
 	public static void testPerformance(String[] args){

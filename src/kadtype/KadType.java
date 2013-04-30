@@ -3,6 +3,8 @@ package kadtype;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import util.Calc;
+
 public abstract class KadType {
 	protected int b;
 	protected int alpha;
@@ -210,8 +212,25 @@ public abstract class KadType {
 				  } else{
 						 this.success[d] = this.success[d] + binom*(double)(k[d])/(double)(i+1);
 				  }
-				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+//				  if (binom > 0){
+//					  double old = binom;
+//				      binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+//				      if (binom > 1){
+//							System.out.println(binom + " i="+i + " d="+d + " old="+old);
+//							System.exit(0);
+//				      }		
+//				  } else{
+//					  binom = Calc.binomDist(n-2, i+1, p[d]);
+//					  if (!(binom < 1)){
+//						  binom = 0;
+//					  }
+//					  
+//				  }
+//				  if (d==b-1)
+//					  System.out.println(binom + " i="+i + " actual dist " + Calc.binomDist(n-2, n/2, p[d]));
+				  binom = Calc.binomDist(n-2, i+1, p[d]);
 			  }
+			  System.out.println("success d= " + d + " :" + success[d]);
 			}
 		}
 		if (this.ltype == LType.ALL){
