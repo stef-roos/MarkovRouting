@@ -2,6 +2,7 @@ package kadtype;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Vector;
 
 import util.Calc;
 
@@ -18,6 +19,7 @@ public abstract class KadType {
 	protected LType ltype;
 	protected double[] success;
 	protected double[][][] cdfs;
+	protected double[][] biCoeff; 
 	
 	/**
 	 * 
@@ -35,9 +37,29 @@ public abstract class KadType {
 		this.k = k;
 		this.l = l;
 		this.ltype = ltype;
-		//this.setCDFs();
+		this.setCDFs();
+		this.setBinom();
 	}
 	
+	private void setBinom() {
+		int max = 0;
+		for (int i = 0; i < k.length; i++){
+			if (k[i] > max){
+				max = k[i];
+			}
+		}
+		int max2 = Math.max(this.alpha, this.beta); 
+		this.biCoeff = new double[max+1][max2];
+		for (int i = 0; i < max+1; i++){
+			double binom = 1;
+			for (int j = 0; j < Math.min(max2, i+1); j++){
+				this.biCoeff[i][j] = binom;
+				binom = binom*(i-j)/(double)(j+1);
+			}
+		}
+		
+	}
+
 	/**
 	 * 
 	 * @param b: bits
@@ -149,9 +171,9 @@ public abstract class KadType {
 			t[0][d] = this.success[d];
 			//distributions over the other distances
 			if (t[0][d] < 1){
-			double[][] fd = this.getCDFs(d,alpha);
+			//double[][] fd = this.getCDFs(d);
 			//compute other entries of t_1
-			processCDFsT1(fd,t,d,d);
+			processCDFsT1(t,d,d);
 			}
 		}
 		
@@ -164,7 +186,6 @@ public abstract class KadType {
      * @return
      */
 	public double[][] getT2(int n){
-		this.setCDFs();
 		int[] lookup = new int[alpha];
 		lookup[alpha-1] = b+1;
 		int index = getIndex(lookup);
@@ -230,7 +251,7 @@ public abstract class KadType {
 //					  System.out.println(binom + " i="+i + " actual dist " + Calc.binomDist(n-2, n/2, p[d]));
 				  binom = Calc.binomDist(n-2, i+1, p[d]);
 			  }
-			  System.out.println("success d= " + d + " :" + success[d]);
+			  //System.out.println("success d= " + d + " :" + success[d]);
 			}
 		}
 		if (this.ltype == LType.ALL){
@@ -265,7 +286,7 @@ public abstract class KadType {
 	protected void setCDFs(){
 		this.cdfs = new double[b+1][][];
 		for (int i = 0; i < cdfs.length; i++){
-			this.cdfs[i] = this.getCDFs(i, this.beta);
+			this.cdfs[i] = this.getCDFs(i);
 //			for (int j = 0; j < this.cdfs[i].length-1; j++){
 //				for (int k = 0; k < this.cdfs[i][j].length; k++){
 //				if (!(this.cdfs[i][j][k] < 1)){
@@ -283,7 +304,7 @@ public abstract class KadType {
 	 * 
 	 * @return
 	 */
-   protected abstract double[][] getCDFs(int d, int c);
+   protected abstract double[][] getCDFs(int d);
    
    /**
     * fill matrix t according to cdfs
@@ -292,7 +313,7 @@ public abstract class KadType {
     * @param indexOld: index of the previous state
     * @param mindist: closest contact in previous step
     */
-   protected abstract void processCDFsT1(double[][] cdfs, double[][] t, int indexOld, int mindist);
+   protected abstract void processCDFsT1(double[][] t, int indexOld, int mindist);
 	
    /**
     * construct the transition matrix for the second step
@@ -353,119 +374,157 @@ public abstract class KadType {
 	  return top;
   }
   
-  /**
-   * probability that returned is next step given the cdf
-   * => use for T1
-   * @param returned
-   * @param cdf
-   * @return
-   */
-  protected double getProb(int[] returned, double[][] cdf){
-	  double p = returned[0]==0?cdf[0][0]:cdf[returned[0]][0]-cdf[returned[0]-1][0];
-	  for (int i = 1; i < returned.length; i++){
-		   double q = returned[i]==0?cdf[0][i]:cdf[returned[i]][i]-cdf[returned[i]-1][i];
-		  if (returned[i-1] == 0){
-			  p = p*q;
-		  } else {
-			  if (cdf[returned[i-1]-1][i] >= 1){
-				  return 0;
-			  } else {
-				  p = p*q/(1-cdf[returned[i-1]-1][i]);
-			  }
-		  }
-	  }
-	  return p;
-  }
+//  /**
+//   * probability that returned is next step given the cdf
+//   * => use for T1
+//   * @param returned
+//   * @param cdf
+//   * @return
+//   */
+//  protected double getProb(int[] returned, double[][] cdf){
+//	  double p = returned[0]==0?cdf[0][0]:cdf[returned[0]][0]-cdf[returned[0]-1][0];
+//	  for (int i = 1; i < returned.length; i++){
+//		   double q = returned[i]==0?cdf[0][i]:cdf[returned[i]][i]-cdf[returned[i]-1][i];
+//		  if (returned[i-1] == 0){
+//			  p = p*q;
+//		  } else {
+//			  if (cdf[returned[i-1]-1][i] >= 1){
+//				  return 0;
+//			  } else {
+//				  p = p*q/(1-cdf[returned[i-1]-1][i]);
+//			  }
+//		  }
+//	  }
+//	  return p;
+//  }
+//  
+//
+//  /**
+//   * probability that returned is next step given the cdf and resolved bits
+//   * => use for T1, LType.ALL
+//   * @param returned
+//   * @param cdf
+//   * @param l
+//   * @return
+//   */  
+//  protected double getProb(int[] returned, double[][] cdf, int l){
+//	  int d = cdf.length;
+//	  double p = returned[0]==0?cdf[0][l-1]:cdf[returned[0]][l-1]-cdf[returned[0]-1][l-1];
+//	  for (int i = 1; i < returned.length; i++){
+//		  double q = returned[i]==0?cdf[0][i*d+l-1]:cdf[returned[i]][i*d+l-1]-cdf[returned[i]-1][i*d+l-1];
+//          if (returned[i-1]==0){
+//			  p = p*q;
+//		  } else {
+//			  if (cdf[returned[i-1]-1][i*d+l-1] >= 1){
+//				  return 0;
+//			  } else {
+//				  p = p*q/(1-cdf[returned[i-1]-1][i*d+l-1]);
+//			  }
+//		  }
+//      }
+//	  return p;
+//  }
   
-
   /**
-   * probability that returned is next step given the cdf and resolved bits
-   * => use for T1, LType.ALL
-   * @param returned
-   * @param cdf
-   * @param l
-   * @return
-   */  
-  protected double getProb(int[] returned, double[][] cdf, int l){
-	  int d = cdf.length;
-	  double p = returned[0]==0?cdf[0][l-1]:cdf[returned[0]][l-1]-cdf[returned[0]-1][l-1];
-	  for (int i = 1; i < returned.length; i++){
-		  double q = returned[i]==0?cdf[0][i*d+l-1]:cdf[returned[i]][i*d+l-1]-cdf[returned[i]-1][i*d+l-1];
-          if (returned[i-1]==0){
-			  p = p*q;
-		  } else {
-			  if (cdf[returned[i-1]-1][i*d+l-1] >= 1){
-				  return 0;
-			  } else {
-				  p = p*q/(1-cdf[returned[i-1]-1][i*d+l-1]);
-			  }
-		  }
-      }
-	  return p;
-  }
-  
-  /**
-   * probability that returned is next step given the cdf
-   * => use for T2, when this.cdfs is set
+   * probability that returned is next step given the cdf-nr
    * @param returned
    * @param nr: nr of cdf
    * @return
    */
-  protected double getProb(int[] returned, int nr){
-	  double p = 0;
-	  try{
-	      p = returned[0]==0?this.cdfs[nr][0][0]:
-		  this.cdfs[nr][returned[0]][0]-this.cdfs[nr][returned[0]-1][0];
-	  }catch (ArrayIndexOutOfBoundsException e){
-		  System.out.println("nr=" + nr + " retruned " + returned[0]);
-		  e.printStackTrace();
-		  System.exit(0);
-	  }
-	  for (int i = 1; i < returned.length; i++){
-		  double q = returned[i]==0?this.cdfs[nr][0][i]:
-			  this.cdfs[nr][returned[i]][i]-this.cdfs[nr][returned[i]-1][i];
-		  if (returned[i-1] == 0){
-			  p = p*q;
-		  } else {
-			  if (this.cdfs[nr][returned[i-1]-1][i] >= 1){
-				  return 0;
-			  } else {
-				  p = p*q/(1-this.cdfs[nr][returned[i-1]-1][i]);
+  protected double getProb(int[] returned, int nr, int l){
+	  double p = 1;
+	  int c = 0;
+	  int old = -1;
+	  Vector<Integer> ys = new Vector<Integer>();
+	  Vector<Integer> cs = new Vector<Integer>();
+	  for (int i = 0; i < returned.length; i++){
+		  if (old != returned[i]){
+			   if (c > 0){
+				  ys.add(old);
+				  cs.add(c);
+				  c = 1;
+				  old = returned[i];
 			  }
+		  } else {
+			  c++;
 		  }
+	  }
+	  if ( c > 0){
+		  ys.add(old);
+		  cs.add(c);
+	  }
+	  double[][] cdf = this.cdfs[nr];
+	  double prob;
+	  if (returned[0] > 0){
+		  p = p*Math.pow(1 - cdf[returned[0]-1][l], k[nr]);
+		  if (cdf[returned[0]-1][l] < 1){
+			  prob = (cdf[returned[0]][l] - cdf[returned[0]-1][l])/(1-cdf[returned[0]-1][l]);
+			  }else {
+				  return 0;
+			  }
+	 } else {
+		  prob = cdf[0][l];
+	  }
+	  double[] coeffs = this.biCoeff[k[nr]];
+	  if (ys.size() > 1){
+		  p = p*coeffs[cs.get(0)]*Math.pow(prob, cs.get(0))*Math.pow(1-prob, k[nr]-cs.get(0));
+	  } else {
+		  double sum = 1;
+		  for (int i = 0; i < returned.length; i++){
+			  sum = sum - coeffs[i]*Math.pow(prob, i)*Math.pow(1-prob, k[nr]-i);
+		   }
+		  p = p*sum;
+		  return p;
+	  } 
+	  int remain = k[nr]-cs.get(0);
+	  for (int j = 1; j < ys.size()-1; j++){
+		  p = p*Math.pow((1-cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j-1)][l]), remain);
+		  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j)-1][l]);
+		  p=p*this.biCoeff[remain][cs.get(j)]*Math.pow(prob, cs.get(j))*Math.pow(1-prob, remain-cs.get(j));
+		  remain = remain-cs.get(j);
+	  }
+	  if (ys.size() > 1){
+		  int j = ys.size()-1;
+		  p = p*Math.pow((1-cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j-1)][l]), remain);
+		  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j)-1][l]);
+		  double sum = 1;
+		  for (int i = 0; i < cs.get(j); i++){
+			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-prob, remain-i);
+		  }
+		  p = p*sum;
 	  }
 	  return p;
   }
   
-  /**
-   * probability that returned is next step given the cdf-nr and resolved bits
-   * => use for T2, LType.ALL
-   * @param returned
-   * @param cdf
-   * @param l
-   * @return
-   */  
-  protected double getProb(int[] returned, int nr, int l){
-	  int d = this.cdfs[nr].length;
-	  double p = returned[0]==0?this.cdfs[nr][0][l-1]:
-		  this.cdfs[nr][returned[0]][l-1]-this.cdfs[nr][returned[0]-1][l-1];
-	  for (int i = 1; i < returned.length; i++){
-		  //get prob for returned[i]
-		  double q = returned[i]==0?this.cdfs[nr][0][i*d+l-1]:
-			  this.cdfs[nr][returned[i]][i*d+l-1]-this.cdfs[nr][returned[i]-1][i*d+l-1];
-		  //condition on value before
-		  if (returned[i-1]==0){
-			  p = p*q;
-		  } else {
-			  if (this.cdfs[nr][returned[i-1]-1][i*d+l-1] >= 1){
-				  return 0;
-			  } else {
-				  p = p*q/(1-this.cdfs[nr][returned[i-1]-1][i*d+l-1]);
-			  }
-		  }
-	  }
-	  return p;
-  }
+//  /**
+//   * probability that returned is next step given the cdf-nr and resolved bits
+//   * => use for T2, LType.ALL
+//   * @param returned
+//   * @param cdf
+//   * @param l
+//   * @return
+//   */  
+//  protected double getProb(int[] returned, int nr, int l){
+//	  int d = this.cdfs[nr].length;
+//	  double p = returned[0]==0?this.cdfs[nr][0][l-1]:
+//		  this.cdfs[nr][returned[0]][l-1]-this.cdfs[nr][returned[0]-1][l-1];
+//	  for (int i = 1; i < returned.length; i++){
+//		  //get prob for returned[i]
+//		  double q = returned[i]==0?this.cdfs[nr][0][i*d+l-1]:
+//			  this.cdfs[nr][returned[i]][i*d+l-1]-this.cdfs[nr][returned[i]-1][i*d+l-1];
+//		  //condition on value before
+//		  if (returned[i-1]==0){
+//			  p = p*q;
+//		  } else {
+//			  if (this.cdfs[nr][returned[i-1]-1][i*d+l-1] >= 1){
+//				  return 0;
+//			  } else {
+//				  p = p*q/(1-this.cdfs[nr][returned[i-1]-1][i*d+l-1]);
+//			  }
+//		  }
+//	  }
+//	  return p;
+//  }
 	
 	//STATIC methods for matrix computations
     

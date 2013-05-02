@@ -82,7 +82,6 @@ public abstract class Eclipse extends KadTypeCDFs{
      */
 	@Override
 	public double[][] getT2(int n){
-		this.setCDFs();
 		int[] lookup = new int[alpha];
 		lookup[alpha-1] = b+2;
 		int index = getIndex(lookup);
