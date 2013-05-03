@@ -116,7 +116,7 @@ public abstract class KadTypeCDFs extends KadType {
 		    double[][] res = new double[d-digit+1][1];
 		    double p = 1;
 		    for (int i = res.length-1; i > -1; i--){
-		    	res[i][0] = 1 - Math.pow(1-p, this.k[d]);
+		    	res[i][0] = p;
 		    	p = p*0.5;
 		    }
 		    return res;
@@ -127,7 +127,7 @@ public abstract class KadTypeCDFs extends KadType {
 				if (l[d][a] > 0){
 		      double p = 1;
 		      for (int i = res.length-a; i > -1; i--){
-		    	res[i][a-1] = 1 - Math.pow(1-p, this.k[d]);
+		    	res[i][a-1] = p;
 		    	p = p*0.5;
 		      }
 		      for (int i = res.length-a+1; i < res.length; i++){

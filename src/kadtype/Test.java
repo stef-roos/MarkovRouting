@@ -3,6 +3,8 @@ package kadtype;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Random;
 
 import util.Calc;
 
@@ -19,6 +21,7 @@ public class Test {
 		for (int i = 0; i < cdf.length; i++){
 			System.out.println(i + " " +cdf[i]);
 		}
+		//exp();
 //		double sum = 0;
 //		for (int i = 0; i < 10001; i++){
 //			sum = sum + Calc.binomDist(10000, i, 0.25);
@@ -322,6 +325,39 @@ public class Test {
 			}
 		}
 		return m;
+	}
+	
+	public static void exp(){
+		KadType kad = new KademliaUpper(10,8);
+		int c = 2;
+		double[][][] simu = new double[c][c][c]; 
+		int it = 1000000;
+		int[] draw = new int[8];
+		Random rand = new Random();
+		double[][] cdf = kad.getCDFs(c);
+		for (int i = 0; i < cdf.length; i++){
+			System.out.println(cdf[i][0]);
+		}
+		for (int i = 0; i < it; i++){
+			for (int j = 0; j < 8; j++){
+			double p = rand.nextDouble();
+			int nr = 0;
+			while (cdf[nr][0] < p){
+				nr++;
+			}
+			draw[j] = nr;
+			}
+			Arrays.sort(draw);
+			simu[draw[0]][draw[1]][draw[2]]++;
+		}
+		for (int i = 0; i < cdf.length; i++){
+			for (int j = i; j < cdf.length; j++){
+				for (int k = j; k < cdf.length; k++){
+				simu[i][j][k] = simu[i][j][k]/(double)it;
+				System.out.println(" i=" + i + " j=" + j + " k=" + k +" simu = " + simu[i][j][k] + " model= " + kad.getProb(new int[]{i,j,k}, c, 0));
+				}
+			}
+		}
 	}
 
 }

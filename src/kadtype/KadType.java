@@ -108,7 +108,13 @@ public abstract class KadType {
 		double[] dist = getI();
 		cdf[0] = 0;
 		double[][]  m = getT1(n);
-		
+		for (int i = 0; i < m[0].length; i++){
+			double sum=0;
+			for (int j = 0; j < m.length; j++){
+				sum = sum + m[j][i];
+			}
+			System.out.println(i+ " sum: " + sum );
+		}
 		dist = matrixMulti(m,dist);
 		cdf[1] = dist[0];
 		m = getT2(n);
@@ -442,9 +448,9 @@ public abstract class KadType {
 			   if (c > 0){
 				  ys.add(old);
 				  cs.add(c);
-				  c = 1;
-				  old = returned[i];
-			  }
+				 }
+			   c = 1;
+				old = returned[i];
 		  } else {
 			  c++;
 		  }
@@ -453,6 +459,8 @@ public abstract class KadType {
 		  ys.add(old);
 		  cs.add(c);
 	  }
+	
+	  
 	  double[][] cdf = this.cdfs[nr];
 	  double prob;
 	  if (returned[0] > 0){
