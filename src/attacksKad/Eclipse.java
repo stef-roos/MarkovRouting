@@ -66,9 +66,8 @@ public abstract class Eclipse extends KadTypeCDFs{
 				if (d == 0){
 					t[1][d] = 1 - this.success[d+1];
 				} else{
-			double[][] fd = this.getCDFs(d,alpha);
 			//compute other entries of t_1
-			processCDFsT1(fd,t,d,d);
+			processCDFsT1(t,d,d);
 				}
 			}
 		}
@@ -270,7 +269,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 	 /**
 	   * add probability for attack in first step
 	   */
-	  protected double getProb(int[] returned, double[][] cdf, int d){
+	  protected double getProb(int[] returned, int d, int l){
 		  if (returned[0] > 0){
 			  int[] re = new int[returned.length];
 			  for (int j = 0; j < returned.length; j++){
@@ -279,7 +278,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 			 }
 //			  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
 //			 + " attack: " + (1-this.attackProb[d][0][0]) + " normal: " + this.getProb(re, cdf) + " case: not");
-			  return (1-this.attackProb[d][0][0])*this.getProb(re, cdf);
+			  return (1-this.attackProb[d][0][0])*super.getProb(re, d,l);
 		  } else {
 			  int count = 1;
 			  for (int j = 1; j < returned.length; j++){
@@ -306,13 +305,13 @@ public abstract class Eclipse extends KadTypeCDFs{
 //							 + " attack: " + this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0]) 
 //							 + " attackPart: " + this.attackProb[d][count][0] 
 //							 + " normal: " + this.getProb(re, cdf) + " case: part");
-				  return this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0])*this.getProb(re, cdf);
+				  return (this.attackProb[d][count-1][0]-this.attackProb[d][count][0])*super.getProb(re, d,l);
 			 }
 		 }
 	  }
 	
-	protected double getProb(int[] returned, int nr, int d, int c){
-		if (d == 0){
+	protected double getProb(int[] returned, int d, int l, int c){
+		if (d == -1){
 			if (returned[1] == 0){
 				return 1;
 			} else {
@@ -327,7 +326,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 //			System.out.println("d= "+d+" re0= "+(returned[0]) + " re1= "+(returned[1])
 //					+ " attack: "+(1-this.attackProb[d][0][c]) + " normal "+this.getProb(re, nr));
 			
-			return (1-this.attackProb[d][0][c])*this.getProb(re, nr);
+			return (1-this.attackProb[d][0][c])*super.getProb(re, d,l);
 		} else{
 			int count = 1;
 			  for (int j = 1; j < returned.length; j++){
@@ -350,7 +349,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  }
 //				  System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])
 //						  + " normal "+this.getProb(re, nr));
-				   return this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])*this.getProb(re, nr);
+				   return (this.attackProb[d][count-1][c]-this.attackProb[d][count][c])*super.getProb(re, d,l);
 				  
 			  }
 		}

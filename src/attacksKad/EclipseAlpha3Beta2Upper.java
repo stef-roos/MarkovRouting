@@ -26,12 +26,12 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 	}
 
 	@Override
-	protected void processCDFsT1(double[][] cdfs, double[][] t, int indexOld,
+	protected void processCDFsT1(double[][] t, int indexOld,
 			int mindist) {
 		double p = 0;
-		for (int i = 0; i < cdfs.length+1; i++){
-			for (int j = i; j < cdfs.length+1; j++){
-				for (int k = j; k < cdfs.length+1; k++){
+		for (int i = 0; i < cdfs[mindist].length+1; i++){
+			for (int j = i; j < cdfs[mindist].length+1; j++){
+				for (int k = j; k < cdfs[mindist].length+1; k++){
 					
 					int[] re = new int[]{i,j,k};
 					int indexnew = this.getIndex(re);
@@ -39,8 +39,12 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 //						if (i == 0 && j == 0){
 //						   p = p + this.getProb(re, cdfs,mindist);
 //						}
+						p = this.getProb(re, mindist, 0);
+//								 if (!(p<= 1) ){
+//									   System.out.println("old = " + mindist + " r1=" + i + " r2="+j + " r3 ="+k+" p="+p);
+//								   }		
 					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
-							+(1-this.success[mindist+1])*this.getProb(re, cdfs,mindist);
+							+(1-this.success[mindist+1])*this.getProb(re, mindist, 0);
 					}   
 //					if (this.ltype == LType.ALL){
 //						for (int a = 1; a < mindist+1; a++){
@@ -68,7 +72,10 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 			returned[0][0] = i1;
 			for (int i2 = i1; i2 < max1; i2++){
 				returned[0][1] = i2;
-				   double p1 = this.getProb(returned[0], old[0]-1,old[0],0);
+				   double p1 = this.getProb(returned[0], old[0]-1,0,0);
+//				   if (!(p1 <= 1) && old[0] < 10){
+//					   System.out.println("old = " + old[0] + " i1=" + i1 + " i2="+i2 + " p1="+p1);
+//				   }
 				for (int j1 = 0; j1 < max2; j1++){
 					returned[1][0] = j1;
 					for (int j2 = j1; j2 < max2; j2++){
@@ -85,7 +92,7 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 								}
 							}
 						}
-						double p2 = this.getProb(returned[1], old[1]-1, old[1],c);
+						double p2 = this.getProb(returned[1], old[1]-1, 0,c);
 						for (int k1 = 0; k1 < max3; k1++){
 							returned[2][0] = k1;
 							for (int k2 = k1; k2 < max3; k2++){
@@ -101,7 +108,7 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 										}
 									}
 								}
-								double p3 = this.getProb(returned[2], old[2]-1,old[2],c+c2);
+								double p3 = this.getProb(returned[2], old[2]-1,0,c+c2);
 								int[] next = this.topAlpha(returned);
 //								if (next[1] == 0){
 //									if (p1*p2*p3 > 0){

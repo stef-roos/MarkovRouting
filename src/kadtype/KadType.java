@@ -108,13 +108,6 @@ public abstract class KadType {
 		double[] dist = getI();
 		cdf[0] = 0;
 		double[][]  m = getT1(n);
-		for (int i = 0; i < m[0].length; i++){
-			double sum=0;
-			for (int j = 0; j < m.length; j++){
-				sum = sum + m[j][i];
-			}
-			System.out.println(i+ " sum: " + sum );
-		}
 		dist = matrixMulti(m,dist);
 		cdf[1] = dist[0];
 		m = getT2(n);
@@ -464,10 +457,9 @@ public abstract class KadType {
 	  double[][] cdf = this.cdfs[nr];
 	  double prob;
 	  if (returned[0] > 0){
-		  p = p*Math.pow(1 - cdf[returned[0]-1][l], k[nr]);
 		  if (cdf[returned[0]-1][l] < 1){
-			  prob = (cdf[returned[0]][l] - cdf[returned[0]-1][l])/(1-cdf[returned[0]-1][l]);
-			  }else {
+			  prob = (cdf[returned[0]][l] - cdf[returned[0]-1][l]);
+			   }else {
 				  return 0;
 			  }
 	 } else {
@@ -475,29 +467,33 @@ public abstract class KadType {
 	  }
 	  double[] coeffs = this.biCoeff[k[nr]];
 	  if (ys.size() > 1){
-		  p = p*coeffs[cs.get(0)]*Math.pow(prob, cs.get(0))*Math.pow(1-prob, k[nr]-cs.get(0));
+		  p = p*coeffs[cs.get(0)]*Math.pow(prob, cs.get(0))*Math.pow(1-cdf[ys.get(0)][l], k[nr]-cs.get(0));
 	  } else {
 		  double sum = 1;
+		  if (returned[0] > 0){
+		    sum = Math.pow(1 - cdf[returned[0]-1][l], k[nr]);
+		  }
 		  for (int i = 0; i < returned.length; i++){
-			  sum = sum - coeffs[i]*Math.pow(prob, i)*Math.pow(1-prob, k[nr]-i);
+			  sum = sum - coeffs[i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(0)][l], k[nr]-i);
 		   }
 		  p = p*sum;
 		  return p;
 	  } 
 	  int remain = k[nr]-cs.get(0);
 	  for (int j = 1; j < ys.size()-1; j++){
-		  p = p*Math.pow((1-cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j-1)][l]), remain);
-		  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j)-1][l]);
-		  p=p*this.biCoeff[remain][cs.get(j)]*Math.pow(prob, cs.get(j))*Math.pow(1-prob, remain-cs.get(j));
+		   p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+		  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+		  p=p*this.biCoeff[remain][cs.get(j)]*Math.pow(prob, cs.get(j))*Math.pow(1-cdf[ys.get(j)][l], remain-cs.get(j));
 		  remain = remain-cs.get(j);
 	  }
 	  if (ys.size() > 1){
 		  int j = ys.size()-1;
-		  p = p*Math.pow((1-cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j-1)][l]), remain);
-		  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l])/(1-cdf[ys.get(j)-1][l]);
-		  double sum = 1;
+		  p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+		  
+		 prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+		  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
 		  for (int i = 0; i < cs.get(j); i++){
-			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-prob, remain-i);
+			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(j)][l], remain-i);
 		  }
 		  p = p*sum;
 	  }
