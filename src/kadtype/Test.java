@@ -17,7 +17,7 @@ public class Test {
 	 */
 	public static void main(String[] args) {
 		//System.out.println(getExpDeg(10000,8,15));
-		double[] cdf = (new KademliaA4B3Lower(8,8)).getRoutingLength(100); ; 
+		double[] cdf = (new KademliaUpper(10,8)).getRoutingLength(1000); 
 		for (int i = 0; i < cdf.length; i++){
 			System.out.println(i + " " +cdf[i]);
 		}

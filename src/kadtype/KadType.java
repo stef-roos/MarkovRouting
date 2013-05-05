@@ -119,9 +119,11 @@ public abstract class KadType {
 //			}
 //			System.out.println(i+ " sum: " + sum + " " + map.get(i));
 //		}
+		System.out.println(dist[1]);
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];
+			System.out.println(dist[1]);
 		}
 		return cdf;
 	}

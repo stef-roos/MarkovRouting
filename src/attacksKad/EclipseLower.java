@@ -182,13 +182,13 @@ public abstract class EclipseLower extends Eclipse {
 						}
 						int[] next = this.topAlpha(combi);
 						//start alternative
-						if (next[next.length-1] == b){
-							return this.getNextBest(next,p,old,index,t);
-						} else {
+//						if (next[next.length-1] == b){
+//							return this.getNextBest(next,p,old,index,t);
+//						} else {
 						int indexN = this.getIndex(next);
 						t[indexN][index] = t[indexN][index] + p;
 						return p;
-						}
+						//}
 					}
 		}
 		

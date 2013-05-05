@@ -107,6 +107,7 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 //												"["+returned[1][0]+","+ returned[1][1]+"] " + "["+returned[2][0]+","+ returned[2][1]+"] ");
 //									}
 //								}
+								
 								this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3,old);
 								
 							}
