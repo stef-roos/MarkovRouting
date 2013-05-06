@@ -132,6 +132,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 			double q = Math.pow(2, -m);
 			for (int d=b+1; d > 0;d--){
 				p[d] = q;
+				if (d > 1)
 				q = q*0.5;
 			}
 			for (int d=b+1; d > 0;d--){
@@ -201,7 +202,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 						    this.attackProb[d][j][at] = 0;
 						  }
 					  } else {
-                  ps[at] = this.getAtt(i,k[d-1],ps[at],this.attackers-at);
+                  ps[at] = this.getAtt(i+1,k[d-1],ps[at],this.attackers-at);
                   for (int j = 0; j < ps[at].length; j++){
                 	  double pa = 1;
                 	  for (int c = 0; c <= j; c++){
