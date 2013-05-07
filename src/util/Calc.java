@@ -12,6 +12,9 @@ public class Calc {
 	 * @return the binomial coefficient
 	 */
 	public static double binomDist(int n, final int k, double p) {
+		if (k > n) return 0;
+		if (n < 0) return 0;
+		if (k < 0) return 0;
 		double r = 1;
 		int min;
 		if (k < n - k) {
@@ -59,6 +62,9 @@ public class Calc {
 	 * @return the binomial coefficient
 	 */
 	public static long binom(int n, final int k) {
+		if (k > n) return 0;
+		if (n < 0) return 0;
+		if (k < 0) return 0;
 		final int min = (k < n - k ? k : n - k);
 		long bin = 1;
 		for (int i = 1; i <= min; i++) {

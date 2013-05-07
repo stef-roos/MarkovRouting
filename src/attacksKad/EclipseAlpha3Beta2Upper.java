@@ -36,15 +36,11 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 					int[] re = new int[]{i,j,k};
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
-//						if (i == 0 && j == 0){
-//						   p = p + this.getProb(re, cdfs,mindist);
-//						}
-						//p = this.getProb(re, mindist, 0);
-//								 if (!(p<= 1) ){
-//									   System.out.println("old = " + mindist + " r1=" + i + " r2="+j + " r3 ="+k+" p="+p);
-//								   }		
-					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
-							+(1-this.success[mindist+1])*this.getProb(re, mindist, 0);
+	
+//					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
+//							+(1-this.success[mindist+1])*this.getProb(re, mindist, 0);
+						 t[indexnew][indexOld] =  t[indexnew][indexOld] 
+									+this.getProb(re, mindist, 0);
 					}   
 //					if (this.ltype == LType.ALL){
 //						for (int a = 1; a < mindist+1; a++){
@@ -117,8 +113,10 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 //									}
 //								}
 								int newindex = this.getIndex(next);
+//								t2[newindex][oldindex] = t2[newindex][oldindex] +
+//										nsucc*p1*p2*p3;
 								t2[newindex][oldindex] = t2[newindex][oldindex] +
-										nsucc*p1*p2*p3;
+										p1*p2*p3;
 							}
 						}
 						

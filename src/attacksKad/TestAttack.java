@@ -16,15 +16,15 @@ public class TestAttack {
 			System.out.println(i + " " +cdf[i]);
 		}
 		
-		double attProb = 0;
-		for (int i = 0; i < 10; i++){
-			double p = Math.pow(2, -i-1);
-			for (int j = 0; j < 99; j++){
-				double binom = Calc.binomDist(98, j, p)*p;
-				attProb = attProb + binom*10/(double)Calc.binom(5+j+1, 3);
-			}
-		}
-		System.out.println(attProb);
+//		double attProb = 0;
+//		for (int i = 0; i < 10; i++){
+//			double p = Math.pow(2, -i-1);
+//			for (int j = 0; j < 99; j++){
+//				double binom = Calc.binomDist(98, j, p)*p;
+//				attProb = attProb + binom*10/(double)Calc.binom(5+j+1, 3);
+//			}
+//		}
+//		System.out.println(attProb);
 
 	}
 

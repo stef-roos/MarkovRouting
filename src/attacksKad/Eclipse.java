@@ -1,11 +1,12 @@
 package attacksKad;
 
+import util.Calc;
 import kadtype.KadType.LType;
 import kadtype.KadTypeCDFs;
 
 public abstract class Eclipse extends KadTypeCDFs{
 	protected int attackers;
-	double[][][] attackProb;
+	double[][] attackProb;
 	
 	/**
 	 * constructor: see super
@@ -55,7 +56,7 @@ public abstract class Eclipse extends KadTypeCDFs{
      */
 	@Override
 	public double[][] getT1(int n){
-		this.setAttackProb(n);
+		//this.setAttackProb(n);
 		int[] lookup = new int[alpha];
 		lookup[this.alpha-1] = b+2;
 		double[][] t = new double[getIndex(lookup)][b+1];
@@ -122,6 +123,8 @@ public abstract class Eclipse extends KadTypeCDFs{
 	 */
 	protected void setSuccess(int n) {
 		this.success = new double[this.b+2];
+		this.attackProb = new double[this.b+2][this.alpha+2];
+		this.attackProb[0][this.alpha] = 1;
 		this.success[0] = 0;
 		if (this.ltype == LType.SIMPLE){
 			//case: always resolve by constant l more steps
@@ -137,135 +140,156 @@ public abstract class Eclipse extends KadTypeCDFs{
 			}
 			for (int d=b+1; d > 0;d--){
 				double binom = Math.pow(1-p[d],n-2);
+				boolean first = true;
 			  for (int i = this.attackers; i < this.attackers+n-1; i++){
+				  
 				  //prob to be successful if there are i nodes besides target in region 
 				  if (i < k[d-1]){
 				         this.success[d] = this.success[d] + binom;
 				  } else{
 						 this.success[d] = this.success[d] + binom*(double)(k[d-1])/(double)(i+1);
 				  }
-				  binom = binom*(n-2-(i-this.attackers))/(double)(i-this.attackers+1)*p[d]/(1-p[d]);
-			  }
-			}
-		}
-		if (this.ltype == LType.ALL){
-			//case: variable l: iterate over all l
-			for (int m = 0; m < l.length; m++){
-				double[] p = new double[b+1];
-				p[0] = 0;
-				double q = Math.pow(2, -m-1);
-				for (int d=b; d > 0;d--){
-					p[d] = q;
-					q = q*0.5;
-				}
-				for (int d=b; d > 0;d--){
-					double binom = Math.pow(1-p[d],n-2);
-				  for (int i = 0; i < n-1; i++){
-					  if (i < k[d]){
-					         this.success[d] = this.success[d] + l[d][m]*binom;
-					  } else{
-							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(k[d])/(double)(i+1);
+				  for (int j = 0; j < this.attackProb[d].length-2; j++){
+					  if (k[d-1] <= i+1){
+					      this.attackProb[d][j] = this.attackProb[d][j] + Calc.binom(this.attackers, j)*Calc.binom(i-this.attackers, k[d-1]-j)/(double)Calc.binom(i+1, k[d-1])*binom;
 					  }
-					  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+					  if (this.attackProb[d][j] > 1 && first){
+						  System.out.println("oh d=" + d + " j=" + j + " i= " + i + " val=" + this.attackProb[d][j]);
+						  first = false;
+					  }
 				  }
-				}
-			}
-		}
-	}
-	
-	private void setAttackProb(int n){
-		this.attackProb = new double[this.b+2][this.alpha][this.alpha*this.beta];
-		for (int i = 0; i < this.alpha; i++){
-			for (int j= 0; j < this.alpha; j++){
-				this.attackProb[0][i][j] = 1;
-			}
-		}
-		if (this.ltype == LType.SIMPLE){
-			//case: always resolve by constant l more steps
-			int m = (int)l[0][0];
-			double[] p = new double[b+2];
-			p[0] = 0;
-			//probability to be in fraction in id space
-			double q = Math.pow(2, -m);
-			for (int d=b+1; d > 0;d--){
-				p[d] = q;
-				q = q*0.5;
-			}
-			for (int d=b+1; d > 0;d--){
-				double binom = Math.pow(1-p[d],n-2);
-				double[][] ps = new double[this.alpha*this.beta][this.alpha];
-			  for (int i = 0; i < n-1; i++){
-				  //prob to be successful if there are i nodes besides target in region 
-				  for (int at = 0; at < this.alpha*this.beta; at++){
-					  if (this.attackers - at < 1){
-						  for (int j = 0; j < this.alpha; j++){
-						    this.attackProb[d][j][at] = 0;
-						  }
-					  } else {
-                  ps[at] = this.getAtt(i+1,k[d-1],ps[at],this.attackers-at);
-                  for (int j = 0; j < ps[at].length; j++){
-                	  double pa = 1;
-                	  for (int c = 0; c <= j; c++){
-                		  pa = pa - ps[at][c];
-                	  }
-                	  this.attackProb[d][j][at] = this.attackProb[d][j][at] +pa*binom;
-                  }
-				  }
-				  }
-				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+				  //binom = binom*(n-2-(i-this.attackers))/(double)(i-this.attackers+1)*p[d]/(1-p[d]);
+				  binom = Calc.binomDist(n-2, i-this.attackers+1, p[d]);
+				  
 			  }
-			  
-//			  for (int j = 1; j < this.alpha; j++){
-//				  for (int at = 0; at < this.alpha; at++){
-//				  this.attackProb[d][j][at] = this.attackProb[d][j][at]/this.attackProb[d][j-1][at];
-//				  }
-//				  
-//			  }
+			  this.attackProb[d][this.alpha] = 1-this.success[d];
+			  for (int j = 0; j < this.alpha; j++){
+				  this.attackProb[d][this.alpha] = this.attackProb[d][this.alpha] - this.attackProb[d][j];
+			  }
+			  this.attackProb[d][this.alpha+1] = 1-this.success[d];
+			  for (int j = 0; j < this.beta; j++){
+				  this.attackProb[d][this.alpha+1] = this.attackProb[d][this.alpha+1] - this.attackProb[d][j];
+			  }
 			}
 		}
-		
 //		if (this.ltype == LType.ALL){
-//			//case: always resolve by constant l more steps
-//			for (int a = 1; a <= b; a++){
-//			double[] p = new double[b+1];
-//			p[0] = 0;
-//			//probability to be in fraction in id space
-//			double q = Math.pow(2, -a);
-//			for (int d=b; d > 0;d--){
-//				p[d] = q;
-//				q = q*0.5;
-//			}
-//			for (int d=b; d > 0;d--){
-//				if (l[d][a] > 0){
-//				double binom = Math.pow(1-p[d],n-2);
-//				double[] ps = new double[this.alpha];
-//			  for (int i = 0; i < n-1; i++){
-//				  //prob to be successful if there are i nodes besides attackers in region 
-//				  
-//                  ps = this.getAtt(i,k[d],ps);
-//                  for (int j = 0; j < ps.length; j++){
-//                	  double pa = 1;
-//                	  for (int c = 0; c <= j; c++){
-//                		  pa = pa - ps[c];
-//                	  }
-//                	  this.attackProb[d][j] = this.attackProb[d][j] +pa*binom;
-//                  }
-//				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
-//			  }
-//			  
-//			  for (int j = 0; j < this.alpha; j++){
-//				  this.attackProb[d][j] = this.attackProb[d][j]*l[d][a];
-//			  }
+//			//case: variable l: iterate over all l
+//			for (int m = 0; m < l.length; m++){
+//				double[] p = new double[b+1];
+//				p[0] = 0;
+//				double q = Math.pow(2, -m-1);
+//				for (int d=b; d > 0;d--){
+//					p[d] = q;
+//					q = q*0.5;
 //				}
-//			}
-//			}
-//			for (int d = 0; d < b+1; d++){
-//				for (int j = 1; j < this.alpha; j++){
-//					  this.attackProb[d][j] = this.attackProb[d][j]/this.attackProb[d][j-1];
+//				for (int d=b; d > 0;d--){
+//					double binom = Math.pow(1-p[d],n-2);
+//				  for (int i = 0; i < n-1; i++){
+//					  if (i < k[d]){
+//					         this.success[d] = this.success[d] + l[d][m]*binom;
+//					  } else{
+//							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(k[d])/(double)(i+1);
+//					  }
+//					  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+//				  }
 //				}
 //			}
 //		}
 	}
+	
+//	private void setAttackProb(int n){
+//		this.attackProb = new double[this.b+2][this.alpha][this.alpha*this.beta];
+//		for (int i = 0; i < this.alpha; i++){
+//			for (int j= 0; j < this.alpha; j++){
+//				this.attackProb[0][i][j] = 1;
+//			}
+//		}
+//		if (this.ltype == LType.SIMPLE){
+//			//case: always resolve by constant l more steps
+//			int m = (int)l[0][0];
+//			double[] p = new double[b+2];
+//			p[0] = 0;
+//			//probability to be in fraction in id space
+//			double q = Math.pow(2, -m);
+//			for (int d=b+1; d > 0;d--){
+//				p[d] = q;
+//				q = q*0.5;
+//			}
+//			for (int d=b+1; d > 0;d--){
+//				double binom = Math.pow(1-p[d],n-2);
+//				double[][] ps = new double[this.alpha*this.beta][this.alpha];
+//			  for (int i = 0; i < n-1; i++){
+//				  //prob to be successful if there are i nodes besides target in region 
+//				  for (int at = 0; at < this.alpha*this.beta; at++){
+//					  if (this.attackers - at < 1){
+//						  for (int j = 0; j < this.alpha; j++){
+//						    this.attackProb[d][j][at] = 0;
+//						  }
+//					  } else {
+//                  ps[at] = this.getAtt(i+1,k[d-1],ps[at],this.attackers-at);
+//                  for (int j = 0; j < ps[at].length; j++){
+//                	  double pa = 1;
+//                	  for (int c = 0; c <= j; c++){
+//                		  pa = pa - ps[at][c];
+//                	  }
+//                	  this.attackProb[d][j][at] = this.attackProb[d][j][at] +pa*binom;
+//                  }
+//				  }
+//				  }
+//				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+//			  }
+//			  
+////			  for (int j = 1; j < this.alpha; j++){
+////				  for (int at = 0; at < this.alpha; at++){
+////				  this.attackProb[d][j][at] = this.attackProb[d][j][at]/this.attackProb[d][j-1][at];
+////				  }
+////				  
+////			  }
+//			}
+//		}
+//		
+////		if (this.ltype == LType.ALL){
+////			//case: always resolve by constant l more steps
+////			for (int a = 1; a <= b; a++){
+////			double[] p = new double[b+1];
+////			p[0] = 0;
+////			//probability to be in fraction in id space
+////			double q = Math.pow(2, -a);
+////			for (int d=b; d > 0;d--){
+////				p[d] = q;
+////				q = q*0.5;
+////			}
+////			for (int d=b; d > 0;d--){
+////				if (l[d][a] > 0){
+////				double binom = Math.pow(1-p[d],n-2);
+////				double[] ps = new double[this.alpha];
+////			  for (int i = 0; i < n-1; i++){
+////				  //prob to be successful if there are i nodes besides attackers in region 
+////				  
+////                  ps = this.getAtt(i,k[d],ps);
+////                  for (int j = 0; j < ps.length; j++){
+////                	  double pa = 1;
+////                	  for (int c = 0; c <= j; c++){
+////                		  pa = pa - ps[c];
+////                	  }
+////                	  this.attackProb[d][j] = this.attackProb[d][j] +pa*binom;
+////                  }
+////				  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+////			  }
+////			  
+////			  for (int j = 0; j < this.alpha; j++){
+////				  this.attackProb[d][j] = this.attackProb[d][j]*l[d][a];
+////			  }
+////				}
+////			}
+////			}
+////			for (int d = 0; d < b+1; d++){
+////				for (int j = 1; j < this.alpha; j++){
+////					  this.attackProb[d][j] = this.attackProb[d][j]/this.attackProb[d][j-1];
+////				}
+////			}
+////		}
+//	}
 	
 	 /**
 	   * add probability for attack in first step
@@ -279,7 +303,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 			 }
 //			  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
 //			 + " attack: " + (1-this.attackProb[d][0][0]) + " normal: " + this.getProb(re, cdf) + " case: not");
-			  return (1-this.attackProb[d][0][0])*super.getProb(re, d,l);
+			  return this.attackProb[d+1][0]*super.getProb(re, d,l);
 		  } else {
 			  int count = 1;
 			  for (int j = 1; j < returned.length; j++){
@@ -295,7 +319,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 			  if (count == returned.length){
 //				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
 //							 + " attack: " + this.attackProb[d][this.alpha-1][0] + " normal: " + 1 + " case: all" );
-				  return this.attackProb[d][this.alpha-1][0];
+				  return this.attackProb[d+1][this.alpha];
 				  
 			  }else {
 				  int[] re = new int[this.alpha-count];
@@ -306,7 +330,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 //							 + " attack: " + this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0]) 
 //							 + " attackPart: " + this.attackProb[d][count][0] 
 //							 + " normal: " + this.getProb(re, cdf) + " case: part");
-				  return (this.attackProb[d][count-1][0]-this.attackProb[d][count][0])*super.getProb(re, d,l);
+				  return this.attackProb[d+1][count]*super.getProb(re, d,l);
 			 }
 		 }
 	  }
@@ -327,7 +351,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 //			System.out.println("d= "+d+" re0= "+(returned[0]) + " re1= "+(returned[1])
 //					+ " attack: "+(1-this.attackProb[d][0][c]) + " normal "+this.getProb(re, nr));
 			
-			return (1-this.attackProb[d][0][c])*super.getProb(re, d,l);
+			return this.attackProb[d+1][0]*super.getProb(re, d,l);
 		} else{
 			int count = 1;
 			  for (int j = 1; j < returned.length; j++){
@@ -337,12 +361,9 @@ public abstract class Eclipse extends KadTypeCDFs{
 					  break;
 				  }
 			  }
-			  if (count + c > this.attackers){
-				  return 0;
-			  }
 			  if (count == returned.length){
 				  //System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][count-1][c] + " normal "+1);
-				  return this.attackProb[d][count-1][c];
+				  return this.attackProb[d+1][this.alpha+1];
 			  }else {
 				  int[] re = new int[returned.length-count];
 				  for (int j = count; j < returned.length; j++){
@@ -350,7 +371,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  }
 //				  System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])
 //						  + " normal "+this.getProb(re, nr));
-				   return (this.attackProb[d][count-1][c]-this.attackProb[d][count][c])*super.getProb(re, d,l);
+				   return this.attackProb[d+1][count]*super.getProb(re, d,l);
 				  
 			  }
 		}
