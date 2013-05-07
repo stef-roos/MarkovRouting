@@ -281,7 +281,7 @@ public abstract class KadType {
 					  } else{
 							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(k[d])/(double)(i+1);
 					  }
-					  binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
+					  binom = Calc.binomDist(n-2, i+1, p[d]);
 				  }
 				}
 			}

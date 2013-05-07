@@ -16,17 +16,7 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//System.out.println(getExpDeg(10000,8,15));
-		double[] cdf = (new KademliaUpper(10,5)).getRoutingLength(100); 
-		for (int i = 0; i < cdf.length; i++){
-			System.out.println(i + " " +cdf[i]);
-		}
-		//exp();
-//		double sum = 0;
-//		for (int i = 0; i < 10001; i++){
-//			sum = sum + Calc.binomDist(10000, i, 0.25);
-//		}
-//		System.out.println(sum);
+		testPerformance(args);
 	}
 	
 	public static double getExpDeg(int n, int k, int b){

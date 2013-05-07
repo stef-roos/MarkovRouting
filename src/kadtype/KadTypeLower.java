@@ -1,5 +1,7 @@
 package kadtype;
 
+import util.Calc;
+
 /**
  * class for lower bounds
  * @author stefanie
@@ -35,34 +37,50 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 	 */
 	private void setDistinct(int n){
 		distinctP = new double[this.b+1][(this.alpha-1)*this.beta];
-		for (int c = 0; c < distinctP[0].length; c++){
+		this.distinctPMax = new double[this.b+1][this.alpha-1];
 			for (int i = 0; i < distinctP.length; i++){
 				//iterate over possible number of nodes in region
 				double prob = Math.pow(2, i-this.b-1);
 				double binom = Math.pow(1-prob, n);
 				double p = 0;
-				for (int m = 0; m < n-c; m++){
-					p = p + binom*m/(double)(m+c+1);
-					binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+//				for (int m = 0; m < n-c; m++){
+//					p = p + binom*m/(double)(m+c+1);
+//					binom = Calc.binomDist(n, m+1, prob);
+//					//binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+//				}
+				for (int m = 0; m < n; m++){
+					for (int c = 0; c < distinctP[0].length; c++){
+						if (m >= n-c) continue;
+					p =  binom*m/(double)(m+c+1);
+					distinctP[i][c] = distinctP[i][c] +p;
+					}
+					for (int c = 0; c < distinctPMax[0].length; c++){
+						int count = (c+1)*this.beta;
+						if (m >= n- count) continue;
+						p = binom*m/(double)(m+count+1);
+						distinctPMax[i][c] = distinctPMax[i][c]+ p;
+					}
+					binom = Calc.binomDist(n, m+1, prob);
+					//binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
 				}
-				distinctP[i][c] = p;
+				
 			}
-		}
-		this.distinctPMax = new double[this.b+1][this.alpha-1];
-		for (int c = 0; c < distinctPMax[0].length; c++){
-			int count = (c+1)*this.beta;
-			for (int i = 0; i < distinctPMax.length; i++){
-				//iterate over possible number of nodes in region
-				double prob = Math.pow(2, i-this.b-1);
-				double binom = Math.pow(1-prob, n);
-				double p = 0;
-				for (int m = 0; m < n-count; m++){
-					p = p + binom*m/(double)(m+count+1);
-					binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
-				}
-				distinctPMax[i][c] = p;
-			}
-		}
+		
+		
+//		for (int c = 0; c < distinctPMax[0].length; c++){
+//			int count = (c+1)*this.beta;
+//			for (int i = 0; i < distinctPMax.length; i++){
+//				//iterate over possible number of nodes in region
+//				double prob = Math.pow(2, i-this.b-1);
+//				double binom = Math.pow(1-prob, n);
+//				double p = 0;
+//				for (int m = 0; m < n-count; m++){
+//					p = p + binom*m/(double)(m+count+1);
+//					binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+//				}
+//				distinctPMax[i][c] = p;
+//			}
+//		}
 	}
 	
 	/**
@@ -213,7 +231,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 						pdash = this.distinctP[returned[a][c]][count-1];
 					}
 					} else {
-						pdash = this.distinctPMax[returned[a][c]][0];
+						pdash = this.distinctPMax[returned[a][c]][Math.max(a-1,0)];
 					}
 					int adash = (a*this.beta+c+1)/this.beta;
 					int cdash = (a*this.beta+c+1) % this.beta;
