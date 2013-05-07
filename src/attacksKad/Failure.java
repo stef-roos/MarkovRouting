@@ -1,9 +1,9 @@
 package attacksKad;
 
 import kadtype.KadType.LType;
-import kadtype.KadTypeLower2;
+import kadtype.KadTypeLower;
 
-public abstract class Failure extends KadTypeLower2 {
+public abstract class Failure extends KadTypeLower {
 	protected double fprob;
 	
 	/**

@@ -116,7 +116,7 @@ public abstract class EclipseLower extends Eclipse {
 				int a, int c, int[][] max, boolean[][] contain, double p, int[] old){
 			//System.out.println("a= " + a + " c= " + c);// + "re" + returned[a][c] + " max" + max.length);
 	               while (a < this.alpha && ((returned[a][c] < max.length &&
-							max[returned[a][c]][0] == a) || returned[a][c] == this.b || returned[a][c] == 0)){
+							max[returned[a][c]][0] == a) || returned[a][c] == this.b+1 || returned[a][c] == 0)){
 						contain[a][c] = true;
 						int anew = (a*this.beta+c+1)/this.beta;
 						c = (a*this.beta+c+1) % this.beta;
@@ -176,7 +176,7 @@ public abstract class EclipseLower extends Eclipse {
 								if (contain[i][j]){
 									combi[i][j] = returned[i][j]; 
 								} else {
-									combi[i][j] = b;
+									combi[i][j] = b+1;
 								}
 							}
 						}
@@ -192,190 +192,6 @@ public abstract class EclipseLower extends Eclipse {
 					}
 		}
 		
-		private double getNextBest(int[] next, double p, int[] old, int index, double[][] t){
-			if (this.beta == 1){
-				return this.getNextBestStart(next, p, old, index, t);
-			}
-			int count = 0;
-			for (int i = next.length-1; i > 0; i--){
-				if (next[i] == b){
-					count++;
-				} else {
-					break;
-				}
-			}
-			if (count == 1){
-				return this.getNextBest1(next, p, old, index, t);
-			} else {
-				if (count == 2){
-					return this.getNextBest2(next, p, old, index, t);
-				} else {
-					throw new IllegalArgumentException(count + " non-distinct contacts should not happen");
-				}
-			}
-		}
 		
-		private double getNextBest1(int[] next, double p, int[] old, int index, double[][] t){
-			double p2 = 0;
-			double sum = 0;
-			int digit = 1;
-			int dalpha = old[old.length-1];
-			if (dalpha == b || dalpha==0){
-				int indexN = this.getIndex(next);
-				t[indexN][index] = t[indexN][index] + p;
-				return p;
-			}
-			if (this.ltype == LType.SIMPLE){
-				digit = (int)this.l[0][0];
-				double power2 = Math.pow(2,dalpha+digit-1-b);
-				double power2a = power2;
-				for (int j=dalpha+digit; j <= this.b; j++){
-					sum = sum + (this.cdfs[j][dalpha][this.beta-2] -this.cdfs[j][dalpha-1][this.beta-2])*power2a;
-					power2a = power2a*2;
-				}
-				//iterate over potential predecessor
-				for (int j=dalpha+digit; j <= this.b; j++){
-					//iterate over potential nextbest
-					double pj = (this.cdfs[j][dalpha][this.beta-2] -this.cdfs[j][dalpha-1][this.beta-2])*power2/sum;
-					power2 = power2*2;
-					for (int dalpha1 = dalpha; dalpha1 <= j-digit; dalpha1++){
-						double pc = (this.cdfs[j][dalpha1][this.beta-1] -this.cdfs[j][dalpha1-1][this.beta-1])
-								/(1 - this.cdfs[j][dalpha-1][this.beta-1]);
-						next[next.length-1] = dalpha1;
-						int indexN = this.getIndex(next);
-						t[indexN][index] = t[indexN][index] + p*pj*pc;
-						p2 = p2 + pj*pc;
-					}
-				}
-		       }
-			if (this.ltype == LType.ALL){
-				for (int a = 1; a <= this.b; a++){
-					double power2 = Math.pow(2,dalpha+a-1-b);
-					double power2a = power2;
-					for (int j=dalpha+a; j <= this.b; j++){
-						if (l[j][a] > 0){
-						sum = sum + (this.cdfs[j][dalpha][(this.beta-2)*j+a-1] -this.cdfs[j][dalpha-1][(this.beta-2)*j+a-1])*power2a;
-						}
-						power2a = power2a*2;
-					}
-					//iterate over potential predecessor
-					for (int j=dalpha+a; j <= this.b; j++){
-						//iterate over potential nextbest
-						if (l[j][a] > 0){
-						double pj = (this.cdfs[j][dalpha][(this.beta-2)*j+a-1] -this.cdfs[j][dalpha-1][(this.beta-2)*j+a-1])*power2/sum;
-						
-						for (int dalpha1 = dalpha; dalpha1 <= j-digit; dalpha1++){
-							double pc = (this.cdfs[j][dalpha1][(this.beta-2)*j+a-1] -this.cdfs[j][dalpha1-1][(this.beta-2)*j+a-1])
-									/(1 - this.cdfs[j][dalpha-1][(this.beta-2)*j+a-1])*l[j][a];
-							next[next.length-1] = dalpha1;
-							int indexN = this.getIndex(next);
-							t[indexN][index] = t[indexN][index] + p*pj*pc;
-							p2 = p2 + pj*pc;
-						}
-						power2 = power2*2;
-						}
-					}
-				}
-			}
-			
-			return p2*p;
-		}
-		
-		private double getNextBest2(int[] next, double p, int[] old, int index, double[][] t){
-			double[] probs = new double[b+1];
-			double p2 = 0;
-			double sum = 0;
-			int digit = 1;
-			int dalpha = old[old.length-1];
-			if (dalpha == b || dalpha==0){
-				int indexN = this.getIndex(next);
-				t[indexN][index] = t[indexN][index] + p;
-				return p;
-			}
-			if (this.ltype == LType.SIMPLE){
-				digit = (int)this.l[0][0];
-				double power2 = Math.pow(2,dalpha+digit-1-b);
-				double power2a = power2;
-				for (int j=dalpha+digit; j <= this.b; j++){
-					sum = sum + (this.cdfs[j][dalpha][this.beta-2] -this.cdfs[j][dalpha-1][this.beta-2])*power2a;
-					power2a = power2a*2;
-				}
-				//iterate over potential predecessor
-				for (int j=dalpha+digit; j <= this.b; j++){
-					//iterate over potential nextbest
-					double pj = (this.cdfs[j][dalpha][this.beta-2] -this.cdfs[j][dalpha-1][this.beta-2])*power2/sum;
-					power2 = power2*2;
-					for (int dalpha1 = dalpha; dalpha1 <= j-digit; dalpha1++){
-						double pc = (this.cdfs[j][dalpha1][this.beta-1] -this.cdfs[j][dalpha1-1][this.beta-1])
-								/(1 - this.cdfs[j][dalpha-1][this.beta-1]);
-						probs[dalpha1] = probs[dalpha1] + pc*pj;
-					}
-				}
-		       }
-			if (this.ltype == LType.ALL){
-				for (int a = 1; a <= this.b; a++){
-					double power2 = Math.pow(2,dalpha+a-1-b);
-					double power2a = power2;
-					for (int j=dalpha+a; j <= this.b; j++){
-						if (l[j][a] > 0){
-						sum = sum + (this.cdfs[j][dalpha][(this.beta-2)*j+a-1] -this.cdfs[j][dalpha-1][(this.beta-2)*j+a-1])*power2a;
-						}
-						power2a = power2a*2;
-					}
-					//iterate over potential predecessor
-					for (int j=dalpha+a; j <= this.b; j++){
-						//iterate over potential nextbest
-						if (l[j][a] > 0){
-						double pj = (this.cdfs[j][dalpha][(this.beta-2)*j+a-1] -this.cdfs[j][dalpha-1][(this.beta-2)*j+a-1])*power2/sum;
-						for (int dalpha1 = dalpha; dalpha1 <= j-digit; dalpha1++){
-							double pc = (this.cdfs[j][dalpha1][(this.beta-2)*j+a-1] -this.cdfs[j][dalpha1-1][(this.beta-2)*j+a-1])
-									/(1 - this.cdfs[j][dalpha-1][(this.beta-2)*j+a-1])*l[j][a];
-							probs[dalpha1] = probs[dalpha1] + pc*pj;
-						}
-						}
-						power2 = power2*2;
-						
-					}
-				}
-			}	
-			
-			for (int i= dalpha; i <= this.b; i++){
-				for (int j = dalpha; j <= this.b; j++){
-					next[next.length-1] = Math.max(i, j);
-					next[next.length-2] = Math.min(i, j);
-					int indexN = this.getIndex(next);
-					t[indexN][index] = t[indexN][index] + p*probs[i]*probs[j];
-				}
-			}
-			return p;
-		}
-		
-		private double getNextBestStart(int[] next, double p, int[] old, int index, double[][] t){
-			if (this.ltype == LType.SIMPLE){
-				for (int i = 0; i < next.length; i++){
-					if (next[i] == b){
-						next[i] = b - (int)l[0][0];
-					}
-				}
-				int indexN = this.getIndex(next);
-				t[indexN][index] = t[indexN][index] + p;
-			}
-			if (this.ltype == LType.ALL){
-				int max =1;
-				for (int j = 2; j < b+1; j++){
-					if (l[0][j] > 0){
-						max = j;
-					}
-				}
-				for (int i = 0; i < next.length; i++){
-					if (next[i] == b){
-						next[i] = b - max;
-					}
-				}
-				int indexN = this.getIndex(next);
-				t[indexN][index] = t[indexN][index] + p;
-			}
-			return p;
-		}
 
 }

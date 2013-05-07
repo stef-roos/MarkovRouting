@@ -140,7 +140,6 @@ public abstract class Eclipse extends KadTypeCDFs{
 			}
 			for (int d=b+1; d > 0;d--){
 				double binom = Math.pow(1-p[d],n-2);
-				boolean first = true;
 			  for (int i = this.attackers; i < this.attackers+n-1; i++){
 				  
 				  //prob to be successful if there are i nodes besides target in region 
@@ -152,10 +151,6 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  for (int j = 0; j < this.attackProb[d].length-2; j++){
 					  if (k[d-1] <= i+1){
 					      this.attackProb[d][j] = this.attackProb[d][j] + Calc.binom(this.attackers, j)*Calc.binom(i-this.attackers, k[d-1]-j)/(double)Calc.binom(i+1, k[d-1])*binom;
-					  }
-					  if (this.attackProb[d][j] > 1 && first){
-						  System.out.println("oh d=" + d + " j=" + j + " i= " + i + " val=" + this.attackProb[d][j]);
-						  first = false;
 					  }
 				  }
 				  //binom = binom*(n-2-(i-this.attackers))/(double)(i-this.attackers+1)*p[d]/(1-p[d]);

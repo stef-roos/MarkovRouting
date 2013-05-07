@@ -179,8 +179,8 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 //		}
 		
 		//set if unique
-				while (a < this.alpha && returned[a][c] < max.length &&
-						max[returned[a][c]][0] == a){
+		while (a < this.alpha && ((returned[a][c] < max.length &&
+				max[returned[a][c]][0] == a) || returned[a][c] == this.b+1 || returned[a][c] == 0)){
 					contain[a][c] = true;
 					int anew = (a*this.beta+c+1)/this.beta;
 					c = (a*this.beta+c+1) % this.beta;
@@ -213,7 +213,7 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 						pdash = this.distinctP[returned[a][c]][count-1];
 					}
 					} else {
-						pdash = this.distinctPMax[returned[a][c]][a-1];
+						pdash = this.distinctPMax[returned[a][c]][0];
 					}
 					int adash = (a*this.beta+c+1)/this.beta;
 					int cdash = (a*this.beta+c+1) % this.beta;

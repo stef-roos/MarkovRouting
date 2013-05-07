@@ -1,5 +1,6 @@
 package attacksKad;
 
+import util.Calc;
 import kadtype.KadType.LType;
 
 public class EclipseAlpha3Beta2Upper extends Eclipse {
@@ -88,7 +89,48 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 								}
 							}
 						}
-						double p2 = this.getProb(returned[1], old[1]-1, 0,c);
+						double p2a = this.getProb(returned[1], old[1]-1, 0,c);
+						int l = 0;
+						if (old[1] != 0){
+							if (j1 == 0){
+								if (j2 == 0){
+									l = 2;
+								} else {
+									l = 1;
+								}
+							}
+						}
+						for (int v1 = 0; v1 <= l; v1++){
+							double p2;
+							if (l == 0){
+								p2 = p2a;
+							} else {
+								if (this.attackers >= l){
+									   p2 = p2a*Calc.binom(this.attackers-c, v1)*Calc.binom(c, l-v1)/(double)Calc.binom(this.attackers,l);
+										} else {
+											p2 = 0;
+										}
+							   if (l==1){
+								   if (v1 == 0){
+									   returned[1][0] = old[2];
+								   } else {
+									   returned[1][0] = 0;
+								   }
+							   }
+							   if (l==2){
+								   if (v1 == 0){
+									   returned[1][0] = old[2];
+									   returned[1][1] = old[2];
+								   } else {
+									   returned[1][0] = 0;
+									   if (v1 == 1){
+										   returned[1][1] = old[2];
+									   } else {
+										   returned[1][1] = 0;
+									   }
+								   }
+							   }
+							}		   
 						for (int k1 = 0; k1 < max3; k1++){
 							returned[2][0] = k1;
 							for (int k2 = k1; k2 < max3; k2++){
@@ -97,14 +139,55 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 								if (old[1] == 0) {
 									c2 = 1;
 								} else {
-									if (j1 == 0){
+									if (returned[1][0] == 0){
 										c2++;
-										if (j2 == 0){
+										if (returned[1][1] == 0){
 											c2++;
 										}
 									}
 								}
-								double p3 = this.getProb(returned[2], old[2]-1,0,c+c2);
+								double p3a = this.getProb(returned[2], old[2]-1,0,c+c2);
+								int l2 = 0;
+								if (old[2] != 0){
+									if (k1 == 0){
+										if (k2 == 0){
+											l2 = 2;
+										} else {
+											l2 = 1;
+										}
+									}
+								}
+								for (int v2 = 0; v2 <= l2; v2++){
+									double p3;
+									if (l2 == 0){
+										p3 = p3a;
+									} else {
+										if (this.attackers >= l2){
+									   p3 = p3a*Calc.binom(this.attackers-c-c2, v2)*Calc.binom(c+c2, l2-v2)/(double)Calc.binom(this.attackers,l2);
+										} else {
+											p3 = 0;
+										}
+									   if (l2==1){
+										   if (v2 == 0){
+											   returned[2][0] = old[2];
+										   } else {
+											   returned[2][0] = 0;
+										   }
+									   }
+									   if (l2==2){
+										   if (v2 == 0){
+											   returned[2][0] = old[2];
+											   returned[2][1] = old[2];
+										   } else {
+											   returned[2][0] = 0;
+											   if (v2 == 1){
+												   returned[2][1] = old[2];
+											   } else {
+												   returned[2][1] = 0;
+											   }
+										   }
+									   }
+									}
 								int[] next = this.topAlpha(returned);
 //								if (next[1] == 0){
 //									if (p1*p2*p3 > 0){
@@ -117,9 +200,10 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 //										nsucc*p1*p2*p3;
 								t2[newindex][oldindex] = t2[newindex][oldindex] +
 										p1*p2*p3;
+								}
 							}
 						}
-						
+						}	
 					}
 				}
 			}
