@@ -25,7 +25,6 @@ public class Alpha3Beta2Lower extends KadTypeLower{
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
 			int mindist) {
-		double all = 0;
 		for (int i = 0; i < mindist; i++){
 			for (int j = i; j < mindist; j++){
 				for (int k = j; k < mindist; k++){
@@ -33,12 +32,14 @@ public class Alpha3Beta2Lower extends KadTypeLower{
 					int[] re = new int[]{i,j,k};
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
+						//add prob that routing gets to state re from mindist
 					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
 							+(1-this.success[mindist])*this.getProb(re, mindist,0);
-					   //all = all + this.getProb(re, mindist,0);
 					}   
 					if (this.ltype == LType.ALL){
+						//iterate over all possible resolutions
 						for (int a = 1; a < mindist+1; a++){
+							//only consider positive prob and re's that are within range closer to target
 							if (this.l[mindist][a] > 0 && k <= mindist - a){
 								t[indexnew][indexOld] =  t[indexnew][indexOld] 
 										+(1-this.success[mindist])*this.getProb(re, mindist,a-1)*this.l[mindist][a];
@@ -56,16 +57,19 @@ public class Alpha3Beta2Lower extends KadTypeLower{
 			double nsucc) {
 		int[][] returned = new int[3][2];
 		if (this.ltype == LType.SIMPLE){
+			//first lookup
 		for (int i1 = 0; i1 < this.cdfs[old[0]].length; i1++){
 			returned[0][0] = i1;
 			for (int i2 = i1; i2 < this.cdfs[old[0]].length; i2++){
 				returned[0][1] = i2;
 				   double p1 = this.getProb(returned[0], old[0],0);
+				   //second lookup
 				for (int j1 = 0; j1 < this.cdfs[old[1]].length; j1++){
 					returned[1][0] = j1;
 					for (int j2 = j1; j2 < this.cdfs[old[1]].length; j2++){
 						returned[1][1] = j2;
 						double p2 = this.getProb(returned[1], old[1],0);
+						//third lookup
 						for (int k1 = 0; k1 < this.cdfs[old[2]].length; k1++){
 							returned[2][0] = k1;
 							for (int k2 = k1; k2 < this.cdfs[old[2]].length; k2++){
