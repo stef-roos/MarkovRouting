@@ -1,5 +1,6 @@
 package kadtype;
 
+import util.Binom;
 import util.Calc;
 
 /**
@@ -35,20 +36,38 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 	 * setting distinctP
 	 * @param n
 	 */
-	private void setDistinct(int n){
+	protected void setDistinct(int n){
 		distinctP = new double[this.b+1][(this.alpha-1)*this.beta];
 		this.distinctPMax = new double[this.b+1][this.alpha-1];
 			for (int i = 0; i < distinctP.length; i++){
 				//iterate over possible number of nodes in region
 				double prob = Math.pow(2, i-this.b-1);
-				double binom = Math.pow(1-prob, n);
 				double p = 0;
 //				for (int m = 0; m < n-c; m++){
 //					p = p + binom*m/(double)(m+c+1);
 //					binom = Calc.binomDist(n, m+1, prob);
 //					//binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
 //				}
-				for (int m = 0; m < n; m++){
+//				for (int m = 0; m < n; m++){
+//					for (int c = 0; c < distinctP[0].length; c++){
+//						if (m >= n-c) continue;
+//					p =  binom*m/(double)(m+c+1);
+//					distinctP[i][c] = distinctP[i][c] +p;
+//					}
+//					for (int c = 0; c < distinctPMax[0].length; c++){
+//						int count = (c+1)*this.beta;
+//						if (m >= n- count) continue;
+//						p = binom*m/(double)(m+count+1);
+//						distinctPMax[i][c] = distinctPMax[i][c]+ p;
+//					}
+//					binom = bi.getNext();
+//					//binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+//				}
+				int exp = (int) ((n-2)*prob);
+				Binom bi = new Binom(n,prob,exp);
+				double binom;
+				for (int m = exp; m < n-1; m++){
+					binom = bi.getNext();
 					for (int c = 0; c < distinctP[0].length; c++){
 						if (m >= n-c) continue;
 					p =  binom*m/(double)(m+c+1);
@@ -59,11 +78,23 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 						if (m >= n- count) continue;
 						p = binom*m/(double)(m+count+1);
 						distinctPMax[i][c] = distinctPMax[i][c]+ p;
-					}
-					binom = Calc.binomDist(n, m+1, prob);
-					//binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+					} 
 				}
-				
+				bi.recompute(exp);
+				for (int m = exp; m > -1; m--){
+					binom = bi.getBefore();
+					for (int c = 0; c < distinctP[0].length; c++){
+						if (m >= n-c) continue;
+					p =  binom*m/(double)(m+c+1);
+					distinctP[i][c] = distinctP[i][c] +p;
+					}
+					for (int c = 0; c < distinctPMax[0].length; c++){
+						int count = (c+1)*this.beta;
+						if (m >= n- count) continue;
+						p = binom*m/(double)(m+count+1);
+						distinctPMax[i][c] = distinctPMax[i][c]+ p;
+					} 
+				}
 			}
 		
 		

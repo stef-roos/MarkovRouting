@@ -3,24 +3,29 @@ package attacksKad;
 import kadtype.KadType.LType;
 
 public class FailureAlpha3Beta2Lower extends Failure{
+	private int ttl;
 	
 	public FailureAlpha3Beta2Lower(int b, int[] k, double[][] l,
-			LType ltype, double fprob) {
+			LType ltype, double fprob, int ttl) {
 		super(b, 3, 2, k, l, ltype,fprob);
+		this.ttl = ttl;
 		
 	}
 	
-	public FailureAlpha3Beta2Lower(int b, int[] k, int l, double fprob) {
+	public FailureAlpha3Beta2Lower(int b, int[] k, int l, double fprob, int ttl) {
 		super(b, 3, 2, k, l,fprob);
+		this.ttl = ttl;
 	}
 	
 	public FailureAlpha3Beta2Lower(int b, int k, double[][] l,
-			LType ltype, double fprob) {
+			LType ltype, double fprob, int ttl) {
 		super(b, 3, 2, k, l, ltype,fprob);
+		this.ttl = ttl;
 	}
 	
-	public FailureAlpha3Beta2Lower(int b, int k, int l, double fprob) {
+	public FailureAlpha3Beta2Lower(int b, int k, int l, double fprob, int ttl) {
 		super(b, 3, 2, k, l,fprob);
+		this.ttl = ttl;
 	}
 
 	@Override
@@ -123,6 +128,74 @@ public class FailureAlpha3Beta2Lower extends Failure{
 				}
 			
 		
+	}
+	
+	/**
+	 * setting distinctP
+	 * @param n
+	 */
+	protected void setDistinct(int n){
+		distinctP = new double[this.b+1][(this.alpha-1)*this.beta];
+		this.distinctPMax = new double[this.b+1][this.alpha-1];
+		int c = this.alpha*this.ttl;
+			for (int i = 0; i < distinctP.length; i++){
+				//iterate over possible number of nodes in region
+				double prob = Math.pow(2, i-this.b-1);
+				double binom = Math.pow(1-prob, n);
+				double p = 0;
+//				for (int m = 0; m < n-c; m++){
+//					p = p + binom*m/(double)(m+c+1);
+//					binom = Calc.binomDist(n, m+1, prob);
+//					//binom = binom*(n-m-1)/(double)(m+1)*prob/(1-prob); 
+//				}
+				for (int m = 0; m < n; m++){
+					if (m >= n-c) continue;
+					p =  binom*m/(double)(m+c+1);
+					distinctP[i][0] = distinctP[i][0] +p;
+				}
+				for (int j = 1; j < this.distinctP[i].length; j++){
+					this.distinctP[i][j] = this.distinctP[i][0];
+				}
+				for (int j = 0; j < this.distinctPMax[i].length; j++){
+					this.distinctPMax[i][j] = this.distinctP[i][0];
+				}
+			}
+			
+
+	}
+	
+	/**
+	 * consider distinct possibilities
+	 * @param returned
+	 * @param t
+	 * @param index
+	 * @param d1
+	 * @param n
+	 * @param p
+	 * @return
+	 */
+	protected double makeDistinct(int[][] returned, double[][] t, int index, int d1, int n, double p){
+		if (this.distinctP == null){
+			this.setDistinct(n);
+		}
+		//find maximal distinct set
+		int[][] max = new int[this.b+1][2];
+		for (int i=0; i < max.length; i++){
+			for (int j=0; j < this.alpha; j++){
+				int count = 0;
+				for (int m=0; m < this.beta; m++){
+					if (returned[j][m] == i){
+						count++;
+					}
+				}
+				if (count > max[i][1]){
+					max[i][0] = j;
+					max[i][1] = count;
+				}
+			}
+		}
+		boolean[][] contain = new boolean[this.alpha][this.beta];
+		return this.recusivecombine(returned, t, index, 0, 0, max, contain, p);
 	}
 
 }

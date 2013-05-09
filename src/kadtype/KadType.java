@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Vector;
 
+import util.Binom;
 import util.Calc;
 
 public abstract class KadType {
@@ -127,11 +128,9 @@ public abstract class KadType {
 //			}
 //			System.out.println(i+ " sum: " + sum + " " + map.get(i));
 //		}
-		System.out.println(dist[1]);
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];
-			System.out.println(dist[1]);
 		}
 		return cdf;
 	}
@@ -234,33 +233,26 @@ public abstract class KadType {
 				q = q*0.5;
 			}
 			for (int d=b; d > 0;d--){
-				double binom = Math.pow(1-p[d],n-2);
-			  for (int i = 0; i < n-1; i++){
-				  //prob to be successful if there are i nodes besides target in region 
+				int exp = (int) ((n-2)*p[d]);
+				Binom bi = new Binom(n-2,p[d],exp);
+				double binom;
+			  for (int i = exp; i < n-1; i++){
+				  binom = bi.getNext();
 				  if (i < k[d]){
 				         this.success[d] = this.success[d] + binom;
 				  } else{
 						 this.success[d] = this.success[d] + binom*(double)(k[d])/(double)(i+1);
 				  }
-//				  if (binom > 0){
-//					  double old = binom;
-//				      binom = binom*(n-2-i)/(double)(i+1)*p[d]/(1-p[d]);
-//				      if (binom > 1){
-//							System.out.println(binom + " i="+i + " d="+d + " old="+old);
-//							System.exit(0);
-//				      }		
-//				  } else{
-//					  binom = Calc.binomDist(n-2, i+1, p[d]);
-//					  if (!(binom < 1)){
-//						  binom = 0;
-//					  }
-//					  
-//				  }
-//				  if (d==b-1)
-//					  System.out.println(binom + " i="+i + " actual dist " + Calc.binomDist(n-2, n/2, p[d]));
-				  binom = Calc.binomDist(n-2, i+1, p[d]);
 			  }
-			  //System.out.println("success d= " + d + " :" + success[d]);
+			  bi.recompute(exp);
+			  for (int i = exp-1; i > -1; i--){
+				  binom = bi.getBefore();
+				  if (i < k[d]){
+				         this.success[d] = this.success[d] + binom;
+				  } else{
+						 this.success[d] = this.success[d] + binom*(double)(k[d])/(double)(i+1);
+				  }
+			  }
 			}
 		}
 		if (this.ltype == LType.ALL){
@@ -274,15 +266,27 @@ public abstract class KadType {
 					q = q*0.5;
 				}
 				for (int d=b; d > 0;d--){
-					double binom = Math.pow(1-p[d],n-2);
-				  for (int i = 0; i < n-1; i++){
+					int exp = (int) ((n-2)*p[d]);
+					Binom bi = new Binom(n-2,p[d],exp);
+					double binom;
+				  for (int i = exp; i < n-1; i++){
+					  binom = bi.getNext();
+					  if (i < k[d]){
+					         this.success[d] = this.success[d] +l[d][m]* binom;
+					  } else{
+							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(k[d])/(double)(i+1);
+					  }
+				  }
+				  bi.recompute(exp);
+				  for (int i = exp-1; i > -1; i--){
+					  binom = bi.getBefore();
 					  if (i < k[d]){
 					         this.success[d] = this.success[d] + l[d][m]*binom;
 					  } else{
 							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(k[d])/(double)(i+1);
 					  }
-					  binom = Calc.binomDist(n-2, i+1, p[d]);
 				  }
+					
 				}
 			}
 		}

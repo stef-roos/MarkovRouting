@@ -1,8 +1,9 @@
 package attacksKad;
 
-import util.Calc;
-import kadtype.KadType.LType;
 import kadtype.KadTypeCDFs;
+import util.Binom;
+import util.Calc;
+import util.Hyper1;
 
 public abstract class Eclipse extends KadTypeCDFs{
 	protected int attackers;
@@ -139,10 +140,16 @@ public abstract class Eclipse extends KadTypeCDFs{
 				q = q*0.5;
 			}
 			for (int d=b+1; d > 0;d--){
-				double binom = Math.pow(1-p[d],n-2);
-			  for (int i = this.attackers; i < this.attackers+n-1; i++){
-				  
-				  //prob to be successful if there are i nodes besides target in region 
+				int exp = (int)((n-1)*p[d]);
+				Hyper1[] hyper = new Hyper1[this.attackProb[d].length-2];
+				double[] attProb = new double[hyper.length];
+				for (int j = 0; j < hyper.length; j++){
+					hyper[j] = new Hyper1(j,this.attackers,k[d-1],exp);
+					attProb[j] = hyper[j].getNext();
+				}
+				Binom bi = new Binom(n-2,p[d],exp);
+				double binom = bi.getNext();
+			  for (int i = this.attackers+exp; i < this.attackers+n-1; i++){
 				  if (i < k[d-1]){
 				         this.success[d] = this.success[d] + binom;
 				  } else{
@@ -150,12 +157,35 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  }
 				  for (int j = 0; j < this.attackProb[d].length-2; j++){
 					  if (k[d-1] <= i+1){
-					      this.attackProb[d][j] = this.attackProb[d][j] + Calc.binom(this.attackers, j)*Calc.binom(i-this.attackers, k[d-1]-j)/(double)Calc.binom(i+1, k[d-1])*binom;
+//					      this.attackProb[d][j] = this.attackProb[d][j] + Calc.binom(this.attackers, j)*Calc.binom(i-this.attackers, k[d-1]-j)
+//					    		  /(double)Calc.binom(i+1, k[d-1])*binom;
+					      this.attackProb[d][j] = this.attackProb[d][j] + attProb[j]*binom;
 					  }
+					  attProb[j] = hyper[j].getNext();
 				  }
-				  //binom = binom*(n-2-(i-this.attackers))/(double)(i-this.attackers+1)*p[d]/(1-p[d]);
-				  binom = Calc.binomDist(n-2, i-this.attackers+1, p[d]);
-				  
+				  binom = bi.getNext();
+			  }
+			  bi.recompute(exp);
+			  binom = bi.getBefore();
+			  for (int j = 0; j < hyper.length; j++){
+					hyper[j].recompute(exp);
+					attProb[j] = hyper[j].getBefore();
+				}
+			  for (int i = this.attackers+exp-1; i > this.attackers-1; i--){
+				  if (i < k[d-1]){
+				         this.success[d] = this.success[d] + binom;
+				  } else{
+						 this.success[d] = this.success[d] + binom*(double)(k[d-1])/(double)(i+1);
+				  }
+				  for (int j = 0; j < this.attackProb[d].length-2; j++){
+					  if (k[d-1] <= i+1){
+//					      this.attackProb[d][j] = this.attackProb[d][j] + Calc.binom(this.attackers, j)*Calc.binom(i-this.attackers, k[d-1]-j)
+//					    		  /(double)Calc.binom(i+1, k[d-1])*binom;
+					      this.attackProb[d][j] = this.attackProb[d][j] + attProb[j]*binom;
+					  }
+					  attProb[j] = hyper[j].getBefore();
+				  }
+				  binom = bi.getBefore();
 			  }
 			  this.attackProb[d][this.alpha] = 1-this.success[d];
 			  for (int j = 0; j < this.alpha; j++){
@@ -307,9 +337,6 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  }else{
 					  break;
 				  }
-			  }
-			  if (count > this.attackers){
-				  return 0;
 			  }
 			  if (count == returned.length){
 //				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 

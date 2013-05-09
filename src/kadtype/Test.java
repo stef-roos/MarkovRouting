@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
+import util.Binom;
 import util.Calc;
 
 //import eclipse.Calc;
@@ -16,7 +17,26 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		testPerformance(args);
+		//testPerformance(args);
+		double[] cdf = (new KademliaUpper(10,8)).getRoutingLength(100000); 
+		double ex = 0;
+		for (int i = 0; i < cdf.length; i++){
+			ex = ex + 1 - cdf[i];
+			System.out.println(i + " " +cdf[i]);
+		}
+//		double all = 0;
+//		int n = 10000;
+//		double p = Math.pow(2, -2);
+//		int exp = (int) ((int)n*p);
+//		Binom binom = new Binom(n,p,exp);
+//		for (int i = exp; i <= n; i++){
+//			all = all + binom.getNext();
+//		}
+//		binom.recompute(exp);
+//		for (int i = exp-1; i > -1; i--){
+//			all = all + binom.getBefore();
+//		}
+//		System.out.println("sum " + all);
 	}
 	
 	public static double getExpDeg(int n, int k, int b){

@@ -1,5 +1,6 @@
 package kadtype;
 
+import util.Calc;
 import kadtype.KadType.LType;
 
 public class Alpha3Beta2Lower extends KadTypeLower{
@@ -126,6 +127,9 @@ public class Alpha3Beta2Lower extends KadTypeLower{
 			
 		
 	}
+	
+
+
 
 	
 
