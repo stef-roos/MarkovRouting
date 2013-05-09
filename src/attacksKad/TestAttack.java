@@ -1,6 +1,5 @@
 package attacksKad;
 
-import util.Calc;
 
 
 public class TestAttack {
@@ -9,7 +8,7 @@ public class TestAttack {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		double[] cdf = (new FailureKademliaLower(10,3,0.3)).getRoutingLength(1000); 
+		double[] cdf = (new EclipseKademliaLower(10,3,5)).getRoutingLength(100); 
 		double ex = 0;
 		for (int i = 0; i < cdf.length; i++){
 			ex = ex + 1 - cdf[i];

@@ -317,60 +317,63 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  return this.attackProb[d+1][this.alpha];
 				  
 			  }else {
-				  int[] re = new int[this.alpha-count];
-				  for (int j = count; j < this.alpha; j++){
+				  int[] re = new int[returned.length-count];
+				  for (int j = count; j < returned.length; j++){
 					  re[j-count] = returned[j]-1;
 				  }
 //				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
 //							 + " attack: " + this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0]) 
 //							 + " attackPart: " + this.attackProb[d][count][0] 
 //							 + " normal: " + this.getProb(re, cdf) + " case: part");
-				  return this.attackProb[d+1][count]*super.getProb(re, d,l);
+				  this.k[d] = this.k[d]-count;
+				  double p = this.attackProb[d+1][count]*super.getProb(re, d,l);
+				  this.k[d] = this.k[d]+count;
+				  return p;
 			 }
 		 }
 	  }
 	
-	protected double getProb(int[] returned, int d, int l, int c){
-		if (d == -1){
-			if (returned[1] == 0){
-				return 1;
-			} else {
-				return 0;
-			}
-		}
-		if (returned[0] > 0){
-			int[] re = new int[returned.length];
-			for (int j = 0; j < returned.length; j++){
-				  re[j] = returned[j]-1;
-			}
-//			System.out.println("d= "+d+" re0= "+(returned[0]) + " re1= "+(returned[1])
-//					+ " attack: "+(1-this.attackProb[d][0][c]) + " normal "+this.getProb(re, nr));
-			
-			return this.attackProb[d+1][0]*super.getProb(re, d,l);
-		} else{
-			int count = 1;
-			  for (int j = 1; j < returned.length; j++){
-				  if (returned[j] == 0){
-					  count++;
-				  }else{
-					  break;
-				  }
-			  }
-			  if (count == returned.length){
-				  //System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][count-1][c] + " normal "+1);
-				  return this.attackProb[d+1][this.alpha+1];
-			  }else {
-				  int[] re = new int[returned.length-count];
-				  for (int j = count; j < returned.length; j++){
-					  re[j-count] = returned[j]-1;
-				  }
-//				  System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])
-//						  + " normal "+this.getProb(re, nr));
-				   return this.attackProb[d+1][count]*super.getProb(re, d,l);
-				  
-			  }
-		}
-	}
+//	protected double getProb(int[] returned, int d, int l, int c){
+//		if (d == -1){
+//			if (returned[1] == 0){
+//				return 1;
+//			} else {
+//				return 0;
+//			}
+//		}
+//		if (returned[0] > 0){
+//			int[] re = new int[returned.length];
+//			for (int j = 0; j < returned.length; j++){
+//				  re[j] = returned[j]-1;
+//			}
+////			System.out.println("d= "+d+" re0= "+(returned[0]) + " re1= "+(returned[1])
+////					+ " attack: "+(1-this.attackProb[d][0][c]) + " normal "+this.getProb(re, nr));
+//			
+//			return this.attackProb[d+1][0]*super.getProb(re, d,l);
+//		} else{
+//			int count = 1;
+//			  for (int j = 1; j < returned.length; j++){
+//				  if (returned[j] == 0){
+//					  count++;
+//				  }else{
+//					  break;
+//				  }
+//			  }
+//			  if (count == returned.length){
+//				  //System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][count-1][c] + " normal "+1);
+//				  return this.attackProb[d+1][this.alpha+1];
+//			  }else {
+//				  int[] re = new int[returned.length-count];
+//				  for (int j = count; j < returned.length; j++){
+//					  re[j-count] = returned[j]-1;
+//				  }
+////				  System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])
+////						  + " normal "+this.getProb(re, nr));
+//				   return this.attackProb[d+1][count]*super.getProb(re, d,l);
+//				  
+//			  }
+//		}
+//	}
 
 	private double[] getAtt(int other, int kd, double[] psold, int curAtt){
 		double[] psnew = new double[this.alpha];
