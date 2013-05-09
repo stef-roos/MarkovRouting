@@ -59,11 +59,13 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 	protected void processCDFsT2(int n, double[][] t2, int[] old, int oldindex,
 			double nsucc) {
 		int[][] returned = new int[3][2];
+		//count already contacted attackers
 		int attOld = 0;
 		for (int i = 0; i < 3; i++){
 			if (old[i] == 0) attOld++;
 		}
 		if (this.ltype == LType.SIMPLE){
+			//treatment for 0 state
 			int max1 = old[0] == 0?1:this.cdfs[old[0]-1].length+1;
 			int max2 = old[1] == 0?1:this.cdfs[old[1]-1].length+1;
 			int max3 = old[2] == 0?1:this.cdfs[old[2]-1].length+1;	
@@ -72,13 +74,11 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 			for (int i2 = i1; i2 < max1; i2++){
 				returned[0][1] = i2;
 				   double p1 = this.getProb(returned[0], old[0]-1,0);
-//				   if (!(p1 <= 1) && old[0] < 10){
-//					   System.out.println("old = " + old[0] + " i1=" + i1 + " i2="+i2 + " p1="+p1);
-//				   }
 				for (int j1 = 0; j1 < max2; j1++){
 					returned[1][0] = j1;
 					for (int j2 = j1; j2 < max2; j2++){
 						returned[1][1] = j2;
+						//attackers already contacted during 1. lookup
 						int c = attOld;
 						if (old[0] == 0) {
 							c=1; 
@@ -91,7 +91,9 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 								}
 							}
 						}
+						//prob for returned, might not be distinct 
 						double p2a = this.getProb(returned[1], old[1]-1, 0);
+						//attackers in 2. lookup
 						int l = 0;
 						if (old[1] != 0){
 							if (j1 == 0){
@@ -102,6 +104,7 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 								}
 							}
 						}
+						//iterate over distinct attackers
 						for (int v1 = 0; v1 <= l; v1++){
 							double p2;
 							if (l == 0){
@@ -119,6 +122,7 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 									   returned[1][0] = 0;
 								   }
 							   }
+							   //set to max distance if not distinct attacker
 							   if (l==2){
 								   if (v1 == 0){
 									   returned[1][0] = this.b+1;
@@ -132,7 +136,8 @@ public class EclipseAlpha3Beta2Lower extends EclipseLower {
 									   }
 								   }
 							   }
-							}		   
+							}	
+							//3rd lookup: analog to 2nd
 						for (int k1 = 0; k1 < max3; k1++){
 							returned[2][0] = k1;
 							for (int k2 = k1; k2 < max3; k2++){

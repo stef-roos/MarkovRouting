@@ -37,26 +37,16 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 					int[] re = new int[]{i,j,k};
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
-	
-//					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
-//							+(1-this.success[mindist+1])*this.getProb(re, mindist, 0);
 						 t[indexnew][indexOld] =  t[indexnew][indexOld] 
 									+this.getProb(re, mindist, 0);
 					}   
-//					if (this.ltype == LType.ALL){
-//						for (int a = 1; a < mindist+1; a++){
-//							if (this.l[mindist][a] > 0){
-//								t[indexnew][indexOld] =  t[indexnew][indexOld] 
-//										+(1-this.success[mindist])*this.getProb(re, cdfs,a)*this.l[mindist][a];
-//							}
-//						}
-//					}
 				}
 			}
 		}
 		
 	}
 
+	//see Lower for comments
 	@Override
 	protected void processCDFsT2(int n, double[][] t2, int[] old, int oldindex,
 			double nsucc) {
@@ -74,9 +64,6 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 			for (int i2 = i1; i2 < max1; i2++){
 				returned[0][1] = i2;
 				   double p1 = this.getProb(returned[0], old[0]-1,0);
-//				   if (!(p1 <= 1) && old[0] < 10){
-//					   System.out.println("old = " + old[0] + " i1=" + i1 + " i2="+i2 + " p1="+p1);
-//				   }
 				for (int j1 = 0; j1 < max2; j1++){
 					returned[1][0] = j1;
 					for (int j2 = j1; j2 < max2; j2++){

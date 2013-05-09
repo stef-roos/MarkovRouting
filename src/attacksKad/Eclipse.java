@@ -78,12 +78,14 @@ public abstract class Eclipse extends KadTypeCDFs{
 	
     /**
      * transition matrix for all further steps
+     * override: attacker coordinate
      * @param n
      * @return
      */
 	@Override
 	public double[][] getT2(int n){
 		int[] lookup = new int[alpha];
+		//one more state
 		lookup[alpha-1] = b+2;
 		int index = getIndex(lookup);
 		double[][] t = new double[index][index];
@@ -140,14 +142,18 @@ public abstract class Eclipse extends KadTypeCDFs{
 				q = q*0.5;
 			}
 			for (int d=b+1; d > 0;d--){
+				//start with the expected value, most stable of B(n-2,p[d])
 				int exp = (int)((n-1)*p[d]);
+				//attack probability: iteratively computed
 				Hyper1[] hyper = new Hyper1[this.attackProb[d].length-2];
 				double[] attProb = new double[hyper.length];
 				for (int j = 0; j < hyper.length; j++){
 					hyper[j] = new Hyper1(j,this.attackers,k[d-1],exp);
 					attProb[j] = hyper[j].getNext();
 				}
+				//success probability: iteratively computed
 				Binom bi = new Binom(n-2,p[d],exp);
+				//binom: (n-2 choose i) : nodes in region
 				double binom = bi.getNext();
 			  for (int i = this.attackers+exp; i < this.attackers+n-1; i++){
 				  if (i < k[d-1]){
@@ -155,16 +161,17 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  } else{
 						 this.success[d] = this.success[d] + binom*(double)(k[d-1])/(double)(i+1);
 				  }
+				  //j = contacted attackers
 				  for (int j = 0; j < this.attackProb[d].length-2; j++){
 					  if (k[d-1] <= i+1){
-//					      this.attackProb[d][j] = this.attackProb[d][j] + Calc.binom(this.attackers, j)*Calc.binom(i-this.attackers, k[d-1]-j)
-//					    		  /(double)Calc.binom(i+1, k[d-1])*binom;
+//					      +(attackers choose j)*(normal node choose k-j)/(all choose k)*binom;
 					      this.attackProb[d][j] = this.attackProb[d][j] + attProb[j]*binom;
 					  }
 					  attProb[j] = hyper[j].getNext();
 				  }
 				  binom = bi.getNext();
 			  }
+			  //go from expected value to 0
 			  bi.recompute(exp);
 			  binom = bi.getBefore();
 			  for (int j = 0; j < hyper.length; j++){
@@ -187,10 +194,12 @@ public abstract class Eclipse extends KadTypeCDFs{
 				  }
 				  binom = bi.getBefore();
 			  }
+			  //set prob to have at least alpha attackers in bucket => all new contacts attackers for T_1
 			  this.attackProb[d][this.alpha] = 1-this.success[d];
 			  for (int j = 0; j < this.alpha; j++){
 				  this.attackProb[d][this.alpha] = this.attackProb[d][this.alpha] - this.attackProb[d][j];
 			  }
+			//set prob to have at least beta attackers in bucket => all new contacts attackers for T_2
 			  this.attackProb[d][this.alpha+1] = 1-this.success[d];
 			  for (int j = 0; j < this.beta; j++){
 				  this.attackProb[d][this.alpha+1] = this.attackProb[d][this.alpha+1] - this.attackProb[d][j];
@@ -320,16 +329,16 @@ public abstract class Eclipse extends KadTypeCDFs{
 	   * add probability for attack in first step
 	   */
 	  protected double getProb(int[] returned, int d, int l){
+		  //case a: no attackers: return P(no attackers)*P(returned in old model) 
 		  if (returned[0] > 0){
 			  int[] re = new int[returned.length];
 			  for (int j = 0; j < returned.length; j++){
 				  re[j] = returned[j]-1;
 				
 			 }
-//			  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
-//			 + " attack: " + (1-this.attackProb[d][0][0]) + " normal: " + this.getProb(re, cdf) + " case: not");
-			  return this.attackProb[d+1][0]*super.getProb(re, d,l);
+            return this.attackProb[d+1][0]*super.getProb(re, d,l);
 		  } else {
+			  //count attacker
 			  int count = 1;
 			  for (int j = 1; j < returned.length; j++){
 				  if (returned[j] == 0){
@@ -338,20 +347,15 @@ public abstract class Eclipse extends KadTypeCDFs{
 					  break;
 				  }
 			  }
+			  //all returned contacts attackers
 			  if (count == returned.length){
-//				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
-//							 + " attack: " + this.attackProb[d][this.alpha-1][0] + " normal: " + 1 + " case: all" );
-				  return this.attackProb[d+1][this.alpha];
-				  
-			  }else {
+                return this.attackProb[d+1][this.alpha];
+				}else { //otherwise: prob(count att)P(other in original model)
 				  int[] re = new int[returned.length-count];
 				  for (int j = count; j < returned.length; j++){
 					  re[j-count] = returned[j]-1;
 				  }
-//				  System.out.println("d="+ d + "ret=[" + returned[0]+ ","+returned[1]+ ","+returned[2]+"]" 
-//							 + " attack: " + this.attackProb[d][count-1][0]*(1-this.attackProb[d][count][0]/this.attackProb[d][count-1][0]) 
-//							 + " attackPart: " + this.attackProb[d][count][0] 
-//							 + " normal: " + this.getProb(re, cdf) + " case: part");
+				  //set k[d] to remaining contacts
 				  this.k[d] = this.k[d]-count;
 				  double p = this.attackProb[d+1][count]*super.getProb(re, d,l);
 				  this.k[d] = this.k[d]+count;
@@ -360,83 +364,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 		 }
 	  }
 	
-//	protected double getProb(int[] returned, int d, int l, int c){
-//		if (d == -1){
-//			if (returned[1] == 0){
-//				return 1;
-//			} else {
-//				return 0;
-//			}
-//		}
-//		if (returned[0] > 0){
-//			int[] re = new int[returned.length];
-//			for (int j = 0; j < returned.length; j++){
-//				  re[j] = returned[j]-1;
-//			}
-////			System.out.println("d= "+d+" re0= "+(returned[0]) + " re1= "+(returned[1])
-////					+ " attack: "+(1-this.attackProb[d][0][c]) + " normal "+this.getProb(re, nr));
-//			
-//			return this.attackProb[d+1][0]*super.getProb(re, d,l);
-//		} else{
-//			int count = 1;
-//			  for (int j = 1; j < returned.length; j++){
-//				  if (returned[j] == 0){
-//					  count++;
-//				  }else{
-//					  break;
-//				  }
-//			  }
-//			  if (count == returned.length){
-//				  //System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][count-1][c] + " normal "+1);
-//				  return this.attackProb[d+1][this.alpha+1];
-//			  }else {
-//				  int[] re = new int[returned.length-count];
-//				  for (int j = count; j < returned.length; j++){
-//					  re[j-count] = returned[j]-1;
-//				  }
-////				  System.out.println("d= "+d+" re0= "+returned[0] + " re1= "+returned[1] + " attack: "+this.attackProb[d][0][c]*(1-this.attackProb[d][count][c]/this.attackProb[d][count-1][c])
-////						  + " normal "+this.getProb(re, nr));
-//				   return this.attackProb[d+1][count]*super.getProb(re, d,l);
-//				  
-//			  }
-//		}
-//	}
 
-	private double[] getAtt(int other, int kd, double[] psold, int curAtt){
-		double[] psnew = new double[this.alpha];
-		int all = curAtt + other;
-		for (int i = 0; i < psnew.length; i++){
-			if (curAtt < i){
-				psnew[i] = 0;
-				continue;
-			}
-			if (other < kd-i){
-				if (curAtt == i){
-					psnew[i] = 1;
-					for (int j = 0; j < i; j++){
-						psnew[i] = psnew[i] - psnew[j];
-					}
-				} else {
-				   psnew[i] = 0;
-				}
-			} else {
-				if (other == kd-i){
-					double init = 1;
-					for (int f = 0; f < i; f++){
-						init = init*(double)(curAtt - f)/(double)(i-f);
-					}
-					for (int f = 0; f < kd; f++){
-						init = init*(double)(kd - f)/(double)(all-f);
-					}
-					psnew[i] = init;
-				} else {
-					psnew[i] = psold[i]*other/(double)(other-kd+i)*(all-kd)/(double)all;
-				}
-				//System.out.println("other = " + other + " i=" + i + " p=" +psnew[i]);
-			}
-		}
-		return psnew;
-	}
 	
 
 
