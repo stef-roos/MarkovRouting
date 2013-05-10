@@ -1,8 +1,8 @@
 package kadtype;
 
-public class KashmirUpper extends Alpha3Beta2Upper2 {
+public class KashmirA4B3Upper extends Alpha4Beta3Upper2 {
 	
-	public KashmirUpper(int b){
+	public KashmirA4B3Upper(int b){
 		super(b,getBucketSize(b),1);
 	}
 	

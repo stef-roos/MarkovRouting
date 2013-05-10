@@ -1,12 +1,13 @@
 package kadtype;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Random;
 
-import util.Binom;
 import util.Calc;
 
 //import eclipse.Calc;
@@ -17,26 +18,15 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//testPerformance(args);
-		double[] cdf = (new KademliaUpper(10,8)).getRoutingLength(100000); 
-		double ex = 0;
-		for (int i = 0; i < cdf.length; i++){
-			ex = ex + 1 - cdf[i];
-			System.out.println(i + " " +cdf[i]);
-		}
-//		double all = 0;
-//		int n = 10000;
-//		double p = Math.pow(2, -2);
-//		int exp = (int) ((int)n*p);
-//		Binom binom = new Binom(n,p,exp);
-//		for (int i = exp; i <= n; i++){
-//			all = all + binom.getNext();
+		testPerformance(args);
+//		double[] cdf = (new KademliaUpper(10,8)).getRoutingLength(100000); 
+//		double ex = 0;
+//		for (int i = 0; i < cdf.length; i++){
+//			ex = ex + 1 - cdf[i];
+//			System.out.println(i + " " +cdf[i]);
 //		}
-//		binom.recompute(exp);
-//		for (int i = exp-1; i > -1; i--){
-//			all = all + binom.getBefore();
-//		}
-//		System.out.println("sum " + all);
+
+
 	}
 	
 	public static double getExpDeg(int n, int k, int b){
@@ -70,21 +60,33 @@ public class Test {
 		break;
 		case 4: cdf = (new KademliaA4B1Lower(b,k)).getRoutingLength(n); 
 		break;
-		case 5: cdf = (new KashmirUpper(b)).getRoutingLength(n); 
+		case 5: cdf = (new KademliaA4B3Upper(b,k)).getRoutingLength(n); 
 		break;
-		case 6: cdf = (new KashmirLower(b)).getRoutingLength(n); 
+		case 6: cdf = (new KademliaA4B3Lower(b,k)).getRoutingLength(n); 
 		break;
-		case 7: cdf = (new KashmirA4B1Upper(b)).getRoutingLength(n); 
+		case 7: cdf = (new KashmirUpper(b)).getRoutingLength(n); 
 		break;
-		case 8: cdf = (new KashmirA4B1Lower(b)).getRoutingLength(n); 
+		case 8: cdf = (new KashmirLower(b)).getRoutingLength(n); 
 		break;
-		case 9: cdf = (new KADUpper(b)).getRoutingLength(n); 
+		case 9: cdf = (new KashmirA4B1Upper(b)).getRoutingLength(n); 
 		break;
-		case 10: cdf = (new KADLower(b)).getRoutingLength(n); 
+		case 10: cdf = (new KashmirA4B1Lower(b)).getRoutingLength(n); 
 		break;
-		case 11: cdf = (new KADA4B1Upper(b)).getRoutingLength(n); 
+		case 11: cdf = (new KashmirA4B3Upper(b)).getRoutingLength(n); 
 		break;
-		case 12: cdf = (new KADA4B1Lower(b)).getRoutingLength(n); 
+		case 12: cdf = (new KashmirA4B3Lower(b)).getRoutingLength(n); 
+		break;
+		case 13: cdf = (new KADUpper(b)).getRoutingLength(n); 
+		break;
+		case 14: cdf = (new KADLower(b)).getRoutingLength(n); 
+		break;
+		case 15: cdf = (new KADA4B1Upper(b)).getRoutingLength(n); 
+		break;
+		case 16: cdf = (new KADA4B1Lower(b)).getRoutingLength(n); 
+		break;
+		case 17: cdf = (new KADA4B3Upper(b)).getRoutingLength(n); 
+		break;
+		case 18: cdf = (new KADA4B3Lower(b)).getRoutingLength(n); 
 		break;
 		default: throw new IllegalArgumentException("Modus not known");
 		}

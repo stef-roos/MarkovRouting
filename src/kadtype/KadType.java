@@ -556,7 +556,39 @@ public abstract class KadType {
     	return res;
     }
     
-    
+    public double getExpectedDegree(int n){
+    	double exp = 0;
+    	for (int i = this.b; i > 0; i--){
+    		if (this.ltype == LType.SIMPLE){
+    			int m = (int)l[0][0];
+    			double p = Math.pow(2, -m-(b-i));
+    			Binom bi = new Binom(n-1,p);
+    			double sum = 0;
+    			for (int j = 0; j < k[i]; j++){
+    				double binom = bi.getNext();
+    				sum = sum + binom;
+    				exp = exp + binom*j;
+    			}
+    			exp = exp + k[i]*(1-sum);
+    		}
+    		if (this.ltype == LType.ALL){
+    			for (int m = 0; m < l[0].length; m++){
+    				if (l[i][m] > 0){
+    					double p = Math.pow(2, -m-(b-i));
+    	    			Binom bi = new Binom(n-1,p);
+    	    			double sum = 0;
+    	    			for (int j = 0; j < k[i]; j++){
+    	    				double binom = bi.getNext();
+    	    				sum = sum + binom;
+    	    				exp = exp + binom*j;
+    	    			}
+    	    			exp = exp + k[i]*(1-sum);
+    				}
+    			}
+    		}
+    	}
+    	return exp;
+    }
 
     
 }

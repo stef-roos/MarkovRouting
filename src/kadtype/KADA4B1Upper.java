@@ -2,7 +2,7 @@ package kadtype;
 
 import kadtype.KadType.LType;
 
-public class KADA4B1Upper extends Alpha4Beta1Upper {
+public class KADA4B1Upper extends Alpha4Beta1Upper2 {
 	
 	public KADA4B1Upper(int b) {
 		super(b, 10, makeL(b), LType.ALL);

@@ -1,24 +1,23 @@
 package kadtype;
 
-import kadtype.KadType.LType;
 
-public class Alpha4Beta1Lower extends KadTypeLower {
+public class Alpha4Beta1Upper2 extends KadTypeUpper2 {
 	
-	public Alpha4Beta1Lower(int b, int[] k, double[][] l,
+	public Alpha4Beta1Upper2(int b, int[] k, double[][] l,
 			LType ltype) {
 		super(b, 4, 1, k, l, ltype);
 	}
 	
-	public Alpha4Beta1Lower(int b, int[] k, int l) {
+	public Alpha4Beta1Upper2(int b, int[] k, int l) {
 		super(b, 4, 1, k, l);
 	}
 	
-	public Alpha4Beta1Lower(int b, int k, double[][] l,
+	public Alpha4Beta1Upper2(int b, int k, double[][] l,
 			LType ltype) {
 		super(b, 4, 1, k, l, ltype);
 	}
 	
-	public Alpha4Beta1Lower(int b, int k, int l) {
+	public Alpha4Beta1Upper2(int b, int k, int l) {
 		super(b, 4, 1, k, l);
 	}
 
@@ -67,8 +66,8 @@ public class Alpha4Beta1Lower extends KadTypeLower {
 						for (int m1 = 0; m1 < this.cdfs[old[3]].length; m1++) {
 							returned[3][0] = m1;
 							double p4 = this.getProb(returned[3], old[3],0);
-							this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3*p4);
-						}
+							this.makeDistinct(returned, t2, oldindex, old[3], n, nsucc*p1*p2*p3*p4);
+						
 					}
 				}
 			}
@@ -107,7 +106,7 @@ public class Alpha4Beta1Lower extends KadTypeLower {
 											double p4 = this.getProb(
 													returned[3], old[3],a4-1)
 													* l[old[3]][a4];
-											this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3*p4);
+											this.makeDistinct(returned, t2, oldindex, old[3], n, nsucc*p1*p2*p3*p4);
 										}
 									}
 								}
@@ -117,6 +116,7 @@ public class Alpha4Beta1Lower extends KadTypeLower {
 				}
 			}
 		}
-	}
+		}
 
+}
 }
