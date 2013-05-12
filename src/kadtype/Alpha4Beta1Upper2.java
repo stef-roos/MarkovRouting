@@ -98,7 +98,7 @@ public class Alpha4Beta1Upper2 extends KadTypeUpper2 {
 									double p3 = this.getProb(returned[2],
 											old[2],a3-1) * l[old[2]][a3];
 									for (int a4 = 1; a4 <= old[3]; a4++) {
-										if (l[old[2]][a4] == 0) {
+										if (l[old[3]][a4] == 0) {
 											continue;
 										}
 										for (int m1 = 0; m1 < this.cdfs[old[3]].length-a4+1; m1++) {
