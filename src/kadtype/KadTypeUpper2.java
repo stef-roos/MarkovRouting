@@ -108,7 +108,7 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 	 */
 	protected double recusivecombine(int[][] returned, double[][] t, int index, 
 			int a, int c, int[][] max, boolean[][] contain, double p){
-
+        if (p == 0) System.out.println("oh");
 		//set if unique
 		while (a < this.alpha && ((returned[a][c] < max.length &&
 				max[returned[a][c]][0] == a) || returned[a][c] == this.b+1 || returned[a][c] == 0)){

@@ -72,6 +72,8 @@ public class Alpha4Beta1Upper2 extends KadTypeUpper2 {
 				}
 			}
 		}
+		}	
+			
 		if (this.ltype == LType.ALL) {
 			for (int a1 = 1; a1 <= old[0]; a1++) {
 				if (l[old[0]][a1] == 0) {
@@ -106,7 +108,10 @@ public class Alpha4Beta1Upper2 extends KadTypeUpper2 {
 											double p4 = this.getProb(
 													returned[3], old[3],a4-1)
 													* l[old[3]][a4];
-											this.makeDistinct(returned, t2, oldindex, old[3], n, nsucc*p1*p2*p3*p4);
+											double p = this.makeDistinct(returned, t2, oldindex, old[3], n, nsucc*p1*p2*p3*p4);
+											//if (p != nsucc*p1*p2*p3*p4){
+												//System.out.println(p + " " + nsucc*p1*p2*p3*p4);
+											//}
 										}
 									}
 								}
@@ -115,7 +120,7 @@ public class Alpha4Beta1Upper2 extends KadTypeUpper2 {
 					}
 				}
 			}
-		}
+		
 		}
 
 }

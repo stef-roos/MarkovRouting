@@ -121,13 +121,13 @@ public abstract class KadType {
 		cdf[1] = dist[0];
 		m = getT2(n);
 		//HashMap<Integer,String> map = this.getMap();
-		for (int i = 0; i < m[0].length; i++){
-			double sum=0;
-			for (int j = 0; j < m.length; j++){
-				sum = sum + m[j][i];
-			}
-			System.out.println(i+ " sum: " + sum + " " );//+ map.get(i));
-		}
+//		for (int i = 0; i < m[0].length; i++){
+//			double sum=0;
+//			for (int j = 0; j < m.length; j++){
+//				sum = sum + m[j][i];
+//			}
+//			System.out.println(i+ " sum: " + sum + " " );//+ map.get(i));
+//		}
 		for (int i = 2; i < cdf.length; i++){
 			dist = matrixMulti(m,dist);
 			cdf[i] = dist[0];
