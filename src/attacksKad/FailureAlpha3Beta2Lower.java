@@ -34,7 +34,6 @@ public class FailureAlpha3Beta2Lower extends Failure{
 		for (int i = 0; i < cdfs[mindist].length; i++){
 			for (int j = i; j < cdfs[mindist].length; j++){
 				for (int k = j; k < cdfs[mindist].length; k++){
-					
 					int[] re = new int[]{i,j,k};
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
@@ -59,6 +58,8 @@ public class FailureAlpha3Beta2Lower extends Failure{
 	protected void processCDFsT2(int n, double[][] t2, int[] old, int oldindex,
 			double nsucc) {
 		int[][] returned = new int[3][2];
+		double all = 0;
+		double allp = 0;
 		if (this.ltype == LType.SIMPLE){
 		for (int i1 = 0; i1 < this.cdfs[old[0]].length+1; i1++){
 			returned[0][0] = i1 < this.cdfs[old[0]].length?i1:this.b;
@@ -75,7 +76,10 @@ public class FailureAlpha3Beta2Lower extends Failure{
 							for (int k2 = k1; k2 <= Math.max(this.cdfs[old[2]].length-1,k1); k2++){
 								returned[2][1] = k1<this.cdfs[old[2]].length?k2:this.b;
 								double p3 = k1<this.cdfs[old[2]].length?this.getProb(returned[2], old[2],0)*(1-this.fprob):this.fprob;
-								this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3);
+								double p = this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3);
+								//if (p < 0) System.out.println("prob " + p);
+								all = all + p1*p2*p3;
+								allp = allp + p/nsucc;
 							}
 						}
 					}
@@ -84,6 +88,8 @@ public class FailureAlpha3Beta2Lower extends Failure{
 			
 		}
 		}
+		if (all < 0.99)
+		System.out.println("d= " + old[0] + ","+old[1] + "," + old[2] + " all=" + all + " allp= " + allp);
 		if (this.ltype == LType.ALL){
 			for (int a1 = 1; a1 <= old[0]; a1++){
 				if (l[old[0]][a1] == 0){
@@ -115,7 +121,7 @@ public class FailureAlpha3Beta2Lower extends Failure{
 												returned[2][1] = k1<this.cdfs[old[2]].length?k2:this.b;
 												double p3 = k1<this.cdfs[old[2]].length?this.getProb(returned[2], old[2],a3-1)*(1-this.fprob):this.fprob;
 												p3 = p3*l[old[2]][a3];;
-											this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3);
+											double p = this.makeDistinct(returned, t2, oldindex, old[0], n, nsucc*p1*p2*p3);
 										}
 										}
 										}

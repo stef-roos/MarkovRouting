@@ -74,8 +74,8 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 			this.setDistinct(n);
 		}
 		//find maximal distinct set
-		int[][] max = new int[dmax][2];
-		for (int i=0; i < dmax; i++){
+		int[][] max = new int[this.b+1][2];
+		for (int i=0; i < this.b+1; i++){
 			for (int j=0; j < this.alpha; j++){
 				int count = 0;
 				for (int m=0; m < this.beta; m++){
@@ -90,7 +90,7 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 			}
 		}
 		boolean[][] contain = new boolean[this.alpha][this.beta];
-		return this.recusivecombine(returned, t, index, 0, 0, max, contain, p);
+		return this.recusivecombine(returned, t, index, 0, 0, max, contain, p,dmax);
 	}
 	
 	/**
@@ -107,9 +107,8 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 	 * @return
 	 */
 	protected double recusivecombine(int[][] returned, double[][] t, int index, 
-			int a, int c, int[][] max, boolean[][] contain, double p){
-        if (p == 0) System.out.println("oh");
-		//set if unique
+			int a, int c, int[][] max, boolean[][] contain, double p, int dmax){
+       //set if unique
 		while (a < this.alpha && ((returned[a][c] < max.length &&
 				max[returned[a][c]][0] == a) || returned[a][c] == this.b+1 || returned[a][c] == 0)){
 					contain[a][c] = true;
@@ -140,7 +139,7 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 							count--;
 						}
 					}
-					if (count == 0){
+					if (count < 1){
 						pdash = 1;
 					} else {
 						pdash = this.distinctP[returned[a][c]][count-1];
@@ -153,10 +152,10 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 					}
 					//case: distinct
 					contain[a][c] = true;
-					double rep = this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*pdash);
+					double rep = this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*pdash,dmax);
 					//case: not distinct
 					contain[a][c] = false;
-					rep = rep +this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*(1-pdash));
+					rep = rep +this.recusivecombine(returned, t, index, adash, cdash, max, contain, p*(1-pdash),dmax);
 					return rep;
 				}else {
 					//Evaluation
@@ -166,7 +165,7 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 							if (contain[i][j]){
 								combi[i][j] = returned[i][j]; 
 							} else {
-								combi[i][j] = max.length;
+								combi[i][j] = dmax;
 							}
 						}
 					}

@@ -1,28 +1,59 @@
 package attacksKad;
 
 import kadtype.KadType.LType;
-import kadtype.KadTypeCDFs;
+import kadtype.KadTypeUpper2;
 
-public class FailureAlpha3Beta2Upper extends Failure{
+public class FailureAlpha3Beta2Upper extends KadTypeUpper2{
+	double fprob;
 	
 	public FailureAlpha3Beta2Upper(int b, int[] k, double[][] l,
 			LType ltype, double fprob) {
-		super(b, 3, 2, k, l, ltype,fprob);
+		super(b, 3, 2, k, l, ltype);
+		this.fprob = fprob;
 		
 	}
 	
 	public FailureAlpha3Beta2Upper(int b, int[] k, int l, double fprob) {
-		super(b, 3, 2, k, l,fprob);
+		super(b, 3, 2, k, l);
+		this.fprob = fprob;
 	}
 	
 	public FailureAlpha3Beta2Upper(int b, int k, double[][] l,
 			LType ltype, double fprob) {
-		super(b, 3, 2, k, l, ltype,fprob);
+		super(b, 3, 2, k, l, ltype);
+		this.fprob = fprob;
 	}
 	
 	public FailureAlpha3Beta2Upper(int b, int k, int l, double fprob) {
-		super(b, 3, 2, k, l,fprob);
+		super(b, 3, 2, k, l);
+		this.fprob = fprob;
 	}
+	
+	 /**
+	    * construct the transition matrix for the second step
+	    * @param n: #nodes
+	    * @param t2: transition matrix
+	    */
+	  protected void constructT2(int n, double[][] t2, int[] old, int tofill){
+		  if (tofill < this.alpha){
+			  //set next entry
+		  int start=(tofill==0?0:old[tofill-1]);
+		     for (int i = start; i < this.b+1; i++){
+			   old[tofill] = i;
+			   this.constructT2(n, t2, old, tofill+1);
+		     }
+		  } else {
+			 double nsucc = 1;
+			 for (int i = 0; i < old.length; i++){
+				 nsucc = nsucc*(1-this.success[old[i]]*(1-this.fprob));
+			 }
+			 int oldindex = this.getIndex(old);
+			 t2[0][oldindex] = 1-nsucc;
+			 //not successful => system-specific
+			 if (nsucc > 0)
+			 this.processCDFsT2(n, t2, old, oldindex,nsucc);
+		  }
+	  }
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
@@ -71,34 +102,7 @@ public class FailureAlpha3Beta2Upper extends Failure{
 							for (int k2 = k1; k2 <= Math.max(this.cdfs[old[2]].length-1,k1); k2++){
 								returned[2][1] = k1<this.cdfs[old[2]].length?k2:old[2];
 								double p3 = k1<this.cdfs[old[2]].length?this.getProb(returned[2], old[2],0)*(1-this.fprob):this.fprob;
-								//consider all possibilities of stale entries
-//								double add = nsucc*p1*p2*p3;
-//								double[] succfail = {1-this.fprob, fprob};
-//								int[] res2 = returned[1];
-//								int[] res3 = returned[2];
-//								for (int s1 = 0; s1 < 2; s1++){
-//									if (s1 == 1){
-//										returned[0] = new int[]{old[0], old[0]};
-//									}
-//								    for (int s2 = 0; s2 < 2; s2++){
-//								    	if (s2 == 1){
-//								    	returned[1] = new int[]{old[1], old[1]};
-//								    	}	
-//								    	for (int s3 = 0; s3 < 2; s3++){
-//									    	if (s3 == 1){
-//									    	returned[2] = new int[]{old[2], old[2]};
-//									    	}	
-									    	int[] next = this.topAlpha(returned);
-											int newindex = this.getIndex(next);
-											t2[newindex][oldindex] = t2[newindex][oldindex] +
-													nsucc*p1*p2*p3;
-									    	
-//									    }
-//								    	returned[1] = res2;
-//								    }
-//								}
-								
-								
+								this.makeDistinct(returned, t2, oldindex, old[2], n, nsucc*p1*p2*p3);
 							}
 						}
 					}
