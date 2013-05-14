@@ -18,15 +18,15 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		testPerformance(args);
-//		double[] cdf = (new KADA4B1Upper(10)).getRoutingLength(10000); 
-//		double ex = 0;
-//		for (int i = 0; i < cdf.length; i++){
-//			ex = ex + 1 - cdf[i];
-//			System.out.println(i + " " +cdf[i]);
-//		}
-//        System.out.println(ex);
-
+		//testPerformance(args);
+		double[] cdf = (new KashmirUpper(15)).getRoutingLength(10000); 
+		double ex = 0;
+		for (int i = 0; i < cdf.length; i++){
+			ex = ex + 1 - cdf[i];
+			System.out.println(i + " " +cdf[i]);
+		}
+        System.out.println(ex);
+        System.out.println("Expected deg " + (new KashmirUpper(15)).getExpectedDegree(10000));
 	}
 	
 	public static double getExpDeg(int n, int k, int b){
