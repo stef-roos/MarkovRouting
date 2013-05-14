@@ -34,6 +34,32 @@ public class FailureAlpha3Beta2Lower extends KadTypeLower{
 		this.fprob = fprob;
 		this.ttl = ttl;
 	}
+	
+	 /**
+	    * construct the transition matrix for the second step
+	    * @param n: #nodes
+	    * @param t2: transition matrix
+	    */
+	  protected void constructT2(int n, double[][] t2, int[] old, int tofill){
+		  if (tofill < this.alpha){
+			  //set next entry
+		  int start=(tofill==0?0:old[tofill-1]);
+		     for (int i = start; i < this.b+1; i++){
+			   old[tofill] = i;
+			   this.constructT2(n, t2, old, tofill+1);
+		     }
+		  } else {
+			 double nsucc = 1;
+			 for (int i = 0; i < old.length; i++){
+				 nsucc = nsucc*(1-this.success[old[i]]*(1-this.fprob));
+			 }
+			 int oldindex = this.getIndex(old);
+			 t2[0][oldindex] = 1-nsucc;
+			 //not successful => system-specific
+			 if (nsucc > 0)
+			 this.processCDFsT2(n, t2, old, oldindex,nsucc);
+		  }
+	  }
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
