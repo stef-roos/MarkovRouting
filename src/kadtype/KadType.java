@@ -274,7 +274,7 @@ public abstract class KadType {
 			for (int m = 0; m < l.length; m++){
 				double[] p = new double[b+1];
 				p[0] = 0;
-				double q = Math.pow(2, -m-1);
+				double q = Math.pow(2, -m);
 				for (int d=b; d > 0;d--){
 					p[d] = q;
 					q = q*0.5;
@@ -596,13 +596,14 @@ public abstract class KadType {
     				if (l[i][m] > 0){
     					double p = Math.pow(2, -m-(b-i));
     	    			Binom bi = new Binom(n-1,p);
+    	    			double f = Math.pow(2, m-1)*l[i][m];
     	    			double sum = 0;
     	    			for (int j = 0; j < k[i]; j++){
     	    				double binom = bi.getNext();
     	    				sum = sum + binom;
-    	    				exp = exp + binom*j;
+    	    				exp = exp + binom*j*f;
     	    			}
-    	    			exp = exp + k[i]*(1-sum);
+    	    			exp = exp + k[i]*(1-sum)*f;
     				}
     			}
     		}
