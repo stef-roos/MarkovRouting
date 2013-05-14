@@ -15,7 +15,7 @@ public class TestAttack {
 //			System.out.println(i + " " +h.getNext());
 //		}
 		
-		double[] cdf = (new FailureKademliaLower(10,8,0.1,5)).getRoutingLength(1000); 
+		double[] cdf = (new FailureKADLower(10,0.1,5)).getRoutingLength(1000); 
 		double ex = 0;
 		for (int i = 0; i < cdf.length; i++){
 			ex = ex + 1 - cdf[i];

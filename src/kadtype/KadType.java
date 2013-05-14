@@ -118,7 +118,7 @@ public abstract class KadType {
 //				System.out.println("oh " + m[j][i]);
 //			}
 //		}
-		//System.out.println(i+ " sum: " + sum );
+//		System.out.println(i+ " sum: " + sum );
 //	}
 		dist = matrixMulti(m,dist);
 		for (int i = 0; i < dist.length; i++){
@@ -128,19 +128,22 @@ public abstract class KadType {
 		}
 		cdf[1] = dist[0];
 		m = getT2(n);
-		//HashMap<Integer,String> map = this.getMap();
+//		int count = 0;
+//		HashMap<Integer,String> map = this.getMap();
 //		for (int i = 0; i < m[0].length; i++){
 //			double sum=0;
 //			for (int j = 0; j < m.length; j++){
 //				sum = sum + m[j][i];
-//				if (m[j][i] < 0 || m[j][i] > 1){
-//					System.out.println("oh " + m[j][i]);
+//				if (m[j][i] < 0 && i < 10){
+//					System.out.println("i= " + map.get(i) + " j= " + map.get(j) + " entry= "+ m[j][i]);
+//					count++;
 //				}
 //			}
 //			
-//			if (sum < 0.99 || sum > 1.01)
-//			System.out.println(i+ " sum: " + sum + " " );//+ map.get(i));
+////			if (sum < 0.99 || sum > 1.01)
+////			System.out.println(i+ " sum: " + sum + " " );//+ map.get(i));
 //		}
+		//System.out.println(count + " " + m.length);
 		for (int i = 2; i < cdf.length; i++){
 			//System.out.println("step " + i);
 			dist = matrixMulti(m,dist);

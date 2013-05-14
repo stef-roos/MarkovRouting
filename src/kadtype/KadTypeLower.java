@@ -264,6 +264,9 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 					} else {
 						pdash = this.distinctPMax[returned[a][c]][Math.max(a-1,0)];
 					}
+//					if (pdash < 0 || pdash > 1){
+//						System.out.println("recursive " + pdash);
+//					}
 					int adash = (a*this.beta+c+1)/this.beta;
 					int cdash = (a*this.beta+c+1) % this.beta;
 					//case: distinct
