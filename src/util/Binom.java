@@ -32,7 +32,7 @@ public class Binom {
 		if (old == -1){
 			old = Calc.binomDist(n, current, p);
 		} else {
-			old = old/(n-current+1)*(double)current*(1-p)/p;
+			old = old/(n-current+1)*(double)(current)*(1-p)/p;
 		}
 		this.current--;
 		return old;
