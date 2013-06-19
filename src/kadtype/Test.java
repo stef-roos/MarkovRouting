@@ -1,13 +1,16 @@
 package kadtype;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Random;
 
+import kadtype.KadType.LType;
+
+import attacksKad.FailureAlpha3Beta2Upper;
+
+import util.Binom;
 import util.Calc;
 
 //import eclipse.Calc;
@@ -18,15 +21,46 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//testPerformance(args);
-		double[] cdf = (new KashmirUpper(15)).getRoutingLength(10000); 
-		double ex = 0;
-		for (int i = 0; i < cdf.length; i++){
-			ex = ex + 1 - cdf[i];
-			System.out.println(i + " " +cdf[i]);
-		}
-        System.out.println(ex);
-        System.out.println("Expected deg " + (new KashmirUpper(15)).getExpectedDegree(10000));
+		testPerformance(args);
+//		int b = Integer.parseInt(args[0])
+//		double[][] l = new double[b+1][b+1];
+//		l[b][4] = 1;
+//		for (int i = 4; i < b; i++){
+//			l[i][3] = 1;
+//		}
+//		l[3][3] = 1;
+//		l[2][2] = 1;
+//		l[1][1] = 1;
+//		int mode = Integer.parseInt(args[1]);
+//		int n = Integer.parseInt(args[2]);
+//		String file = args[3];
+//		double[] cdf = new double[0];
+//		switch (mode){
+//		case 1: cdf = (new Alpha3Beta2Upper2(b,1,l, LType.ALL)).getRoutingLength(n); 
+//		break;
+//		case 2: cdf = (new Alpha3Beta2Lower(b,1,l, LType.ALL)).getRoutingLength(n); 
+//		break;
+//		case 3: cdf = (new Alpha4Beta1Upper2(b,1,l, LType.ALL)).getRoutingLength(n); 
+//		break;
+//		case 4: cdf = (new Alpha4Beta1Lower(b,1,l, LType.ALL)).getRoutingLength(n); 
+//		break;
+//		default: throw new IllegalArgumentException("unknown mode");
+//		}
+//		
+//		try {
+//			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+//			bw.write("#b="+b + "n="+n);
+//			for (int i = 0; i < cdf.length; i++){
+//				bw.newLine();
+//				bw.write(i + " " + cdf[i]);
+//			}
+//			bw.flush();
+//			bw.close();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
 	}
 	
 	public static double getExpDeg(int n, int k, int b){
@@ -370,6 +404,32 @@ public class Test {
 				}
 			}
 		}
+	}
+	
+	public static double getSuccessProb(int n, int b, int d, int k){
+		double p = Math.pow(2, -d-b);
+		int exp = (int) ((n-2)*p);
+		Binom bi = new Binom(n-2,p,exp);
+		double s = 0;
+		double binom;
+	  for (int i = exp; i < n-1; i++){
+		  binom = bi.getNext();
+		  if (i < k){
+		         s = s + binom;
+		  } else{
+				 s = s + binom*(double)(k)/(double)(i+1);
+		  }
+	  }
+	  bi.recompute(exp);
+	  for (int i = exp-1; i > -1; i--){
+		  binom = bi.getBefore();
+		  if (i < k){
+		         s = s + binom;
+		  } else{
+				 s = s + binom*(double)(k)/(double)(i+1);
+		  }
+	  }
+	  return s;
 	}
 
 }

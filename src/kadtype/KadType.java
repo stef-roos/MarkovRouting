@@ -587,11 +587,12 @@ public abstract class KadType {
     			int m = (int)l[0][0];
     			double p = Math.pow(2, -m-(b-i));
     			Binom bi = new Binom(n-1,p);
+    			bi.recompute(k[i]);
     			double sum = 0;
     			for (int j = 0; j < k[i]; j++){
-    				double binom = bi.getNext();
+    				double binom = bi.getBefore();
     				sum = sum + binom;
-    				exp = exp + binom*j;
+    				exp = exp + binom*(k[i]-j-1);
     			}
     			exp = exp + k[i]*(1-sum);
     		}

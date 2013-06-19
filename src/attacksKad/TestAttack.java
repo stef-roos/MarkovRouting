@@ -21,12 +21,12 @@ public class TestAttack {
 //			System.out.println(i + " " +h.getNext());
 //		}
 		
-		int b = 25;
+		int b = Integer.parseInt(args[3]);
 		int[] k = new int[b+1];
-		for (int i = 0; i < 16; i++){
+		for (int i = 0; i < k.length-10; i++){
 			k[i] = 8;
 		}
-		for (int i = 16; i < k.length; i++){
+		for (int i = k.length-10; i < k.length; i++){
 			k[i] = 9;
 		}
 		double[][] l = new double[b+1][b+1];
