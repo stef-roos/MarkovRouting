@@ -21,6 +21,8 @@ public abstract class KadType {
 	protected double[] success;
 	protected double[][][] cdfs;
 	protected double[][] biCoeff; 
+	boolean subbuckets=false;
+	boolean local = false;
 	
 	/**
 	 * 
@@ -201,7 +203,10 @@ public abstract class KadType {
 			processCDFsT1(t,d,d);
 			}
 		}
-		
+		if (this.local){
+			this.local = false;
+			this.setSuccess(n);
+		}
 		return t;
 	}
 	
@@ -236,6 +241,10 @@ public abstract class KadType {
 	 * @param n
 	 */
 	protected void setSuccess(int n) {
+		if (this.subbuckets || this.local){
+			this.setSuccessSubbuckets(n);
+			return;
+		}
 		this.success = new double[this.b+1];
 		this.success[0] = 1;
 		if (this.ltype == LType.SIMPLE){
@@ -304,6 +313,106 @@ public abstract class KadType {
 					  }
 				  }
 					
+				}
+			}
+		}
+	}
+	
+	private void setSuccessSubbuckets(int n){
+		this.success = new double[this.b+1];
+		this.success[0] = 1;
+		int[] addBits = new int[k.length];
+		int[] remainder = new int[k.length];
+		for (int j = 0; j < addBits.length; j++){
+			addBits[j] = (int)Math.floor(Math.log(k[j]));
+			remainder[j] = k[j]-(int)Math.pow(2,addBits[j]);
+		}
+		if (this.ltype == LType.SIMPLE){
+			//case: always resolve by constant l more steps
+			int m = (int)l[0][0];
+			double[] p = new double[b+1];
+			p[0] = 0;
+			//probability to be in fraction in id space
+			double q = Math.pow(2, -m);
+			for (int d=b; d > 0;d--){
+				p[d] = q;
+				q = q*0.5;
+			}
+			for (int d=b; d > 0;d--){
+				//iterate over possible empty regions -> add links
+				int regions = (int)Math.pow(2,addBits[d]);
+				double regionEm = Math.pow(p[d]/(double)regions, n-2);
+				int index = Math.max(0, d-regions);
+				for (int r = 0; r < regions; r++){
+					double pr = Calc.binomDist(regions-1, r, regionEm);
+					for (int a = 0; a <= r; a++){
+					    double pa = pr*Calc.binomDist(r, a,1/(double)(regions-r));
+					    int links = 1 + a + remainder[d];
+				int exp = (int) ((n-2)*p[index]);
+				Binom bi = new Binom(n-2,p[index],exp);
+				double binom;
+			  for (int i = exp; i < n-1; i++){
+				  binom = pa*bi.getNext();
+				  if (i < links){
+				         this.success[d] = this.success[d] + binom;
+				  } else{
+						 this.success[d] = this.success[d] + binom*(double)(links)/(double)(i+1);
+				  }
+			  }
+			  bi.recompute(exp);
+			  for (int i = exp-1; i > -1; i--){
+				  binom = pa*bi.getBefore();
+				  if (i < links){
+				         this.success[d] = this.success[d] + binom;
+				  } else{
+						 this.success[d] = this.success[d] + binom*(double)(links)/(double)(i+1);
+				  }
+			  }
+				}
+				}
+			}
+		}
+		if (this.ltype == LType.ALL){
+			//case: variable l: iterate over all l
+			for (int m = 0; m < l.length; m++){
+				double[] p = new double[b+1];
+				p[0] = 0;
+				double q = Math.pow(2, -m);
+				for (int d=b; d > 0;d--){
+					p[d] = q;
+					q = q*0.5;
+				}
+				for (int d=b; d > 0;d--){
+					int regions = (int)Math.pow(2,addBits[d]);
+					double regionEm = Math.pow(p[d]/(double)regions, n-2);
+					int index = Math.max(0, d-regions);
+					for (int r = 0; r < regions; r++){
+						double pr = Calc.binomDist(regions-1, r, regionEm);
+						for (int a = 0; a <= r; a++){
+						    double pa = pr*Calc.binomDist(r, a,1/(double)(regions-r));
+						    int links = 1 + a + remainder[d];
+					int exp = (int) ((n-2)*p[index]);
+					Binom bi = new Binom(n-2,p[index],exp);
+					double binom;
+				  for (int i = exp; i < n-1; i++){
+					  binom = pa*bi.getNext();
+					  if (i < links){
+					         this.success[d] = this.success[d] +l[d][m]* binom;
+					  } else{
+							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i+1);
+					  }
+				  }
+				  bi.recompute(exp);
+				  for (int i = exp-1; i > -1; i--){
+					  binom = pa*bi.getBefore();
+					  if (i < links){
+					         this.success[d] = this.success[d] + l[d][m]*binom;
+					  } else{
+							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i+1);
+					  }
+				  }
+						}
+					}
 				}
 			}
 		}
@@ -616,5 +725,14 @@ public abstract class KadType {
     	return exp;
     }
 
+    public void setSubbuckets(boolean sub){
+    	this.subbuckets = sub;
+    	this.local = false;
+    }
+    
+    public void setLocal(boolean local){
+    	this.local = local;
+    	this.subbuckets = false;
+    }
     
 }
