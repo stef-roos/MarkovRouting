@@ -41,9 +41,10 @@ public class TestAtt2 {
 		bw.write(n + " " + exp);
 		bw.newLine();
 			
-			bw.flush();
-			bw.close();
+			
 		}	
+		bw.flush();
+		bw.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

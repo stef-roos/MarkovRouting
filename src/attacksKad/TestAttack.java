@@ -4,7 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import kadtype.KadType;
+import kadtype.Accuracy;
 
 
 
@@ -16,58 +16,47 @@ public class TestAttack {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		Hyper1 h = new Hyper1(0,0,3);
-//		for (int i = 0; i < 5; i++){
-//			System.out.println(i + " " +h.getNext());
-//		}
+		int modus = Integer.parseInt(args[0]);
+		int k = 8;
+		double error = Double.parseDouble(args[1]);
+		double rate = Double.parseDouble(args[2]);
+		int ttl = Integer.parseInt(args[3]);
+		int start = Integer.parseInt(args[4]);
+		for (int i = start; i < 21; i++){
+			System.out.println("i="+i );
+		int n = (int)(Math.pow(2, i)*1000);
+		int aimB = 160;
+		int b = Accuracy.getBitCount(k, n, error, aimB);
+		double[] cdf = new double[0];
+		switch (modus){
+		case 101: cdf = (new FailureKademliaUpper(b,8,rate)).getRoutingLength(n); break;
+		case 102: cdf = (new FailureKademliaLower(b,8,rate,ttl)).getRoutingLength(n);; break;
+		case 103: cdf = (new FailureKademliaA4B1Upper(b,8,rate)).getRoutingLength(n); break;
+		case 104: cdf = (new FailureKademliaA4B1Lower(b,8,rate,ttl)).getRoutingLength(n); break;
+		case 105: cdf = (new FailureKADUpper(b,rate)).getRoutingLength(n); break;
+		case 106: cdf = (new FailureKADLower(b,rate,ttl)).getRoutingLength(n); break;
+		case 107: cdf = (new FailureKADA4B1Upper(b,rate)).getRoutingLength(n); break;
+		case 108: cdf = (new FailureKADA4B1Lower(b,rate, ttl)).getRoutingLength(n); break;
+		default: throw new IllegalArgumentException();
+		}
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(args[5]+ n+".txt"));
+			for (int j = 0; j < cdf.length; j++){
+				bw.write(j + " " + cdf[j]);
+				bw.newLine();
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		int b = Integer.parseInt(args[3]);
-		int[] k = new int[b+1];
-		for (int i = 0; i < k.length-10; i++){
-			k[i] = 8;
 		}
-		for (int i = k.length-10; i < k.length; i++){
-			k[i] = 9;
-		}
-		double[][] l = new double[b+1][b+1];
-		l[b][4] = 1;
-		for (int i = 4; i < b; i++){
-			l[i][3] = 0.75;
-			l[i][4] = 0.25;
-		}
-		l[3][3] = 1;
-		l[2][2] = 1;
-		l[1][1] = 1;
-		double rate = Double.parseDouble(args[1]);
-		int ttl = Integer.parseInt(args[2]);
-        try{
-         BufferedWriter bw = new BufferedWriter(new FileWriter(args[0]));
-         bw.write("Upper");
-         double[] cdf = (new FailureAlpha3Beta2Upper(b,k,l, KadType.LType.ALL,rate)).getRoutingLength(1000000);
-         double ex = 0;
-         for (int i = 0; i< cdf.length; i++){
-        	 ex = ex + 1 -cdf[i];
-        	 bw.write(i + " " + cdf[i]);
-        	 bw.newLine();
-         }
-         bw.write("expectation :" + ex);
-         bw.newLine();
-         bw.newLine();
-         bw.write("Upper");
-         cdf = (new FailureAlpha3Beta2Lower(b,k,l, KadType.LType.ALL,rate,ttl)).getRoutingLength(1000000);
-         ex = 0;
-         for (int i = 0; i< cdf.length; i++){
-        	 ex = ex + 1 -cdf[i];
-        	 bw.write(i + " " + cdf[i]);
-        	 bw.newLine();
-         }
-         bw.write("expectation :" + ex);
-         bw.flush();
-         bw.close();
-        }catch (IOException e){
-        	e.printStackTrace();
-        }
 		
 	}
+	
+	
+	
 
 }
