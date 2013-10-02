@@ -23,6 +23,7 @@ public abstract class KadType {
 	protected double[][] biCoeff; 
 	boolean subbuckets=false;
 	boolean local = false;
+	double n;
 	
 	/**
 	 * 
@@ -106,6 +107,7 @@ public abstract class KadType {
 	 * @return
 	 */
 	public double[] getRoutingLength(int n){
+		this.n = n;
 		this.setSuccess(n);
 		double[] cdf = new double[b+1];
 		double[] dist = getI();
@@ -324,7 +326,7 @@ public abstract class KadType {
 		int[] addBits = new int[k.length];
 		int[] remainder = new int[k.length];
 		for (int j = 0; j < addBits.length; j++){
-			addBits[j] = (int)Math.floor(Math.log(k[j]));
+			addBits[j] = (int)Math.floor(Math.log(k[j])/Math.log(2));
 			remainder[j] = k[j]-(int)Math.pow(2,addBits[j]);
 		}
 		if (this.ltype == LType.SIMPLE){
@@ -341,13 +343,13 @@ public abstract class KadType {
 			for (int d=b; d > 0;d--){
 				//iterate over possible empty regions -> add links
 				int regions = (int)Math.pow(2,addBits[d]);
-				double regionEm = Math.pow(p[d]/(double)regions, n-2);
-				int index = Math.max(0, d-regions);
+				double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
+				int index = Math.max(0, d-addBits[d]);
 				for (int r = 0; r < regions; r++){
 					double pr = Calc.binomDist(regions-1, r, regionEm);
-					for (int a = 0; a <= r; a++){
-					    double pa = pr*Calc.binomDist(r, a,1/(double)(regions-r));
-					    int links = 1 + a + remainder[d];
+					for (int a = 0; a <= r+remainder[d]; a++){
+					    double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+					    int links = 1 + a;
 				int exp = (int) ((n-2)*p[index]);
 				Binom bi = new Binom(n-2,p[index],exp);
 				double binom;
@@ -384,13 +386,13 @@ public abstract class KadType {
 				}
 				for (int d=b; d > 0;d--){
 					int regions = (int)Math.pow(2,addBits[d]);
-					double regionEm = Math.pow(p[d]/(double)regions, n-2);
-					int index = Math.max(0, d-regions);
+					double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
+					int index = Math.max(0, d-addBits[d]);
 					for (int r = 0; r < regions; r++){
 						double pr = Calc.binomDist(regions-1, r, regionEm);
-						for (int a = 0; a <= r; a++){
-						    double pa = pr*Calc.binomDist(r, a,1/(double)(regions-r));
-						    int links = 1 + a + remainder[d];
+						for (int a = 0; a <= r+remainder[d]; a++){
+						    double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+						    int links = 1 + a;
 					int exp = (int) ((n-2)*p[index]);
 					Binom bi = new Binom(n-2,p[index],exp);
 					double binom;
@@ -416,6 +418,9 @@ public abstract class KadType {
 				}
 			}
 		}
+//		for (int i = 0; i < this.success.length; i++){
+//			System.out.println(success[i]);
+//		}
 	}
 	
 	/**
@@ -571,6 +576,17 @@ public abstract class KadType {
    * @return
    */
   protected double getProb(int[] returned, int nr, int l){
+	  if (this.subbuckets || this.local){
+		  if (returned.length == 3){
+			  return this.getProbSubbucketsC3(returned, nr, l);
+		  } else {
+			  if (returned.length == 2){
+				  return this.getProbSubbucketsC2(returned, nr, l);
+			  } else {
+				  throw new IllegalArgumentException("Subbuckets not implemented for this alpha and beta");
+			  }
+		  }
+	  }
 	  double p = 1;
 	  int c = 0;
 	  int old = -1;
@@ -639,6 +655,409 @@ public abstract class KadType {
 		  p = p*sum;
 	  }
 	  return p;
+  }
+  
+  public double getProbSubbucketsC2(int[] returned, int nr, int l){
+	  int c0 = returned[0];
+	  int c1 = returned[1];
+	  double pall = 0;
+	  int addBit = (int)Math.floor(Math.log(this.k[nr])/Math.log(2));
+	  int remainder = this.k[nr] - (int)Math.pow(2, addBit);
+	  int improve = nr - l -1 - addBit;
+	  if (improve < 0) {
+		  return 0;
+	  }
+	  //no contacts in region returned
+	  if (c0 > improve) {
+		  return 0;
+	  } 
+	  int regions = (int)Math.pow(2,addBit);
+		double regionEm = Math.pow(1-Math.pow(2, b-nr-1-l)/(double)regions, n-2);
+		for (int r = 0; r < regions; r++){
+			double pr = Calc.binomDist(regions-1, r, regionEm);
+			for (int a = 0; a <= r+remainder; a++){
+				double pa = pr*Calc.binomDist(r+remainder, a,1/(double)(regions-r));
+			    int links = 1 + a;
+			    //more links into region than nodes selected
+			    if (c1 > improve && links > 1) {
+			    	continue;
+			    }
+			    //only one link into region but more nodes returned
+			    if (c1 <= improve && links == 1) {
+			    	continue;
+			    }
+			    
+			    int index = Math.max(nr-addBit, 0);
+			    double p = 1;
+				 if (c1 <= improve){
+			    //case both links into region => as before but with links rather than k[d] 
+			    //and cdf nr-addBit rather than nr
+			    int c = 0;
+				  int old = -1;
+				  Vector<Integer> ys = new Vector<Integer>();
+				  Vector<Integer> cs = new Vector<Integer>();
+				  for (int i = 0; i < returned.length; i++){
+					  if (old != returned[i]){
+						   if (c > 0){
+							  ys.add(old);
+							  cs.add(c);
+							 }
+						   c = 1;
+							old = returned[i];
+					  } else {
+						  c++;
+					  }
+				  }
+				  if ( c > 0){
+					  ys.add(old);
+					  cs.add(c);
+				  }
+				
+				  
+				  double[][] cdf = this.cdfs[index];
+				  double prob;
+				  if (returned[0] > 0){
+					  if (cdf[returned[0]-1][l] < 1){
+						  prob = (cdf[returned[0]][l] - cdf[returned[0]-1][l]);
+						   }else {
+							  return 0;
+						  }
+				 } else {
+					  prob = cdf[0][l];
+				  }
+				  double[] coeffs = this.biCoeff[links];
+				  if (ys.size() > 1){
+					  p = p*coeffs[cs.get(0)]*Math.pow(prob, cs.get(0))*Math.pow(1-cdf[ys.get(0)][l], links-cs.get(0));
+				  } else {
+					  double sum = 1;
+					  if (returned[0] > 0){
+					    sum = Math.pow(1 - cdf[returned[0]-1][l], links);
+					  }
+					  for (int i = 0; i < returned.length; i++){
+						  sum = sum - coeffs[i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(0)][l], links-i);
+					   }
+					  p = p*sum;
+				  } 
+				  int remain = links-cs.get(0);
+				  for (int j = 1; j < ys.size()-1; j++){
+					   p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+					  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+					  p=p*this.biCoeff[remain][cs.get(j)]*Math.pow(prob, cs.get(j))*Math.pow(1-cdf[ys.get(j)][l], remain-cs.get(j));
+					  remain = remain-cs.get(j);
+				  }
+				  if (ys.size() > 1){
+					  int j = ys.size()-1;
+					  p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+					  
+					 prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+					  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
+					  for (int i = 0; i < cs.get(j); i++){
+						  //if (remain == -1) System.out.println("oh");
+						  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(j)][l], remain-i);
+					  }
+					  p = p*sum;
+				  }
+				  
+			    } else {
+			    	//one link into region
+			    	//a) prob for this link
+			    	double[][] cdf = this.cdfs[index];
+					if (returned[0] > 0){
+						  if (cdf[returned[0]-1][l] < 1){
+							  p = (cdf[returned[0]][l] - cdf[returned[0]-1][l]);
+							   }else {
+								  p=0;
+							  }
+					 } else {
+						  p = cdf[0][l];
+					  }
+					  //b) the other link: no contacts in closer subbuckets (counc-1)
+					  int countc = (int)Math.pow(2, addBit-(nr-c1-l));
+					  if (r > countc-2){
+					  for (int i = 0; i < countc-1; i++){
+						  p = p*(r-i)/(regions-1-i);
+					  }
+					  } else {
+						  p = 0;
+					  }
+					  //c) the other link: at least one contact in subbuckets at this level (countc)
+					  if (2*countc <= r+1){
+						  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+					  }
+					  
+			    }
+			    pall = pall + p*pa;
+			}
+		}
+	  return pall;
+  }
+  
+  public double getProbSubbucketsC3(int[] returned,int nr,int l){
+	  int c0 = returned[0];
+	  int c1 = returned[1];
+	  int c2 = returned[2];
+	  
+	  double pall = 0;
+	  int addBit = (int)Math.floor(Math.log(this.k[nr])/Math.log(2));
+	  int remainder = this.k[nr] - (int)Math.pow(2, addBit);
+	  int improve = nr - l -1 - addBit;
+	  if (improve < 0) {
+		  return 0;
+	  }
+	  //no contacts in region returned
+	  if (c0 > improve) return 0;
+	  int inr = 0;
+	  for (int i = 0; i < 3; i++){
+		  if (returned[i] > improve){
+			  break;
+		  }
+		  inr++;
+	  }
+	  int regions = (int)Math.pow(2,addBit);
+		double regionEm = Math.pow(1-Math.pow(2, b-nr-1-l)/(double)regions, n-2);
+		for (int r = 0; r < regions; r++){
+			double pr = Calc.binomDist(regions-1, r, regionEm);
+			for (int a = 0; a <= r+remainder; a++){
+				double pa = pr*Calc.binomDist(r+remainder, a,1/(double)(regions-r));
+				if (pa == 0) continue;
+			    int links = 1 + a;
+			    
+			    //too many links in region
+			    if (links > inr && inr != 3){
+			    	continue;
+			    }
+			    //not enough links in region
+			    if (links < inr){
+			    	continue;
+			    }
+			    int index = Math.max(nr-addBit, 0);
+			    double p = 1;
+			    if (inr == 3){
+			    	//normal but additional addBits, and only links potential contacts
+			    	int c = 0;
+					  int old = -1;
+					  Vector<Integer> ys = new Vector<Integer>();
+					  Vector<Integer> cs = new Vector<Integer>();
+					  for (int i = 0; i < returned.length; i++){
+						  if (old != returned[i]){
+							   if (c > 0){
+								  ys.add(old);
+								  cs.add(c);
+								 }
+							   c = 1;
+								old = returned[i];
+						  } else {
+							  c++;
+						  }
+					  }
+					  if ( c > 0){
+						  ys.add(old);
+						  cs.add(c);
+					  }
+					
+					  
+					  double[][] cdf = this.cdfs[index];
+					  double prob;
+					  if (returned[0] > 0){
+						  if (cdf[returned[0]-1][l] < 1){
+							  prob = (cdf[returned[0]][l] - cdf[returned[0]-1][l]);
+							   }else {
+								  return 0;
+							  }
+					 } else {
+						  prob = cdf[0][l];
+					  }
+					  double[] coeffs = this.biCoeff[links];
+					  if (ys.size() > 1){
+						  p = p*coeffs[cs.get(0)]*Math.pow(prob, cs.get(0))*Math.pow(1-cdf[ys.get(0)][l], links-cs.get(0));
+					  } else {
+						  double sum = 1;
+						  if (returned[0] > 0){
+						    sum = Math.pow(1 - cdf[returned[0]-1][l], links);
+						  }
+						  for (int i = 0; i < returned.length; i++){
+							  sum = sum - coeffs[i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(0)][l], links-i);
+						   }
+						  p = p*sum;
+					  } 
+					  int remain = links-cs.get(0);
+					  for (int j = 1; j < ys.size()-1; j++){
+						   p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+						  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+						  p=p*this.biCoeff[remain][cs.get(j)]*Math.pow(prob, cs.get(j))*Math.pow(1-cdf[ys.get(j)][l], remain-cs.get(j));
+						  remain = remain-cs.get(j);
+					  }
+					  if (ys.size() > 1){
+						  int j = ys.size()-1;
+						  p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+						  
+						 prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+						  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
+						  for (int i = 0; i < cs.get(j); i++){
+							  //if (remain == -1) System.out.println("oh");
+							  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(j)][l], remain-i);
+						  }
+						  p = p*sum;
+					  }
+			    } else {
+			    	if (inr == 2){
+			    		
+			    		//only first two links for normal treatment
+			    		int c = 0;
+						  int old = -1;
+						  Vector<Integer> ys = new Vector<Integer>();
+						  Vector<Integer> cs = new Vector<Integer>();
+						  for (int i = 0; i < 2; i++){
+							  if (old != returned[i]){
+								   if (c > 0){
+									  ys.add(old);
+									  cs.add(c);
+									 }
+								   c = 1;
+									old = returned[i];
+							  } else {
+								  c++;
+							  }
+						  }
+						  if ( c > 0){
+							  ys.add(old);
+							  cs.add(c);
+						  }
+						
+						  
+						  double[][] cdf = this.cdfs[index];
+						  double prob;
+						  if (returned[0] > 0){
+							  if (cdf[returned[0]-1][l] < 1){
+								  prob = (cdf[returned[0]][l] - cdf[returned[0]-1][l]);
+								   }else {
+									  return 0;
+								  }
+						 } else {
+							  prob = cdf[0][l];
+						  }
+						  double[] coeffs = this.biCoeff[links];
+						  if (ys.size() > 1){
+							  p = p*coeffs[cs.get(0)]*Math.pow(prob, cs.get(0))*Math.pow(1-cdf[ys.get(0)][l], links-cs.get(0));
+						  } else {
+							  
+							  double sum = 1;
+							  if (returned[0] > 0){
+							    sum = Math.pow(1 - cdf[returned[0]-1][l], links);
+							  }
+							  for (int i = 0; i < returned.length-1; i++){
+								  sum = sum - coeffs[i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(0)][l], links-i);
+							   }
+							  p = p*sum;
+						  } 
+
+						  
+						  int remain = links-cs.get(0);
+						  for (int j = 1; j < ys.size()-1; j++){
+							   p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+							  prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+							  p=p*this.biCoeff[remain][cs.get(j)]*Math.pow(prob, cs.get(j))*Math.pow(1-cdf[ys.get(j)][l], remain-cs.get(j));
+							  remain = remain-cs.get(j);
+						  }
+						  if (ys.size() > 1){
+							  int j = ys.size()-1;
+							  p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
+							  
+							 prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
+							  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
+							  for (int i = 0; i < cs.get(j); i++){
+								  //if (remain == -1) System.out.println("oh");
+								  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(j)][l], remain-i);
+							  }
+							  p = p*sum;
+						  }
+						  //third edge not in region
+						//b) the other link: no contacts in closer subbuckets (counc-1)
+						  int countc = (int)Math.pow(2, addBit-(nr-c2-l));
+						  if (r > countc-2){
+						  for (int i = 0; i < countc-1; i++){
+							  p = p*(r-i)/(regions-1-i);
+						  }
+						  }else {
+							  p = 0;
+						  }
+						  //c) the other link: at least one contact in subbuckets at this level (countc)
+						  if (2*countc <= r+1){
+							  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+						  }
+						  
+			    	} else {
+			    		//two links not in region
+			    		//link in region
+			    		double[][] cdf = this.cdfs[index];
+						if (returned[0] > 0){
+							  if (cdf[returned[0]-1][l] < 1){
+								  p = (cdf[returned[0]][l] - cdf[returned[0]-1][l]);
+								   }else {
+									  return 0;
+								  }
+						 } else {
+							  p = cdf[0][l];
+						  }
+						
+						//links not in region
+						//countc-1 empty buckets before
+						int countc = (int)Math.pow(2, addBit-(nr-c1-l));
+						  if (r> countc-2){
+						  for (int i = 0; i < countc-1; i++){
+							  p = p*(r-i)/(regions-i);
+						  }
+						  } else {
+							  p = 0;
+						  }
+						if (c1 == c2){
+							//there are at least two non-empty subbuckets with that prefix length
+							if (regions-2*countc >= regions-1-r){
+							  double pE = (1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+							  if (pE > 0){
+							  double pN = (pE - Calc.binom(regions-2*countc, regions-2-r)*Calc.binom(countc, 1)
+									/(double)Calc.binom(regions-countc, regions-1-r))/(pE);
+							//or if not, there are at least two links into the one region	
+							  double p2 = (1-pN)*(1-Math.pow(1-1/(double)(regions-r-1),r+remainder));
+							  p = p*pE*(pN+p2);
+							  } else {
+								  p = 0;
+							  }
+							  
+							}
+						} else {
+							//there is exactly one non-empty region and countc
+							double pE;
+							if (regions-2*countc >= regions-2-r){
+							    pE = Calc.binom(regions-2*countc, regions-2-r)*Calc.binom(countc, 1)
+									/(double)Calc.binom(regions-countc, regions-1-r);
+							} else {
+								pE = 0;
+							}
+							//and this region gets only one link
+							pE = pE*Math.pow(1-1/(double)(regions-r-1),r+remainder);
+							//all regions between c1 and c2 are empty
+							p = p*pE;
+							int countc2 =  	(int)Math.pow(2, addBit-(nr-c2-l));
+							if (regions - countc2+2 > 0){
+							for (int i = countc-1; i < countc2-1; i++){
+								  p = p*(r-i)/(regions-i);
+							}
+							}else {
+								p = 0;
+							}
+							//there is at least one non-empty region at c2
+							if (regions-2*countc2 >= regions-1-r){
+							  p = p*(1-Calc.binom(regions-2*countc2, regions-1-r)/(double)Calc.binom(regions-countc2, regions-1-r));
+							}
+						}  
+			    	}
+			    	
+			    }
+			    pall = pall + p*pa; 
+			}
+		}
+		return pall;
   }
   
 //  /**
@@ -733,6 +1152,10 @@ public abstract class KadType {
     public void setLocal(boolean local){
     	this.local = local;
     	this.subbuckets = false;
+    }
+    
+    public void setN(int n){
+    	this.n = n;
     }
     
 }
