@@ -27,6 +27,16 @@ public abstract class KadTypeCDFs extends KadType {
 		super(b, alpha, beta, k, l, ltype);
 	}
 	
+//	public KadTypeCDFs(int b, int alpha, int beta, int[] k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, alpha, beta, k, l, ltype, replicas);
+//	}
+//	
+//	public KadTypeCDFs(int b, int alpha, int beta, int k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, alpha, beta, k, l, ltype, replicas);
+//	}
+	
 	/**
 	 * constructor: see super
 	 * @param b

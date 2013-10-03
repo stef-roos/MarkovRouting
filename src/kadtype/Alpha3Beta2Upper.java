@@ -16,6 +16,11 @@ public class Alpha3Beta2Upper extends KadTypeCDFs{
 		super(b, 3, 2, k, l, ltype);
 	}
 	
+//	public Alpha3Beta2Upper(int b, int k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, 3, 2, k, l, ltype, replicas);
+//	}
+	
 	public Alpha3Beta2Upper(int b, int k, int l) {
 		super(b, 3, 2, k, l);
 	}

@@ -29,6 +29,29 @@ public class FailureAlpha3Beta2Upper extends KadTypeUpper2{
 		this.fprob = fprob;
 	}
 	
+	public FailureAlpha3Beta2Upper(int b, int[] k, double[][] l,
+			LType ltype, double fprob, int replica) {
+		super(b, 3, 2, k, l, ltype, replica);
+		this.fprob = fprob;
+		
+	}
+	
+//	public FailureAlpha3Beta2Upper(int b, int[] k, int l, double fprob) {
+//		super(b, 3, 2, k, l);
+//		this.fprob = fprob;
+//	}
+	
+	public FailureAlpha3Beta2Upper(int b, int k, double[][] l,
+			LType ltype, double fprob, int replica) {
+		super(b, 3, 2, k, l, ltype, replica);
+		this.fprob = fprob;
+	}
+	
+//	public FailureAlpha3Beta2Upper(int b, int k, int l, double fprob, int replica) {
+//		super(b, 3, 2, k, l,replica);
+//		this.fprob = fprob;
+//	}
+	
 	 /**
 	    * construct the transition matrix for the second step
 	    * @param n: #nodes

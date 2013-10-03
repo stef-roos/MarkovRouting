@@ -25,6 +25,24 @@ public abstract class KadTypeUpper2 extends KadTypeCDFs {
 		super(b, alpha, beta, k, l);
 	}
 	
+//	public KadTypeUpper2(int b, int alpha, int beta, int[] k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, alpha, beta, k, l, ltype,replicas);
+//	}
+//
+////	public KadTypeUpper2(int b, int alpha, int beta, int[] k, int l, int replicas) {
+////		super(b, alpha, beta, k, l,replicas);
+////	}
+//	
+//	public KadTypeUpper2(int b, int alpha, int beta, int k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, alpha, beta, k, l, ltype,replicas);
+//	}
+
+//	public KadTypeUpper2(int b, int alpha, int beta, int k, int l, int replicas) {
+//		super(b, alpha, beta, k, l,replicas);
+//	}
+	
 	/**
 	 * setting distinctP
 	 * @param n

@@ -9,6 +9,11 @@ public class FailureKADUpper extends FailureAlpha3Beta2Upper {
 		// TODO Auto-generated constructor stub
 	}
 	
+	public FailureKADUpper(int b, double fprob, int replicas) {
+		super(b, 10, makeL(b), LType.ALL,fprob, replicas);
+		// TODO Auto-generated constructor stub
+	}
+	
 	private static double[][] makeL(int b){
 		double[][] l = new double[b+1][b+1];
 		l[b][4] = 1;

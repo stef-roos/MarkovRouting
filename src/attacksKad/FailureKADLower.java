@@ -9,6 +9,11 @@ public class FailureKADLower extends FailureAlpha3Beta2Lower {
 		// TODO Auto-generated constructor stub
 	}
 	
+	public FailureKADLower(int b, double fprob, int ttl, int replicas) {
+		super(b, 10, makeL(b), LType.ALL,fprob, ttl, replicas);
+		// TODO Auto-generated constructor stub
+	}
+	
 	private static double[][] makeL(int b){
 		double[][] l = new double[b+1][b+1];
 		l[b][4] = 1;

@@ -1,5 +1,6 @@
 package kadtype;
 
+import kadtype.KadType.LType;
 import util.Binom;
 import util.Calc;
 
@@ -31,6 +32,21 @@ public abstract class KadTypeLower extends KadTypeCDFs {
 	public KadTypeLower(int b, int alpha, int beta, int k, int l) {
 		super(b, alpha, beta, k, l);
 	}
+	
+//	public KadTypeLower(int b, int alpha, int beta, int[] k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, alpha, beta, k, l, ltype,replicas);
+//	}
+
+//	public KadTypeUpper2(int b, int alpha, int beta, int[] k, int l, int replicas) {
+//		super(b, alpha, beta, k, l,replicas);
+//	}
+	
+	
+
+//	public KadTypeUpper2(int b, int alpha, int beta, int k, int l, int replicas) {
+//		super(b, alpha, beta, k, l,replicas);
+//	}
 	
 	/**
 	 * setting distinctP

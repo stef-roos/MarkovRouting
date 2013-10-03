@@ -2,7 +2,7 @@ package kadtype;
 
 import kadtype.KadType.LType;
 
-public class Alpha3Beta2Upper2 extends KadTypeLower{
+public class Alpha3Beta2Upper2 extends KadTypeUpper2{
 	
 	public Alpha3Beta2Upper2(int b, int[] k, double[][] l,
 			LType ltype) {
@@ -21,6 +21,11 @@ public class Alpha3Beta2Upper2 extends KadTypeLower{
 	public Alpha3Beta2Upper2(int b, int k, int l) {
 		super(b, 3, 2, k, l);
 	}
+	
+//	public Alpha3Beta2Upper2(int b, int k, double[][] l,
+//			LType ltype, int replicas) {
+//		super(b, 3, 2, k, l, ltype, replicas);
+//	}
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
