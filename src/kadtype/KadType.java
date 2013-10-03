@@ -319,6 +319,9 @@ public abstract class KadType {
 				}
 			}
 		}
+//		for (int i = 0; i < this.success.length; i++){
+//			System.out.println(success[i]);
+//		}
 	}
 	
 	private void setSuccessSubbuckets(int n){
@@ -674,7 +677,7 @@ public abstract class KadType {
 		  return 0;
 	  } 
 	  int regions = (int)Math.pow(2,addBit);
-		double regionEm = Math.pow(1-Math.pow(2, b-nr-1-l)/(double)regions, n-2);
+		double regionEm = Math.pow(1-Math.pow(2, -b+nr-1-l)/(double)regions, n-2);
 		for (int r = 0; r < regions; r++){
 			double pr = Calc.binomDist(regions-1, r, regionEm);
 			for (int a = 0; a <= r+remainder; a++){
@@ -816,8 +819,14 @@ public abstract class KadType {
 		  inr++;
 	  }
 	  int regions = (int)Math.pow(2,addBit);
-		double regionEm = Math.pow(1-Math.pow(2, b-nr-1-l)/(double)regions, n-2);
+		double regionEm = Math.pow(1-Math.pow(2, -b+nr-1-l)/(double)regions, n-2);
+		//System.out.println(regionEm + " " + nr + " " + Math.pow(2, b-nr-1-l)/(double)regions);
 		for (int r = 0; r < regions; r++){
+			if (r == regions-1){
+				if (inr != 3){
+					continue;
+				}
+			}
 			double pr = Calc.binomDist(regions-1, r, regionEm);
 			for (int a = 0; a <= r+remainder; a++){
 				double pa = pr*Calc.binomDist(r+remainder, a,1/(double)(regions-r));
@@ -901,6 +910,7 @@ public abstract class KadType {
 						  }
 						  p = p*sum;
 					  }
+
 			    } else {
 			    	if (inr == 2){
 			    		
@@ -985,9 +995,10 @@ public abstract class KadType {
 						  }
 						  //c) the other link: at least one contact in subbuckets at this level (countc)
 						  if (2*countc <= r+1){
-							  double d = Calc.binom(regions-2*countc, regions-1-r);
+							 // double d = Calc.binom(regions-2*countc, regions-1-r);
 							  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
 						  }
+						  
 			    	} else {
 			    		//two links not in region
 			    		//link in region
@@ -1001,7 +1012,7 @@ public abstract class KadType {
 						 } else {
 							  p = cdf[0][l];
 						  }
-						
+				    	
 						//links not in region
 						//countc-1 empty buckets before
 						int countc = (int) Math.pow(2, addBit - (nr - c1-l));
@@ -1012,6 +1023,7 @@ public abstract class KadType {
 						  } else {
 							  p = 0;
 						  }
+						
 						  //c) the other link: at least one contact in subbuckets at this level (countc)
 						double pe = 1;
 						  if (2*countc <= r+1){
@@ -1049,6 +1061,7 @@ public abstract class KadType {
 									}
 
 								}
+        			    	
 						} else {
 							//there is exactly one non-empty region and countc
 							double pE=1;
@@ -1099,11 +1112,23 @@ public abstract class KadType {
 							}
 						}  
 			    	}
-			    	
+//			    	if (!(p <= 1)){
+//						  System.out.println(p+ " " + nr + " " + c0 + " " + c1 + " " + c2);
+//					  }
 			    }
-			    pall = pall + p*pa; 
+//		    	if (!(p <= 1)){
+//					  System.out.println("P " + p+ " " + nr + " " + c0 + " " + c1 + " " + c2);
+//				  }
+			    double pallNew = pall + p*pa; 
+//				if (!(pallNew < 1)){
+//					  System.out.println("PAll " + pall + " " + nr + " " + p + " " + pa + " r " + r + " a " + a);
+//				  }
+				pall = pallNew;
 			}
 		}
+//		if (!(pall < 1)){
+//			  System.out.println(pall + " " + nr);
+//		  }
 		return pall;
   }
   
