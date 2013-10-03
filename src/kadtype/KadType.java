@@ -113,7 +113,6 @@ public abstract class KadType {
 		double[] dist = getI();
 		cdf[0] = 0;
 		double[][]  m = getT1(n);
-//		HashMap<Integer,String> map = this.getMap();
 //		for (int i = 0; i < m[0].length; i++){
 //		double sum=0;
 //		for (int j = 0; j < m.length; j++){
@@ -125,14 +124,14 @@ public abstract class KadType {
 //		System.out.println(i+ " sum: " + sum );
 //	}
 		dist = matrixMulti(m,dist);
-		for (int i = 0; i < dist.length; i++){
-			if (dist[i] < 0){
-				System.out.println(i + " " + dist[i]);
-			}
-		}
+//		for (int i = 0; i < dist.length; i++){
+//			if (dist[i] < 0){
+//				//System.out.println(i + " " + dist[i]);
+//			}
+//		}
 		cdf[1] = dist[0];
 		m = getT2(n);
-//		int count = 0;
+		int count = 0;
 //		HashMap<Integer,String> map = this.getMap();
 //		for (int i = 0; i < m[0].length; i++){
 //			double sum=0;
@@ -143,6 +142,8 @@ public abstract class KadType {
 //					count++;
 //				}
 //			}
+//			System.out.println(sum);
+//		}	
 //			
 ////			if (sum < 0.99 || sum > 1.01)
 ////			System.out.println(i+ " sum: " + sum + " " );//+ map.get(i));
@@ -243,10 +244,10 @@ public abstract class KadType {
 	 * @param n
 	 */
 	protected void setSuccess(int n) {
-		if (this.subbuckets || this.local){
-			this.setSuccessSubbuckets(n);
-			return;
-		}
+//		if (this.subbuckets || this.local){
+//			this.setSuccessSubbuckets(n);
+//			return;
+//		}
 		this.success = new double[this.b+1];
 		this.success[0] = 1;
 		if (this.ltype == LType.SIMPLE){
@@ -321,6 +322,7 @@ public abstract class KadType {
 	}
 	
 	private void setSuccessSubbuckets(int n){
+		this.setN(n);
 		this.success = new double[this.b+1];
 		this.success[0] = 1;
 		int[] addBits = new int[k.length];
@@ -418,13 +420,13 @@ public abstract class KadType {
 				}
 			}
 		}
-//		for (int i = 0; i < this.success.length; i++){
-//			System.out.println(success[i]);
-//		}
+		for (int i = 0; i < this.success.length; i++){
+			System.out.println(success[i]);
+		}
 	}
 	
 	/**
-	 * sets cdfs for i=0..b
+//	 * sets cdfs for i=0..b
 	 * 
 	 */
 	protected void setCDFs(){
@@ -983,9 +985,9 @@ public abstract class KadType {
 						  }
 						  //c) the other link: at least one contact in subbuckets at this level (countc)
 						  if (2*countc <= r+1){
+							  double d = Calc.binom(regions-2*countc, regions-1-r);
 							  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
 						  }
-						  
 			    	} else {
 			    		//two links not in region
 			    		//link in region
@@ -1018,12 +1020,7 @@ public abstract class KadType {
 						p = p*pe;
 						if (c1 == c2){
 							//there are at least two non-empty subbuckets with that prefix length
-							if (regions - 2 * countc >= regions - 1 - r) {
-//								double pE = (1 - Calc.binom(regions - 2 * countc,
-//										regions - 1 - r)
-//										/ (double) Calc.binom(regions - countc, regions
-//												- 1 - r));
-								if (pe > 0) {
+                            if (pe != 1) {
 									double pN = (pe - Calc.binom(regions - 2 * countc,
 											regions - 2 - r)
 											* Calc.binom(countc, 1)
@@ -1037,43 +1034,67 @@ public abstract class KadType {
 													- r - 1), r + remainder));
 									p = p * (pN + p2);
 								} else {
-									p = 0;
+									if (regions - countc >= regions-1-r){
+										if (2*countc <= r+2){
+											double pN = 1-Calc.binom(regions - 2 * countc,
+													regions - 2 - r)
+													* Calc.binom(countc, 1)
+													/ (double) Calc.binom(regions - countc,
+															regions - 1 - r);
+											double p2 = (1 - pN)
+													* (1 - Math.pow(1 - 1 / (double) (regions
+															- r - 1), r + remainder));
+											p = p*(pN+p2);
+										}
+									}
+
 								}
-							}else {
-								p = 0;
-							}
 						} else {
 							//there is exactly one non-empty region and countc
-							double pE;
-							// and this region gets only one link
-							if (pe > 0 && (regions - 2 * countc >= regions - 2 - r)){
-							pE = (1-(pe - Calc.binom(regions - 2 * countc,
-									regions - 2 - r)
-									* Calc.binom(countc, 1)
-									/ (double) Calc.binom(regions - countc,
-											regions - 1 - r))
-									/ (pe))*Math.pow(1 - 1 / (double) (regions - r - 1), r
-											+ remainder);
+							double pE=1;
+							if (pe != 1) {
+								double pN = (pe - Calc.binom(regions - 2 * countc,
+										regions - 2 - r)
+										* Calc.binom(countc, 1)
+										/ (double) Calc.binom(regions - countc,
+												regions - 1 - r))
+										/ (pe);
+								// or if not, there are at least two links into the
+								// one region
+								double p2 = Math.pow(1 - 1 / (double) (regions
+												- r - 1), r + remainder);
+								pE = (1-pN)*p2;
 							} else {
-								pE = 0; 
-							}
-							// all regions between c1 and c2 are empty
-							p = p * pE;
-							int countc2 = (int) Math.pow(2, addBit - (nr - c2-l));
-							if (r - countc2 + 2 >= 0) {
-								for (int i = countc; i < countc2 - 1; i++) {
-									p = p * (r - i) / (regions - i);
+								if (regions - countc >= regions-1-r){
+									if (2*countc <= r+2){
+										double pN = 1-Calc.binom(regions - 2 * countc,
+												regions - 2 - r)
+												* Calc.binom(countc, 1)
+												/ (double) Calc.binom(regions - countc,
+														regions - 1 - r);
+										double p2 = Math.pow(1 - 1 / (double) (regions
+														- r - 1), r + remainder);
+										pE = (1-pN)*p2;
+									}
+								} else {
+									pE = 0;
 								}
+
+							}
+							p = p*pE;
+							int countc2 = (int) Math.pow(2, addBit - (nr - c2-l));
+							if ( 2*countc  <= r+2) {
+								p = p* Calc.binom(regions-countc2, regions-r-2)/(double)Calc.binom(regions-2*countc,regions-r-2);
 							} else {
 								p = 0;
 							}
 							// there is at least one non-empty region at c2
-							if (regions - 2 * countc2 >= regions - 1 - r) {
+							if (regions - 2 * countc2 >= regions - 2 - r) {
 								p = p
 										* (1 - Calc.binom(regions - 2 * countc2,
-												regions - 1 - r)
+												regions - 2 - r)
 												/ (double) Calc.binom(
-														regions - countc2, regions - 1
+														regions - countc2, regions - 2
 																- r));
 							}
 						}  

@@ -7,10 +7,10 @@ public class KADUpper extends Alpha3Beta2Upper2 {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public KADUpper(int b, int replicas) {
-		super(b, 10, makeL(b), LType.ALL, replicas);
-		// TODO Auto-generated constructor stub
-	}
+//	public KADUpper(int b, int replicas) {
+//		super(b, 10, makeL(b), LType.ALL, replicas);
+//		// TODO Auto-generated constructor stub
+//	}
 	
 	private static double[][] makeL(int b){
 		double[][] l = new double[b+1][b+1];
