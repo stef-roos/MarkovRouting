@@ -48,6 +48,7 @@ public class Alpha3Beta2Upper2 extends KadTypeUpper2{
 							if (this.l[mindist][a] > 0 && k <= mindist - a){
 								t[indexnew][indexOld] =  t[indexnew][indexOld] 
 										+(1-this.success[mindist])*this.getProb(re, mindist,a-1)*this.l[mindist][a];
+								System.out.println(mindist + " " + a);
 							}
 						}
 					}

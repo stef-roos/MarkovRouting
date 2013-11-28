@@ -17,19 +17,20 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		int[] all = {1000,5000,10000,4194667};
-		double[] activeDeg = {129.45,155.13,162.81,363.76};
-		int[] active = {816,3843, 7494, 498765};
-		double[] allDeg = {87.02,112.0,141.0,56.3};
-		KadType kad = new KADUpper(128);
-		for (int i = 0; i < all.length; i++){
-			double expAll = kad.getExpectedDegree(all[i]);
-			String l = allDeg[i] + " & " + 
-			  Math.round(expAll*100)/(double)100 + " & " + Math.round(expAll/allDeg[i]*100)/(double)100;
-			double expAc = kad.getExpectedDegree(active[i]);  
-			l = l +" & " + activeDeg[i] + " & " + Math.round(expAc*100)/(double)100 + " & " + Math.round(expAc/activeDeg[i]*100)/(double)100;
-			System.out.println(l);
-		}
+//		int[] all = {1000,5000,10000,4194667};
+//		double[] activeDeg = {129.45,155.13,162.81,363.76};
+//		int[] active = {816,3843, 7494, 498765};
+//		double[] allDeg = {87.02,112.0,141.0,56.3};
+//		KadType kad = new KADUpper(128);
+//		for (int i = 0; i < all.length; i++){
+//			double expAll = kad.getExpectedDegree(all[i]);
+//			String l = allDeg[i] + " & " + 
+//			  Math.round(expAll*100)/(double)100 + " & " + Math.round(expAll/allDeg[i]*100)/(double)100;
+//			double expAc = kad.getExpectedDegree(active[i]);  
+//			l = l +" & " + activeDeg[i] + " & " + Math.round(expAc*100)/(double)100 + " & " + Math.round(expAc/activeDeg[i]*100)/(double)100;
+//			System.out.println(l);
+//		}
+		
 //		int k = Integer.parseInt(args[0]);
 //		double error = Double.parseDouble(args[1]);
 //		for (int i = 0; i < 21; i++){
@@ -54,8 +55,32 @@ public class Test {
 //		}
 //		}
 		
+		int b = 12;
+		double[][] l = new double[b+1][b+1];
+		int[] k = new int[b+1];
+		for (int i = 0; i < 3; i++){
+			l[i][i] = 1; 
+			k[i] = (int) ((int)8/Math.pow(2, i));
+		}
+		for (int i = 3; i <= b; i++){
+			l[i][3] = 1; 
+			k[i] = 1;
+		}
+		double[] dist = (new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getRoutingLength(1000);
+		//double[] dist = (new Alpha1Beta1(9,k,1)).getRoutingLength(1000);
+		for (int i = 0; i < dist.length; i++){
+			System.out.println(i + " " + dist[i]);
+		}
 		
-		testPerformance(args);
+//		int n = Integer.parseInt(args[0]);
+//		int mode = Integer.parseInt(args[1]);
+//		String output = args[3];
+//		double error = 0.001;
+//		int b = Accuracy.getBitCount(1, n, error, 128);
+//		switch (mode){
+//		1: new Alpha3Beta2
+//		}
+		
 //		int b = Integer.parseInt(args[0])
 //		double[][] l = new double[b+1][b+1];
 //		l[b][4] = 1;

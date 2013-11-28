@@ -655,7 +655,8 @@ public abstract class KadType {
 		  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
 		  for (int i = 0; i < cs.get(j); i++){
 			  //if (remain == -1) System.out.println("oh");
-			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(j)][l], remain-i);
+			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)
+					  *Math.pow(1-cdf[ys.get(j)][l], remain-i);
 		  }
 		  p = p*sum;
 	  }
