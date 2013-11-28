@@ -55,22 +55,24 @@ public class Test {
 //		}
 //		}
 		
-		int b = 12;
+		int b = 13;
 		double[][] l = new double[b+1][b+1];
 		int[] k = new int[b+1];
-		for (int i = 0; i < 3; i++){
+		for (int i = 0; i < 4; i++){
 			l[i][i] = 1; 
 			k[i] = (int) ((int)8/Math.pow(2, i));
 		}
-		for (int i = 3; i <= b; i++){
-			l[i][3] = 1; 
+		for (int i = 4; i <= b; i++){
+			l[i][4] = 1; 
 			k[i] = 1;
 		}
-		double[] dist = (new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getRoutingLength(1000);
-		//double[] dist = (new Alpha1Beta1(9,k,1)).getRoutingLength(1000);
-		for (int i = 0; i < dist.length; i++){
-			System.out.println(i + " " + dist[i]);
-		}
+		System.out.println((new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getExpectedDegree(10000));
+		System.out.println((new Alpha1Beta1(b,8,1)).getExpectedDegree(10000));
+//		double[] dist = (new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getRoutingLength(10000);
+//		//double[] dist = (new Alpha1Beta1(b,8,1)).getRoutingLength(10000);
+//		for (int i = 0; i < dist.length; i++){
+//			System.out.println(i + " " + dist[i]);
+//		}
 		
 //		int n = Integer.parseInt(args[0]);
 //		int mode = Integer.parseInt(args[1]);

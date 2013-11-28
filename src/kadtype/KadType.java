@@ -581,6 +581,7 @@ public abstract class KadType {
    * @return
    */
   protected double getProb(int[] returned, int nr, int l){
+	  if (returned.length > k[nr]) return this.getProbLessBeta(returned, nr, l);
 	  if (this.subbuckets || this.local){
 		  if (returned.length == 3){
 			  return this.getProbSubbucketsC3(returned, nr, l);
@@ -660,6 +661,27 @@ public abstract class KadType {
 		  }
 		  p = p*sum;
 	  }
+	  return p;
+  }
+  
+  protected double getProbLessBeta(int[] returned, int nr, int l){
+	  double p = 0;
+	  int[] r1 = new int[k[nr]];
+	  for (int i = 0; i < r1.length; i++){
+		  r1[i] = returned[i];
+	  }
+	  p = this.getProb(r1, nr, l);
+	  if (p > 0){
+		  if (returned[k[nr]] < nr - l){
+			  return 0;
+		  }
+		  double empty = Math.pow(1-Math.pow(2, -b+nr-1-l), n-2);
+		  int last = 0;
+		  for (int i = k[nr]; i < returned.length; i++){
+			  double 
+		  }
+	  }
+	  
 	  return p;
   }
   
