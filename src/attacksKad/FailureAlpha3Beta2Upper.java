@@ -29,23 +29,23 @@ public class FailureAlpha3Beta2Upper extends KadTypeUpper2{
 		this.fprob = fprob;
 	}
 	
-	public FailureAlpha3Beta2Upper(int b, int[] k, double[][] l,
-			LType ltype, double fprob, int replica) {
-		super(b, 3, 2, k, l, ltype, replica);
-		this.fprob = fprob;
-		
-	}
+//	public FailureAlpha3Beta2Upper(int b, int[] k, double[][] l,
+//			LType ltype, double fprob, int replica) {
+//		super(b, 3, 2, k, l, ltype, replica);
+//		this.fprob = fprob;
+//		
+//	}
 	
 //	public FailureAlpha3Beta2Upper(int b, int[] k, int l, double fprob) {
 //		super(b, 3, 2, k, l);
 //		this.fprob = fprob;
 //	}
 	
-	public FailureAlpha3Beta2Upper(int b, int k, double[][] l,
-			LType ltype, double fprob, int replica) {
-		super(b, 3, 2, k, l, ltype, replica);
-		this.fprob = fprob;
-	}
+//	public FailureAlpha3Beta2Upper(int b, int k, double[][] l,
+//			LType ltype, double fprob, int replica) {
+//		super(b, 3, 2, k, l, ltype, replica);
+//		this.fprob = fprob;
+//	}
 	
 //	public FailureAlpha3Beta2Upper(int b, int k, int l, double fprob, int replica) {
 //		super(b, 3, 2, k, l,replica);
@@ -94,7 +94,6 @@ public class FailureAlpha3Beta2Upper extends KadTypeUpper2{
 					if (this.ltype == LType.ALL){
 						for (int a = 1; a < mindist+1; a++){
 							if (this.l[mindist][a] > 0 && k <= mindist - a){
-								double p = this.getProb(re, mindist,a-1);
 								t[indexnew][indexOld] =  t[indexnew][indexOld] 
 										+(1-this.success[mindist])*this.getProb(re, mindist,a-1)*this.l[mindist][a];
 							}

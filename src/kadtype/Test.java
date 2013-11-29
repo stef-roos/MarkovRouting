@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
+import multibuckets.Alpha3Beta2UpperMult;
 import util.Binom;
 import util.Calc;
 
@@ -55,7 +56,7 @@ public class Test {
 //		}
 //		}
 		
-		int b = 13;
+		int b = 10;
 		double[][] l = new double[b+1][b+1];
 		int[] k = new int[b+1];
 		for (int i = 0; i < 4; i++){
@@ -66,13 +67,14 @@ public class Test {
 			l[i][4] = 1; 
 			k[i] = 1;
 		}
-		System.out.println((new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getExpectedDegree(10000));
-		System.out.println((new Alpha1Beta1(b,8,1)).getExpectedDegree(10000));
-//		double[] dist = (new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getRoutingLength(10000);
+//		System.out.println((new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getExpectedDegree(10000));
+//		System.out.println((new Alpha1Beta1(b,8,1)).getExpectedDegree(10000));
+		
+        double[] dist = (new Alpha3Beta2UpperMult(b,k,l, KadType.LType.ALL)).getRoutingLength(1000);
 //		//double[] dist = (new Alpha1Beta1(b,8,1)).getRoutingLength(10000);
-//		for (int i = 0; i < dist.length; i++){
-//			System.out.println(i + " " + dist[i]);
-//		}
+		for (int i = 0; i < dist.length; i++){
+			System.out.println(i + " " + dist[i]);
+		}
 		
 //		int n = Integer.parseInt(args[0]);
 //		int mode = Integer.parseInt(args[1]);

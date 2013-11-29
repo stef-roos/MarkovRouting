@@ -35,24 +35,24 @@ public class FailureAlpha3Beta2Lower extends KadTypeLower{
 		this.ttl = ttl;
 	}
 	
-	public FailureAlpha3Beta2Lower(int b, int[] k, double[][] l,
-			LType ltype, double fprob, int ttl, int replica) {
-		super(b, 3, 2, k, l, ltype, replica);
-		this.fprob = fprob;
-		this.ttl = ttl;
-	}
+//	public FailureAlpha3Beta2Lower(int b, int[] k, double[][] l,
+//			LType ltype, double fprob, int ttl, int replica) {
+//		super(b, 3, 2, k, l, ltype, replica);
+//		this.fprob = fprob;
+//		this.ttl = ttl;
+//	}
 	
 //	public FailureAlpha3Beta2Upper(int b, int[] k, int l, double fprob) {
 //		super(b, 3, 2, k, l);
 //		this.fprob = fprob;
 //	}
 	
-	public FailureAlpha3Beta2Lower(int b, int k, double[][] l,
-			LType ltype, double fprob, int ttl,int replica) {
-		super(b, 3, 2, k, l, ltype, replica);
-		this.fprob = fprob;
-		this.ttl = ttl;
-	}
+//	public FailureAlpha3Beta2Lower(int b, int k, double[][] l,
+//			LType ltype, double fprob, int ttl,int replica) {
+//		super(b, 3, 2, k, l, ltype, replica);
+//		this.fprob = fprob;
+//		this.ttl = ttl;
+//	}
 	
 //	public FailureAlpha3Beta2Upper(int b, int k, int l, double fprob, int replica) {
 //		super(b, 3, 2, k, l,replica);

@@ -582,6 +582,7 @@ public abstract class KadType {
    */
   protected double getProb(int[] returned, int nr, int l){
 	  if (returned.length > k[nr]) return this.getProbLessBeta(returned, nr, l);
+	  if (returned[returned.length-1] >= this.cdfs[nr].length) return 0;
 	  if (this.subbuckets || this.local){
 		  if (returned.length == 3){
 			  return this.getProbSubbucketsC3(returned, nr, l);
@@ -650,8 +651,11 @@ public abstract class KadType {
 	  }
 	  if (ys.size() > 1){
 		  int j = ys.size()-1;
+		  if (cdf[ys.get(j-1)][l] == 1) return 0;
 		  p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
-		  
+//		  if (!(p <= 1)){
+//			  System.out.println(" in > 1 " + p + " " + nr + " " + l + " " + returned.length + " " + ys.get(j) + " " + cdf[ys.get(j)][l]);
+//		  }
 		 prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
 		  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
 		  for (int i = 0; i < cs.get(j); i++){
@@ -661,29 +665,147 @@ public abstract class KadType {
 		  }
 		  p = p*sum;
 	  }
+	  if (!(p <= 1)){
+		 // System.out.println(" after sum "  +  p + " " + nr + " " + l);
+	  }
 	  return p;
   }
   
   protected double getProbLessBeta(int[] returned, int nr, int l){
+	  String s = "";
+	  for (int i = 0; i < returned.length; i++){
+		  s = s + " " + returned[i];
+	  }
+//	  System.out.println("nr " + nr + " returned " + s);
+	  
 	  double p = 0;
 	  int[] r1 = new int[k[nr]];
 	  for (int i = 0; i < r1.length; i++){
 		  r1[i] = returned[i];
 	  }
+	  if (returned[k[nr]-1] > nr - l) return 0;
 	  p = this.getProb(r1, nr, l);
+	//  System.out.println("pnormal " + p);
+	  if (!(p <= 1)){
+		  System.out.println(" after return normal"  +p + s + " " + nr );
+	  }
+	  int c = 0;
+	  int old = -1;
+	  Vector<Integer> ys = new Vector<Integer>();
+	  Vector<Integer> cs = new Vector<Integer>();
+	  for (int i = returned[k[nr]]; i < returned.length; i++){
+		  if (old != returned[i]){
+			   if (c > 0){
+				  ys.add(old);
+				  cs.add(c);
+				 }
+			   c = 1;
+				old = returned[i];
+		  } else {
+			  c++;
+		  }
+	  }
+	  if ( c > 0){
+		  ys.add(old);
+		  cs.add(c);
+	  }
 	  if (p > 0){
 		  if (returned[k[nr]] < nr - l){
 			  return 0;
 		  }
-		  double empty = Math.pow(1-Math.pow(2, -b+nr-1-l), n-2);
-		  int last = 0;
-		  for (int i = k[nr]; i < returned.length; i++){
-			  double 
-		  }
+		  //System.out.println("Got here");
+		 double[] nemptys = new double[k[nr]];
+		 nemptys[0] = 1 - Math.pow(1-Math.pow(2, -b+nr-1-l),n-2);
+		 for (int i = 1; i < nemptys.length; i++){
+			 nemptys[i] = (nemptys[i-1]-Calc.binom((int) (n-2-i), i)*Math.pow(1-Math.pow(2, -b+nr-1-l),n-2-i)*
+					 Math.pow(Math.pow(2, -b+nr-1-l),i))/nemptys[i-1];
+		 }
+		 
+		 int last = 1;
+		 for (int i = 0; i < ys.size(); i++){
+			 int free;
+			 int r = (int)Math.pow(2, l-(nr-ys.get(i)));
+			 if (ys.get(i) < nr){
+				 free = r-last;
+				 
+			 }else {
+				 free = (int)Math.pow(2, l)-last;
+			 }
+			 double pdash = Math.pow(1-nemptys[0], free);
+			 p = p*pdash; 
+			 if (ys.get(i) < nr){
+			 if (cs.get(i) == 1){
+				 p = p*this.getProbCombi1(r, (i == ys.size()-1), nemptys);
+				 
+			 }
+			 if (cs.get(i) == 2){
+				 p = p*this.getProbCombi2(r, (i == ys.size()-1), nemptys);
+			 }
+			 if (!(p <= 1)){
+				  System.out.println(" after combi"  +p + s + " " + nr );
+			  }
+			 }
+			 last = last + free + (int)Math.pow(2, l-(nr-ys.get(i)));
+		 }
 	  }
-	  
+	 // System.out.println("pall " + p);
+	  if (!(p <= 1)){
+		  System.out.println(p + s + " " + nr );
+	  }
 	  return p;
   }
+  
+  private double getProbCombi1(int regions, boolean atleast, double[] nemptys){
+	  double p = 0;
+	  if (atleast){
+		p = 1 - Math.pow(1-nemptys[0], regions);  
+	  } else {
+		  if (nemptys.length > 1){
+		      p = regions*Math.pow(1-nemptys[0], regions-1)*(nemptys[1]-nemptys[0]);
+		  }	else {
+			  p = regions*Math.pow(1-nemptys[0], regions-1)*(nemptys[0]); 
+		  }
+	  }
+	  return p;
+  }
+  
+  private double getProbCombi2(int regions, boolean atleast, double[] nemptys){
+	  if (regions == 1 && nemptys.length == 1) return 0;
+	  double p = 0;
+	  if (atleast){
+		if (nemptys.length > 1){
+			double help = (1-nemptys[0])/(1-nemptys[1]);
+			p = 1 - Math.pow(1-nemptys[1], regions)*
+					(Math.pow(help, regions)+regions*help*Math.pow(help, regions-1));
+		} else {
+			p = (1-Math.pow(1-nemptys[0], regions)-regions*(1-nemptys[0])*Math.pow(1-nemptys[0], regions-1));
+		}
+	  } else {
+		  if (nemptys.length > 1){
+			  double p1 = 0;
+			  //exactly one having two, all other zero
+			   if (nemptys.length > 2){
+                  p1 = regions*(nemptys[1]-nemptys[2])*Math.pow(nemptys[1]-nemptys[2],regions-1)*Math.pow((1-nemptys[0])/(1-nemptys[2]), regions-1);
+			  } else {
+				  p1 = regions*(nemptys[1])*Math.pow(nemptys[1],regions-1)*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1);
+			  }
+			  //two 1, all others zero
+			  double p2 = 0;
+			  if (regions > 1){
+				//  if (nemptys.length > 2){
+				     double h = (nemptys[0]-nemptys[1])/(1-nemptys[0]);
+				     p2 = Math.pow(1-nemptys[1],regions)*regions*(regions-1)/(double)2*Math.pow(h, 2)*Math.pow(1-h, regions-2);
+				  //}		  
+			  }
+			  p = p1+p2;
+		  } else {
+			  p = regions*(regions-1)/(double)2*Math.pow(nemptys[0], 2)*Math.pow(1-nemptys[0], regions-2);
+		  }
+	  }
+	  return p;
+  }
+  
+  
   
   public double getProbSubbucketsC2(int[] returned, int nr, int l){
 	  int c0 = returned[0];
