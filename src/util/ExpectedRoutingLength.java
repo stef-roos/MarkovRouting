@@ -130,7 +130,7 @@ public class ExpectedRoutingLength {
 			double exp = 0;
 			while ((line = br.readLine()) != null){
 				if (line.startsWith("#")) continue;
-				String[] parts = line.split("	");
+				String[] parts = line.split(" ");
 				if (parts.length > 1){
 					exp = exp + 1 - Double.parseDouble(parts[1]);
 				}
