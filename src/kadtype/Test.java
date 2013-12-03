@@ -6,9 +6,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-import multibuckets.Alpha3Beta2UpperMult;
 import util.Binom;
 import util.Calc;
+import attacksKad.FailureAlpha3Beta2Lower;
+import attacksKad.FailureAlpha3Beta2Upper;
+import attacksKad.FailureKADLower;
+import attacksKad.FailureKADUpper;
+import attacksKad.FailureKademliaLower;
+import attacksKad.FailureKademliaUpper;
 
 //import eclipse.Calc;
 
@@ -18,111 +23,119 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		int[] all = {1000,5000,10000,4194667};
-//		double[] activeDeg = {129.45,155.13,162.81,363.76};
-//		int[] active = {816,3843, 7494, 498765};
-//		double[] allDeg = {87.02,112.0,141.0,56.3};
-//		KadType kad = new KADUpper(128);
-//		for (int i = 0; i < all.length; i++){
-//			double expAll = kad.getExpectedDegree(all[i]);
-//			String l = allDeg[i] + " & " + 
-//			  Math.round(expAll*100)/(double)100 + " & " + Math.round(expAll/allDeg[i]*100)/(double)100;
-//			double expAc = kad.getExpectedDegree(active[i]);  
-//			l = l +" & " + activeDeg[i] + " & " + Math.round(expAc*100)/(double)100 + " & " + Math.round(expAc/activeDeg[i]*100)/(double)100;
-//			System.out.println(l);
-//		}
+		double f = 0.15;
+		KadType kad = new FailureKademliaUpper(13,8,f);
+		double[] d = kad.getRoutingLength(10000);
+		System.out.println("Upper MDHT");
+		double mean = 0;
+		for (int i = 0; i < d.length; i++){
+			System.out.println(i + " " + d[i]);
+			mean = mean + 1-d[i];
+		}
+		System.out.println("Mean " + mean);
 		
-//		int k = Integer.parseInt(args[0]);
-//		double error = Double.parseDouble(args[1]);
-//		for (int i = 0; i < 21; i++){
-//		int aimB = 160;
-//		int n = (int) Math.pow(2, i);
-//		int b = Accuracy.getBitCount(50, n, error, aimB);
-//		
-//		double[] cdf = (new KademliaUpper(b,k)).getRoutingLength(n);
-//		
-//		try {
-//			BufferedWriter bw = new BufferedWriter(new FileWriter(args[2]+"-"+n+".txt"));
-//			bw.write("#b="+b + "n="+n);
-//			for (int j = 0; j < cdf.length; j++){
-//				bw.newLine();
-//				bw.write(j + " " + cdf[j]);
+		kad = new FailureKademliaLower(13,8,f,6);
+		d = kad.getRoutingLength(10000);
+		System.out.println("Lower MDHT");
+		mean = 0;
+		for (int i = 0; i < d.length; i++){
+			System.out.println(i + " " + d[i]);
+			mean = mean + 1-d[i];
+		}
+		System.out.println("Mean " + mean);
+		
+		int[] ks = new int[14];
+		for (int i = 0; i < ks.length-4;i++){
+			ks[i] = 8;
+		}
+		ks[ks.length-1] = 128;
+		ks[ks.length-2] = 64;
+		ks[ks.length-3] = 32;
+		ks[ks.length-4] = 16;
+		
+		kad = new FailureAlpha3Beta2Upper(13,ks,1,f);
+		d = kad.getRoutingLength(10000);
+		System.out.println("Upper iMDHT");
+		mean = 0;
+		for (int i = 0; i < d.length; i++){
+			System.out.println(i + " " + d[i]);
+			mean = mean + 1-d[i];
+		}
+		System.out.println("Mean " + mean);
+		
+		kad = new FailureAlpha3Beta2Lower(13,ks,1,f,6);
+		d = kad.getRoutingLength(10000);
+		System.out.println("Lower iMDHT");
+		mean = 0;
+		for (int i = 0; i < d.length; i++){
+			System.out.println(i + " " + d[i]);
+			mean = mean + 1-d[i];
+		}
+		System.out.println("Mean " + mean);
+		
+		kad = new FailureKADUpper(13,f);
+		d = kad.getRoutingLength(10000);
+		System.out.println("Upper KAD");
+		mean = 0;
+		for (int i = 0; i < d.length; i++){
+			System.out.println(i + " " + d[i]);
+			mean = mean + 1-d[i];
+		}
+		System.out.println("Mean " + mean);
+		
+		kad = new FailureKADLower(13,f,6);
+		d = kad.getRoutingLength(10000);
+		System.out.println("Lower KAD");
+		mean = 0;
+		for (int i = 0; i < d.length; i++){
+			System.out.println(i + " " + d[i]);
+			mean = mean + 1-d[i];
+		}
+		System.out.println("Mean " + mean);
+		
+//        int[] n = {1000,10000,100000,1000000,10000000};
+//        int mode = Integer.parseInt(args[0]);
+//		//int[] b = new int[n.length];
+//		for (int j = 0; j < n.length; j++){
+//			int b = Accuracy.getBitCount(1, n[j], 0.001, 128);
+//		    KadType kad = null;
+//			if (mode == 0){
+//				kad = new KademliaUpper(b,8);
+//			} else {
+//				if (mode < 4){
+//					double[][] l = new double[b+1][b+1];
+//					int[] k = new int[b+1];
+//					int m = mode +1;
+//					for (int i = 0; i < m; i++){
+//						l[i][i] = 1; 
+//						k[i] = (int) ((int) 8/(Math.pow(2, i)));
+//					}
+//					for (int i = m; i <= b; i++){
+//						l[i][m] = 1; 
+//						k[i] = (int) ((int) 8/(Math.pow(2, mode)));
+//					}
+//					kad = new Alpha3Beta2UpperMult(b,k,l,LType.ALL);
+//				} else {
+//					throw new IllegalArgumentException("Invalid mode");
+//				}
 //			}
-//			bw.flush();
-//			bw.close();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		}
-		
-		int b = 10;
-		double[][] l = new double[b+1][b+1];
-		int[] k = new int[b+1];
-		for (int i = 0; i < 4; i++){
-			l[i][i] = 1; 
-			k[i] = (int) ((int)8/Math.pow(2, i));
-		}
-		for (int i = 4; i <= b; i++){
-			l[i][4] = 1; 
-			k[i] = 1;
-		}
-//		System.out.println((new Alpha1Beta1(b,k,l, KadType.LType.ALL)).getExpectedDegree(10000));
-//		System.out.println((new Alpha1Beta1(b,8,1)).getExpectedDegree(10000));
-		
-        double[] dist = (new Alpha3Beta2UpperMult(b,k,l, KadType.LType.ALL)).getRoutingLength(1000);
-//		//double[] dist = (new Alpha1Beta1(b,8,1)).getRoutingLength(10000);
-		for (int i = 0; i < dist.length; i++){
-			System.out.println(i + " " + dist[i]);
-		}
-		
-//		int n = Integer.parseInt(args[0]);
-//		int mode = Integer.parseInt(args[1]);
-//		String output = args[3];
-//		double error = 0.001;
-//		int b = Accuracy.getBitCount(1, n, error, 128);
-//		switch (mode){
-//		1: new Alpha3Beta2
-//		}
-		
-//		int b = Integer.parseInt(args[0])
-//		double[][] l = new double[b+1][b+1];
-//		l[b][4] = 1;
-//		for (int i = 4; i < b; i++){
-//			l[i][3] = 1;
-//		}
-//		l[3][3] = 1;
-//		l[2][2] = 1;
-//		l[1][1] = 1;
-//		int mode = Integer.parseInt(args[1]);
-//		int n = Integer.parseInt(args[2]);
-//		String file = args[3];
-//		double[] cdf = new double[0];
-//		switch (mode){
-//		case 1: cdf = (new Alpha3Beta2Upper2(b,1,l, LType.ALL)).getRoutingLength(n); 
-//		break;
-//		case 2: cdf = (new Alpha3Beta2Lower(b,1,l, LType.ALL)).getRoutingLength(n); 
-//		break;
-//		case 3: cdf = (new Alpha4Beta1Upper2(b,1,l, LType.ALL)).getRoutingLength(n); 
-//		break;
-//		case 4: cdf = (new Alpha4Beta1Lower(b,1,l, LType.ALL)).getRoutingLength(n); 
-//		break;
-//		default: throw new IllegalArgumentException("unknown mode");
-//		}
-//		
-//		try {
-//			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-//			bw.write("#b="+b + "n="+n);
-//			for (int i = 0; i < cdf.length; i++){
-//				bw.newLine();
-//				bw.write(i + " " + cdf[i]);
+//		    double[] dist = kad.getRoutingLength(n[j]);
+//		    try {
+//				BufferedWriter bw = new BufferedWriter(new FileWriter(n[j]+ "-"+ 
+//				mode+".txt"));
+//				for (int i = 0; i < dist.length; i++){
+//					bw.write(i + " " + dist[i]);
+//					bw.newLine();
+//				}
+//				bw.flush();
+//				bw.close();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
 //			}
-//			bw.flush();
-//			bw.close();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
+//
 //		}
+
 		
 	}
 	

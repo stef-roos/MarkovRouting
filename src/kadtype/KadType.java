@@ -665,17 +665,14 @@ public abstract class KadType {
 		  }
 		  p = p*sum;
 	  }
-	  if (!(p <= 1)){
-		 // System.out.println(" after sum "  +  p + " " + nr + " " + l);
-	  }
 	  return p;
   }
   
-  protected double getProbLessBeta(int[] returned, int nr, int l){
-	  String s = "";
-	  for (int i = 0; i < returned.length; i++){
-		  s = s + " " + returned[i];
-	  }
+  public double getProbLessBeta(int[] returned, int nr, int l){
+//	  String s = "";
+//	  for (int i = 0; i < returned.length; i++){
+//		  s = s + " " + returned[i];
+//	  }
 //	  System.out.println("nr " + nr + " returned " + s);
 	  
 	  double p = 0;
@@ -685,15 +682,15 @@ public abstract class KadType {
 	  }
 	  if (returned[k[nr]-1] > nr - l) return 0;
 	  p = this.getProb(r1, nr, l);
-	//  System.out.println("pnormal " + p);
-	  if (!(p <= 1)){
-		  System.out.println(" after return normal"  +p + s + " " + nr );
-	  }
+	  //System.out.println("pnormal " + p);
+//	  if (!(p <= 1)){
+//		  System.out.println(" after return normal"  +p + s + " " + nr );
+//	  }
 	  int c = 0;
 	  int old = -1;
 	  Vector<Integer> ys = new Vector<Integer>();
 	  Vector<Integer> cs = new Vector<Integer>();
-	  for (int i = returned[k[nr]]; i < returned.length; i++){
+	   for (int i = k[nr]; i < returned.length; i++){
 		  if (old != returned[i]){
 			   if (c > 0){
 				  ys.add(old);
@@ -716,6 +713,7 @@ public abstract class KadType {
 		  //System.out.println("Got here");
 		 double[] nemptys = new double[k[nr]];
 		 nemptys[0] = 1 - Math.pow(1-Math.pow(2, -b+nr-1-l),n-2);
+		//System.out.println("nempty " + nemptys[0]);
 		 for (int i = 1; i < nemptys.length; i++){
 			 nemptys[i] = (nemptys[i-1]-Calc.binom((int) (n-2-i), i)*Math.pow(1-Math.pow(2, -b+nr-1-l),n-2-i)*
 					 Math.pow(Math.pow(2, -b+nr-1-l),i))/nemptys[i-1];
@@ -725,6 +723,7 @@ public abstract class KadType {
 		 for (int i = 0; i < ys.size(); i++){
 			 int free;
 			 int r = (int)Math.pow(2, l-(nr-ys.get(i)));
+			 //System.out.println("r " + r);
 			 if (ys.get(i) < nr){
 				 free = r-last;
 				 
@@ -732,26 +731,28 @@ public abstract class KadType {
 				 free = (int)Math.pow(2, l)-last;
 			 }
 			 double pdash = Math.pow(1-nemptys[0], free);
+			// System.out.println("pdash " + pdash);
 			 p = p*pdash; 
 			 if (ys.get(i) < nr){
 			 if (cs.get(i) == 1){
-				 p = p*this.getProbCombi1(r, (i == ys.size()-1), nemptys);
+				 double pc = this.getProbCombi1(r, (i == ys.size()-1), nemptys);
+				// System.out.println("pc "  + pc);
+				 p = p*pc;
 				 
 			 }
 			 if (cs.get(i) == 2){
-				 p = p*this.getProbCombi2(r, (i == ys.size()-1), nemptys);
+				 double pc = this.getProbCombi2(r, (i == ys.size()-1), nemptys);
+				 if (pc < 0){
+					 System.out.println("pc2 "  + pc + " " + ys.get(i)
+							 + " "+ nr);
+				 }
+				 p = p*pc;
 			 }
-			 if (!(p <= 1)){
-				  System.out.println(" after combi"  +p + s + " " + nr );
-			  }
 			 }
 			 last = last + free + (int)Math.pow(2, l-(nr-ys.get(i)));
 		 }
 	  }
-	 // System.out.println("pall " + p);
-	  if (!(p <= 1)){
-		  System.out.println(p + s + " " + nr );
-	  }
+
 	  return p;
   }
   
@@ -778,14 +779,16 @@ public abstract class KadType {
 			p = 1 - Math.pow(1-nemptys[1], regions)*
 					(Math.pow(help, regions)+regions*help*Math.pow(help, regions-1));
 		} else {
-			p = (1-Math.pow(1-nemptys[0], regions)-regions*(1-nemptys[0])*Math.pow(1-nemptys[0], regions-1));
+			p = (1-Math.pow(1-nemptys[0], regions)-regions*(nemptys[0])*Math.pow(1-nemptys[0], regions-1));
 		}
 	  } else {
 		  if (nemptys.length > 1){
 			  double p1 = 0;
 			  //exactly one having two, all other zero
 			   if (nemptys.length > 2){
-                  p1 = regions*(nemptys[1]-nemptys[2])*Math.pow(nemptys[1]-nemptys[2],regions-1)*Math.pow((1-nemptys[0])/(1-nemptys[2]), regions-1);
+                  p1 = regions*(nemptys[1]-nemptys[2])*
+                		  Math.pow(nemptys[1]-nemptys[2],regions-1)*
+                		  Math.pow((1-nemptys[0])/(1-nemptys[2]), regions-1);
 			  } else {
 				  p1 = regions*(nemptys[1])*Math.pow(nemptys[1],regions-1)*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1);
 			  }
@@ -801,6 +804,42 @@ public abstract class KadType {
 		  } else {
 			  p = regions*(regions-1)/(double)2*Math.pow(nemptys[0], 2)*Math.pow(1-nemptys[0], regions-2);
 		  }
+	  }
+	  return p;
+  }
+  
+  private double getProbCombi3(int regions, boolean atleast, double[] nemptys){
+	  if (regions*nemptys.length < 3) return 0;
+	  double p = 0;
+	  if (atleast){
+		if (nemptys.length > 2){
+			p = 1- Math.pow(1-nemptys[2],regions);
+			p = p + Math.pow(1-nemptys[2],regions)*
+				((1-Math.pow((1-nemptys[1])/(1-nemptys[2]), regions))*
+				(1-Math.pow((1-nemptys[0])/(1-nemptys[2]), regions-1)+
+				Math.pow((1-nemptys[1])/(1-nemptys[2]), regions)*
+				(1-Math.pow((1-nemptys[0])/(1-nemptys[1]), regions)-
+				 regions*nemptys[0]/(1-nemptys[1])*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1)
+				- regions*(regions-1)/(double)2*Math.pow(nemptys[0]/(1-nemptys[1]), 2)*
+				Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-2))));
+		} else {
+			if (nemptys.length == 2){
+				p = (1-Math.pow((1-nemptys[1]), regions))*
+						(1-Math.pow((1-nemptys[0]), regions-1)+
+						Math.pow((1-nemptys[1]), regions)*
+						(1-Math.pow((1-nemptys[0])/(1-nemptys[1]), regions)-
+						 regions*nemptys[0]/(1-nemptys[1])*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1)
+						- regions*(regions-1)/(double)2*Math.pow(nemptys[0]/(1-nemptys[1]), 2)*
+						Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-2)));
+			} else {
+				p = (1-Math.pow((1-nemptys[0]), regions)-
+						 regions*nemptys[0]*Math.pow((1-nemptys[0]), regions-1)
+						- regions*(regions-1)/(double)2*Math.pow(nemptys[0], 2)*
+						Math.pow((1-nemptys[0]), regions-2));
+			}
+		}
+	  } else {
+		  //not needed if alpha <= 4
 	  }
 	  return p;
   }
