@@ -4,19 +4,43 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import util.ExpectedRoutingLength;
-
 import kadtype.Accuracy;
 import kadtype.Alpha1Beta1;
 import kadtype.KadType;
 import kadtype.KadType.LType;
 import kadtype.KademliaUpper;
+import attacksKad.FailureKademliaA4B1Lower;
+import attacksKad.FailureKademliaA4B1Upper;
+import attacksKad.FailureKademliaLower;
 import attacksKad.FailureKademliaUpper;
 
 public class Simulation {
 	
 	public static void main(String[] args) {
-		failure(args);
+		int n = Integer.parseInt(args[0]);
+		int mode = Integer.parseInt(args[1]);
+		int b = Accuracy.getBitCount(8, n, 0.001, 128);
+		int htl = Integer.parseInt(args[2]);
+		if (mode == 0){
+		run(n+"Upper0.0.txt", new FailureKademliaUpper(b,8,0.0),n);
+		run(n+"Upper0.1.txt", new FailureKademliaUpper(b,8,0.1),n);
+		run(n+"Upper0.2.txt", new FailureKademliaUpper(b,8,0.2),n);
+		run(n+"Upper0.3.txt", new FailureKademliaUpper(b,8,0.3),n);
+		run(n+"Lower0.0.txt", new FailureKademliaLower(b,8,0.0,htl),n);
+		run(n+"Lower0.1.txt", new FailureKademliaLower(b,8,0.1,htl),n);
+		run(n+"Lower0.2.txt", new FailureKademliaLower(b,8,0.2,htl),n);
+		run(n+"Lower0.3.txt", new FailureKademliaLower(b,8,0.3,htl),n);
+		} else {
+		run(n+"UpperA4B10.0.txt", new FailureKademliaA4B1Upper(b,8,0.0),n);
+		run(n+"UpperA4B10.1.txt", new FailureKademliaA4B1Upper(b,8,0.1),n);
+		run(n+"UpperA4B10.2.txt", new FailureKademliaA4B1Upper(b,8,0.2),n);
+		run(n+"UpperA4B10.3.txt", new FailureKademliaA4B1Upper(b,8,0.3),n);
+		run(n+"LowerA4B10.0.txt", new FailureKademliaA4B1Lower(b,8,0.0,htl),n);
+		run(n+"LowerA4B10.1.txt", new FailureKademliaA4B1Lower(b,8,0.1,htl),n);
+		run(n+"LowerA4B10.2.txt", new FailureKademliaA4B1Lower(b,8,0.2,htl),n);
+		run(n+"LowerA4B10.3.txt", new FailureKademliaA4B1Lower(b,8,0.3,htl),n);
+		}
+		//failure(args);
 //		int[] n = {1000,10000,100000,1000000,10000000};
 //		double[] p = {0.0,0.05,0.1,0.15,0.2,0.25, 0.3,0.35};
 //		int[] mode = {0,1,2,3};
@@ -37,6 +61,23 @@ public class Simulation {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
+	}
+	
+	private static void run(String file, KadType kad, int n){
+		double[] dist = kad.getRoutingLength(n);
+		try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+			for (int i = 0; i < dist.length; i++){
+				bw.write(i + " " + dist[i]);
+				bw.newLine();
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	private static void splits32(String[] args){
