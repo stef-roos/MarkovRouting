@@ -23,6 +23,7 @@ public abstract class KadType {
 	protected double[][] biCoeff; 
 	boolean subbuckets=false;
 	boolean local = false;
+	boolean randomID = false;
 	double n;
 	
 	/**
@@ -157,17 +158,21 @@ public abstract class KadType {
 		return cdf;
 	}
 	
-	private HashMap<Integer,String> getMap(){
-		HashMap<Integer,String> map = new HashMap<Integer,String>();
-		map.put(0, "S");
+	private HashMap<Integer,int[]> getMap(){
+		if (this.alpha == 3){
+		HashMap<Integer,int[]> map = new HashMap<Integer,int[]>();
 		for (int i = 0; i < this.b+2; i++){
 			for (int j = i; j < this.b+2; j++){
 				for (int z = j; z < this.b+2; z++){
-					map.put(this.getIndex(new int[]{i,j,z}), i+ ","+j+","+z);
+					int[] c = new int[]{i,j,z};
+					map.put(this.getIndex(c), c);
 				}
 			}
 		}
 		return map;
+		} else {
+			throw new IllegalArgumentException("Only implemented for alpha=3");
+		}
 	}
 	
 
@@ -194,6 +199,7 @@ public abstract class KadType {
      * @return
      */
 	public double[][] getT1(int n){
+		if (!this.randomID){
 		int[] lookup = new int[alpha];
 		lookup[this.alpha-1] = b+1;
 		double[][] t = new double[getIndex(lookup)][b+1];
@@ -203,9 +209,32 @@ public abstract class KadType {
 			if (t[0][d] < 1){
 			//double[][] fd = this.getCDFs(d);
 			//compute other entries of t_1
-			processCDFsT1(t,d,d);
+			processCDFsT1(t,d,d,1-t[0][d]);
 			}
 		}
+		if (this.local){
+			this.local = false;
+			this.setSuccess(n);
+		}
+		return t;
+		} else {
+			return this.getT1ID(n);
+		}
+	}
+	
+	public double[][] getT1ID(int n){
+		int[] lookup = new int[alpha];
+		lookup[this.alpha-1] = b+1;
+		double[][] t = new double[getIndex(lookup)][b+1];
+		t[0][0] = 1;
+		for (int d= 1; d <= this.b; d++){
+			processCDFsT1(t,d,d,1);
+			for (int j = 1; j < t.length; j++){
+				t[0][d] = t[0][d] + this.success[j]*t[j][d];
+				t[j][d] = (1-success[j])*t[j][d];
+			}
+		}
+		
 		if (this.local){
 			this.local = false;
 			this.setSuccess(n);
@@ -244,10 +273,9 @@ public abstract class KadType {
 	 * @param n
 	 */
 	protected void setSuccess(int n) {
-//		if (this.subbuckets || this.local){
-//			this.setSuccessSubbuckets(n);
-//			return;
-//		}
+		if (this.randomID) {
+			this.setSuccessRandomID(n);
+		} else {
 		this.success = new double[this.b+1];
 		this.success[0] = 1;
 		if (this.ltype == LType.SIMPLE){
@@ -319,112 +347,171 @@ public abstract class KadType {
 				}
 			}
 		}
+		}
 //		for (int i = 0; i < this.success.length; i++){
 //			System.out.println(success[i]);
 //		}
 	}
 	
 	private void setSuccessSubbuckets(int n){
+        this.setN(n);
+        this.success = new double[this.b+1];
+        this.success[0] = 1;
+        int[] addBits = new int[k.length];
+        int[] remainder = new int[k.length];
+        for (int j = 0; j < addBits.length; j++){
+                addBits[j] = (int)Math.floor(Math.log(k[j])/Math.log(2));
+                remainder[j] = k[j]-(int)Math.pow(2,addBits[j]);
+        }
+        if (this.ltype == LType.SIMPLE){
+                //case: always resolve by constant l more steps
+                int m = (int)l[0][0];
+                double[] p = new double[b+1];
+                p[0] = 0;
+                //probability to be in fraction in id space
+                double q = Math.pow(2, -m);
+                for (int d=b; d > 0;d--){
+                        p[d] = q;
+                        q = q*0.5;
+                }
+                for (int d=b; d > 0;d--){
+                        //iterate over possible empty regions -> add links
+                        int regions = (int)Math.pow(2,addBits[d]);
+                        double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
+                        int index = Math.max(0, d-addBits[d]);
+                        for (int r = 0; r < regions; r++){
+                                double pr = Calc.binomDist(regions-1, r, regionEm);
+                                for (int a = 0; a <= r+remainder[d]; a++){
+                                 double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+                                 int links = 1 + a;
+                        int exp = (int) ((n-2)*p[index]);
+                        Binom bi = new Binom(n-2,p[index],exp);
+                        double binom;
+                 for (int i = exp; i < n-1; i++){
+                         binom = pa*bi.getNext();
+                         if (i < links){
+                         this.success[d] = this.success[d] + binom;
+                         } else{
+                                         this.success[d] = this.success[d] + binom*(double)(links)/(double)(i+1);
+                         }
+                 }
+                 bi.recompute(exp);
+                 for (int i = exp-1; i > -1; i--){
+                         binom = pa*bi.getBefore();
+                         if (i < links){
+                         this.success[d] = this.success[d] + binom;
+                         } else{
+                                         this.success[d] = this.success[d] + binom*(double)(links)/(double)(i+1);
+                         }
+                 }
+                        }
+                        }
+                }
+        }
+        if (this.ltype == LType.ALL){
+                //case: variable l: iterate over all l
+                for (int m = 0; m < l.length; m++){
+                        double[] p = new double[b+1];
+                        p[0] = 0;
+                        double q = Math.pow(2, -m);
+                        for (int d=b; d > 0;d--){
+                                p[d] = q;
+                                q = q*0.5;
+                        }
+                        for (int d=b; d > 0;d--){
+                                int regions = (int)Math.pow(2,addBits[d]);
+                                double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
+                                int index = Math.max(0, d-addBits[d]);
+                                for (int r = 0; r < regions; r++){
+                                        double pr = Calc.binomDist(regions-1, r, regionEm);
+                                        for (int a = 0; a <= r+remainder[d]; a++){
+                                         double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+                                         int links = 1 + a;
+                                int exp = (int) ((n-2)*p[index]);
+                                Binom bi = new Binom(n-2,p[index],exp);
+                                double binom;
+                         for (int i = exp; i < n-1; i++){
+                                 binom = pa*bi.getNext();
+                                 if (i < links){
+                                 this.success[d] = this.success[d] +l[d][m]* binom;
+                                 } else{
+                                                 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i+1);
+                                 }
+                         }
+                         bi.recompute(exp);
+                         for (int i = exp-1; i > -1; i--){
+                                 binom = pa*bi.getBefore();
+                                 if (i < links){
+                                 this.success[d] = this.success[d] + l[d][m]*binom;
+                                 } else{
+                                                 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i+1);
+                                 }
+                         }
+                                        }
+                                }
+                        }
+                }
+        }
+        for (int i = 0; i < this.success.length; i++){
+                System.out.println(success[i]);
+        }
+}
+	
+	private void setSuccessRandomID(int n){
 		this.setN(n);
-		this.success = new double[this.b+1];
-		this.success[0] = 1;
-		int[] addBits = new int[k.length];
-		int[] remainder = new int[k.length];
-		for (int j = 0; j < addBits.length; j++){
-			addBits[j] = (int)Math.floor(Math.log(k[j])/Math.log(2));
-			remainder[j] = k[j]-(int)Math.pow(2,addBits[j]);
+		double[][] succ = new double[this.b+1][this.alpha];
+		for (int i = 0; i < succ[0].length; i++){
+			succ[0][i] = 1;
 		}
-		if (this.ltype == LType.SIMPLE){
-			//case: always resolve by constant l more steps
-			int m = (int)l[0][0];
-			double[] p = new double[b+1];
-			p[0] = 0;
-			//probability to be in fraction in id space
-			double q = Math.pow(2, -m);
-			for (int d=b; d > 0;d--){
-				p[d] = q;
-				q = q*0.5;
+		double p = 1;
+		for (int i = b; i > 0; i--){
+			p=p*0.5;
+			double[] pA = new double[this.alpha];
+			double[] pB = new double[this.alpha];
+			for (int j = 0; j < pA.length; j++){
+				pA[j] = Math.pow(1-p, n-1-j);
 			}
-			for (int d=b; d > 0;d--){
-				//iterate over possible empty regions -> add links
-				int regions = (int)Math.pow(2,addBits[d]);
-				double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
-				int index = Math.max(0, d-addBits[d]);
-				for (int r = 0; r < regions; r++){
-					double pr = Calc.binomDist(regions-1, r, regionEm);
-					for (int a = 0; a <= r+remainder[d]; a++){
-					    double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
-					    int links = 1 + a;
-				int exp = (int) ((n-2)*p[index]);
-				Binom bi = new Binom(n-2,p[index],exp);
+			if (pA[0] > 0){
+				double pdash = p/(1-p);
+				int exp = (int) ((n-1)*pdash);
+				Binom bi = new Binom(n-1,pdash,exp);
 				double binom;
-			  for (int i = exp; i < n-1; i++){
-				  binom = pa*bi.getNext();
-				  if (i < links){
-				         this.success[d] = this.success[d] + binom;
-				  } else{
-						 this.success[d] = this.success[d] + binom*(double)(links)/(double)(i+1);
+			  for (int j = exp; j < n; j++){
+				  binom = bi.getNext();
+				  for (int h = 0; h < pB.length; h++){
+				   pB[h] = pB[h] + binom*(h+1)/(double)(j+h+1);
 				  }
 			  }
 			  bi.recompute(exp);
-			  for (int i = exp-1; i > -1; i--){
-				  binom = pa*bi.getBefore();
-				  if (i < links){
-				         this.success[d] = this.success[d] + binom;
-				  } else{
-						 this.success[d] = this.success[d] + binom*(double)(links)/(double)(i+1);
-				  }
+			  for (int j = exp-1; j > -1; j--){
+				  binom = bi.getBefore();
+				  for (int h = 0; h < pB.length; h++){
+					   pB[h] = pB[h] + binom*(h+1)/(double)(j+h+1);
+					  }
 			  }
-				}
+			}
+			for (int h = 0; h < pA.length; h++){
+			   succ[i][h] = pA[h]*pB[h];
+			}   
+			//System.out.println(i + " " + success[i]);
+		}
+		int[] lookup = new int[alpha];
+		lookup[this.alpha-1] = b+1;
+		this.success = new double[this.getIndex(lookup)];
+		HashMap<Integer,int[]> map = this.getMap();
+		this.success[0] = 1;
+		for (int i = 1; i < this.success.length; i++){
+			int[] c = map.get(i);
+			int min = c[0];
+			int count = 0;
+			for (int j = 1; j < c.length; j++){
+				if (c[j] == min){
+					count++;
+				} else {
+					break;
 				}
 			}
-		}
-		if (this.ltype == LType.ALL){
-			//case: variable l: iterate over all l
-			for (int m = 0; m < l.length; m++){
-				double[] p = new double[b+1];
-				p[0] = 0;
-				double q = Math.pow(2, -m);
-				for (int d=b; d > 0;d--){
-					p[d] = q;
-					q = q*0.5;
-				}
-				for (int d=b; d > 0;d--){
-					int regions = (int)Math.pow(2,addBits[d]);
-					double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
-					int index = Math.max(0, d-addBits[d]);
-					for (int r = 0; r < regions; r++){
-						double pr = Calc.binomDist(regions-1, r, regionEm);
-						for (int a = 0; a <= r+remainder[d]; a++){
-						    double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
-						    int links = 1 + a;
-					int exp = (int) ((n-2)*p[index]);
-					Binom bi = new Binom(n-2,p[index],exp);
-					double binom;
-				  for (int i = exp; i < n-1; i++){
-					  binom = pa*bi.getNext();
-					  if (i < links){
-					         this.success[d] = this.success[d] +l[d][m]* binom;
-					  } else{
-							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i+1);
-					  }
-				  }
-				  bi.recompute(exp);
-				  for (int i = exp-1; i > -1; i--){
-					  binom = pa*bi.getBefore();
-					  if (i < links){
-					         this.success[d] = this.success[d] + l[d][m]*binom;
-					  } else{
-							 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i+1);
-					  }
-				  }
-						}
-					}
-				}
-			}
-		}
-		for (int i = 0; i < this.success.length; i++){
-			System.out.println(success[i]);
+			this.success[i] = succ[min][count];
 		}
 	}
 	
@@ -462,7 +549,7 @@ public abstract class KadType {
     * @param indexOld: index of the previous state
     * @param mindist: closest contact in previous step
     */
-   protected abstract void processCDFsT1(double[][] t, int indexOld, int mindist);
+   protected abstract void processCDFsT1(double[][] t, int indexOld, int mindist, double nsucc);
 	
    /**
     * construct the transition matrix for the second step
@@ -470,6 +557,7 @@ public abstract class KadType {
     * @param t2: transition matrix
     */
   protected void constructT2(int n, double[][] t2, int[] old, int tofill){
+	  if (!this.randomID){
 	  if (tofill < this.alpha){
 		  //set next entry
 	  int start=(tofill==0?0:old[tofill-1]);
@@ -489,6 +577,23 @@ public abstract class KadType {
 		 //not successful => system-specific
 		 if (nsucc > 0)
 		 this.processCDFsT2(n, t2, old, oldindex,nsucc);
+	  }
+	  } else {
+		  if (tofill < this.alpha){
+			  //set next entry
+		  int start=(tofill==0?0:old[tofill-1]);
+		     for (int i = start; i < this.b+1; i++){
+			   old[tofill] = i;
+			   this.constructT2(n, t2, old, tofill+1);
+		     }
+		  } else {
+			  int oldindex = this.getIndex(old);
+			 this.processCDFsT2(n, t2, old, oldindex,1);
+			 for (int j = 1; j < t2.length; j++){
+				 t2[0][oldindex] = t2[0][oldindex] + this.success[j]*t2[j][oldindex];
+				 t2[j][oldindex] = t2[j][oldindex]*(1-this.success[j]); 
+			 }
+		  }  
 	  }
   }
   
@@ -1237,6 +1342,10 @@ public abstract class KadType {
     public void setLocal(boolean local){
     	this.local = local;
     	this.subbuckets = false;
+    }
+    
+    public void setRandomID(boolean id){
+    	this.randomID = id; 
     }
     
     public void setN(int n){

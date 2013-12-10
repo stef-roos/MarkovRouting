@@ -25,7 +25,7 @@ public class Alpha4Beta1UpperMult extends KadTypeUpper2 {
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
-			int mindist) {
+			int mindist, double nsucc) {
 		for (int i = 0; i <= mindist; i++){
 			for (int j = i; j <= mindist; j++){
 				for (int k = j; k <= mindist; k++){

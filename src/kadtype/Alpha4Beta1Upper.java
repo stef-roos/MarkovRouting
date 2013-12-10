@@ -24,7 +24,7 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
-			int mindist) {
+			int mindist, double nsucc) {
 		for (int i = 0; i < cdfs[mindist].length; i++){
 			for (int j = i; j < cdfs[mindist].length; j++){
 				for (int k = j; k < cdfs[mindist].length; k++){
@@ -33,13 +33,13 @@ public class Alpha4Beta1Upper extends KadTypeCDFs {
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
 					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
-							+(1-this.success[mindist])*this.getProb(re, mindist,0);
+							+nsucc*this.getProb(re, mindist,0);
 					}   
 					if (this.ltype == LType.ALL){
 						for (int a = 1; a < mindist+1; a++){
 							if (this.l[mindist][a] > 0 && m <= this.cdfs[mindist].length-a){
 								t[indexnew][indexOld] =  t[indexnew][indexOld] 
-										+(1-this.success[mindist])*this.getProb(re, mindist,a-1)*this.l[mindist][a];
+										+nsucc*this.getProb(re, mindist,a-1)*this.l[mindist][a];
 							}
 						}
 					}

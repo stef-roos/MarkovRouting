@@ -24,7 +24,7 @@ public class Alpha3Beta2Lower2 extends KadTypeLower2{
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
-			int mindist) {
+			int mindist, double nsucc) {
 		double all = 0;
 		for (int i = 0; i < mindist; i++){
 			for (int j = i; j < mindist; j++){
@@ -34,14 +34,14 @@ public class Alpha3Beta2Lower2 extends KadTypeLower2{
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
 					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
-							+(1-this.success[mindist])*this.getProb(re, mindist,0);
+							+nsucc*this.getProb(re, mindist,0);
 					   //all = all + this.getProb(re, mindist,0);
 					}   
 					if (this.ltype == LType.ALL){
 						for (int a = 1; a < mindist+1; a++){
 							if (this.l[mindist][a] > 0 && k <= mindist - a){
 								t[indexnew][indexOld] =  t[indexnew][indexOld] 
-										+(1-this.success[mindist])*this.getProb(re, mindist,a-1)*this.l[mindist][a];
+										+nsucc*this.getProb(re, mindist,a-1)*this.l[mindist][a];
 							}
 						}
 					}

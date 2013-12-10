@@ -69,7 +69,7 @@ public abstract class Eclipse extends KadTypeCDFs{
 					t[1][d] = 1 - this.success[d+1];
 				} else{
 			//compute other entries of t_1
-			processCDFsT1(t,d,d);
+			processCDFsT1(t,d,d,1-t[0][d]);
 				}
 			}
 		}

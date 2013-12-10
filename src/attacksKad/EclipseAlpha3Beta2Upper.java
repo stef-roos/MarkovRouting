@@ -28,7 +28,7 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
-			int mindist) {
+			int mindist, double nsucc) {
 		//double p = 0;
 		for (int i = 0; i < cdfs[mindist].length+1; i++){
 			for (int j = i; j < cdfs[mindist].length+1; j++){
@@ -38,7 +38,7 @@ public class EclipseAlpha3Beta2Upper extends Eclipse {
 					int indexnew = this.getIndex(re);
 					if (this.ltype == LType.SIMPLE){
 						 t[indexnew][indexOld] =  t[indexnew][indexOld] 
-									+this.getProb(re, mindist, 0);
+									+nsucc*this.getProb(re, mindist, 0);
 					}   
 				}
 			}

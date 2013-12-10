@@ -29,7 +29,7 @@ public class Alpha3Beta2Upper2 extends KadTypeUpper2{
 
 	@Override
 	protected void processCDFsT1(double[][] t, int indexOld,
-			int mindist) {
+			int mindist, double nsucc) {
 		for (int i = 0; i < mindist; i++){
 			for (int j = i; j < mindist; j++){
 				for (int k = j; k < mindist; k++){
@@ -39,7 +39,7 @@ public class Alpha3Beta2Upper2 extends KadTypeUpper2{
 					if (this.ltype == LType.SIMPLE){
 						//add prob that routing gets to state re from mindist
 					   t[indexnew][indexOld] =  t[indexnew][indexOld] 
-							+(1-this.success[mindist])*this.getProb(re, mindist,0);
+							+nsucc*this.getProb(re, mindist,0);
 					}   
 					if (this.ltype == LType.ALL){
 						//iterate over all possible resolutions
@@ -47,8 +47,7 @@ public class Alpha3Beta2Upper2 extends KadTypeUpper2{
 							//only consider positive prob and re's that are within range closer to target
 							if (this.l[mindist][a] > 0 && k <= mindist - a){
 								t[indexnew][indexOld] =  t[indexnew][indexOld] 
-										+(1-this.success[mindist])*this.getProb(re, mindist,a-1)*this.l[mindist][a];
-								System.out.println(mindist + " " + a);
+										+nsucc*this.getProb(re, mindist,a-1)*this.l[mindist][a];
 							}
 						}
 					}

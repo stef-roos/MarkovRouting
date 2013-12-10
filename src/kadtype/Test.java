@@ -23,75 +23,92 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		double f = 0.15;
-		KadType kad = new FailureKademliaUpper(13,8,f);
-		double[] d = kad.getRoutingLength(10000);
-		System.out.println("Upper MDHT");
-		double mean = 0;
-		for (int i = 0; i < d.length; i++){
-			System.out.println(i + " " + d[i]);
-			mean = mean + 1-d[i];
+		KadType kad = new KADUpper(13);
+		//kad.setRandomID(true);
+        double[] dist = kad.getRoutingLength(10000);
+		for (int i = 0; i < dist.length; i++){
+			System.out.println(i + " " + dist[i]);
 		}
-		System.out.println("Mean " + mean);
+//        double[][] t = kad.getT2(100);
+//        for (int i = 0; i < t.length; i++){
+//        	for (int j = 0; j < t[0].length; j++){
+//        		if (t[i][j] < 0){
+//        			System.out.println(t[i][j]);
+//        		}
+//        	}
+//        }
 		
-		kad = new FailureKademliaLower(13,8,f,6);
-		d = kad.getRoutingLength(10000);
-		System.out.println("Lower MDHT");
-		mean = 0;
-		for (int i = 0; i < d.length; i++){
-			System.out.println(i + " " + d[i]);
-			mean = mean + 1-d[i];
-		}
-		System.out.println("Mean " + mean);
 		
-		int[] ks = new int[14];
-		for (int i = 0; i < ks.length-4;i++){
-			ks[i] = 8;
-		}
-		ks[ks.length-1] = 128;
-		ks[ks.length-2] = 64;
-		ks[ks.length-3] = 32;
-		ks[ks.length-4] = 16;
 		
-		kad = new FailureAlpha3Beta2Upper(13,ks,1,f);
-		d = kad.getRoutingLength(10000);
-		System.out.println("Upper iMDHT");
-		mean = 0;
-		for (int i = 0; i < d.length; i++){
-			System.out.println(i + " " + d[i]);
-			mean = mean + 1-d[i];
-		}
-		System.out.println("Mean " + mean);
-		
-		kad = new FailureAlpha3Beta2Lower(13,ks,1,f,6);
-		d = kad.getRoutingLength(10000);
-		System.out.println("Lower iMDHT");
-		mean = 0;
-		for (int i = 0; i < d.length; i++){
-			System.out.println(i + " " + d[i]);
-			mean = mean + 1-d[i];
-		}
-		System.out.println("Mean " + mean);
-		
-		kad = new FailureKADUpper(13,f);
-		d = kad.getRoutingLength(10000);
-		System.out.println("Upper KAD");
-		mean = 0;
-		for (int i = 0; i < d.length; i++){
-			System.out.println(i + " " + d[i]);
-			mean = mean + 1-d[i];
-		}
-		System.out.println("Mean " + mean);
-		
-		kad = new FailureKADLower(13,f,6);
-		d = kad.getRoutingLength(10000);
-		System.out.println("Lower KAD");
-		mean = 0;
-		for (int i = 0; i < d.length; i++){
-			System.out.println(i + " " + d[i]);
-			mean = mean + 1-d[i];
-		}
-		System.out.println("Mean " + mean);
+//		double f = 0.15;
+//		KadType kad = new FailureKademliaUpper(13,8,f);
+//		double[] d = kad.getRoutingLength(10000);
+//		System.out.println("Upper MDHT");
+//		double mean = 0;
+//		for (int i = 0; i < d.length; i++){
+//			System.out.println(i + " " + d[i]);
+//			mean = mean + 1-d[i];
+//		}
+//		System.out.println("Mean " + mean);
+//		
+//		kad = new FailureKademliaLower(13,8,f,6);
+//		d = kad.getRoutingLength(10000);
+//		System.out.println("Lower MDHT");
+//		mean = 0;
+//		for (int i = 0; i < d.length; i++){
+//			System.out.println(i + " " + d[i]);
+//			mean = mean + 1-d[i];
+//		}
+//		System.out.println("Mean " + mean);
+//		
+//		int[] ks = new int[14];
+//		for (int i = 0; i < ks.length-4;i++){
+//			ks[i] = 8;
+//		}
+//		ks[ks.length-1] = 128;
+//		ks[ks.length-2] = 64;
+//		ks[ks.length-3] = 32;
+//		ks[ks.length-4] = 16;
+//		
+//		kad = new FailureAlpha3Beta2Upper(13,ks,1,f);
+//		d = kad.getRoutingLength(10000);
+//		System.out.println("Upper iMDHT");
+//		mean = 0;
+//		for (int i = 0; i < d.length; i++){
+//			System.out.println(i + " " + d[i]);
+//			mean = mean + 1-d[i];
+//		}
+//		System.out.println("Mean " + mean);
+//		
+//		kad = new FailureAlpha3Beta2Lower(13,ks,1,f,6);
+//		d = kad.getRoutingLength(10000);
+//		System.out.println("Lower iMDHT");
+//		mean = 0;
+//		for (int i = 0; i < d.length; i++){
+//			System.out.println(i + " " + d[i]);
+//			mean = mean + 1-d[i];
+//		}
+//		System.out.println("Mean " + mean);
+//		
+//		kad = new FailureKADUpper(13,f);
+//		d = kad.getRoutingLength(10000);
+//		System.out.println("Upper KAD");
+//		mean = 0;
+//		for (int i = 0; i < d.length; i++){
+//			System.out.println(i + " " + d[i]);
+//			mean = mean + 1-d[i];
+//		}
+//		System.out.println("Mean " + mean);
+//		
+//		kad = new FailureKADLower(13,f,6);
+//		d = kad.getRoutingLength(10000);
+//		System.out.println("Lower KAD");
+//		mean = 0;
+//		for (int i = 0; i < d.length; i++){
+//			System.out.println(i + " " + d[i]);
+//			mean = mean + 1-d[i];
+//		}
+//		System.out.println("Mean " + mean);
 		
 //        int[] n = {1000,10000,100000,1000000,10000000};
 //        int mode = Integer.parseInt(args[0]);
