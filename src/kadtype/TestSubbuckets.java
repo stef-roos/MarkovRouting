@@ -10,6 +10,7 @@ public class TestSubbuckets {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
 		String mode = args[0]; 
 		int b = Integer.parseInt(args[1]);
 		int k = Integer.parseInt(args[2]);
@@ -23,7 +24,11 @@ public class TestSubbuckets {
 			if (mode.equals("kad")){
 			kad = new KADUpper(b);
 			} else {
-				throw new IllegalArgumentException("Not implemented for this system");
+				if (mode.equals("imdht")){
+					kad = new KashmirUpper(b);
+				} else {
+				   throw new IllegalArgumentException("Not implemented for this system");
+				}
 			}
 		}
 		double[] normal = kad.getRoutingLength(n);

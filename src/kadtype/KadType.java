@@ -581,8 +581,6 @@ public abstract class KadType {
    * @return
    */
   protected double getProb(int[] returned, int nr, int l){
-	  if (returned.length > k[nr]) return this.getProbLessBeta(returned, nr, l);
-	  if (returned[returned.length-1] >= this.cdfs[nr].length) return 0;
 	  if (this.subbuckets || this.local){
 		  if (returned.length == 3){
 			  return this.getProbSubbucketsC3(returned, nr, l);
@@ -651,202 +649,20 @@ public abstract class KadType {
 	  }
 	  if (ys.size() > 1){
 		  int j = ys.size()-1;
-		  if (cdf[ys.get(j-1)][l] == 1) return 0;
 		  p = p*Math.pow(1/(1-cdf[ys.get(j-1)][l]), remain);
-//		  if (!(p <= 1)){
-//			  System.out.println(" in > 1 " + p + " " + nr + " " + l + " " + returned.length + " " + ys.get(j) + " " + cdf[ys.get(j)][l]);
-//		  }
+		  
 		 prob = (cdf[ys.get(j)][l] - cdf[ys.get(j)-1][l]);
 		  double sum = Math.pow((1-cdf[ys.get(j)-1][l]), remain);
 		  for (int i = 0; i < cs.get(j); i++){
 			  //if (remain == -1) System.out.println("oh");
-			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)
-					  *Math.pow(1-cdf[ys.get(j)][l], remain-i);
+			  sum = sum - this.biCoeff[remain][i]*Math.pow(prob, i)*Math.pow(1-cdf[ys.get(j)][l], remain-i);
 		  }
 		  p = p*sum;
 	  }
 	  return p;
   }
   
-  public double getProbLessBeta(int[] returned, int nr, int l){
-//	  String s = "";
-//	  for (int i = 0; i < returned.length; i++){
-//		  s = s + " " + returned[i];
-//	  }
-//	  System.out.println("nr " + nr + " returned " + s);
-	  
-	  double p = 0;
-	  int[] r1 = new int[k[nr]];
-	  for (int i = 0; i < r1.length; i++){
-		  r1[i] = returned[i];
-	  }
-	  if (returned[k[nr]-1] > nr - l) return 0;
-	  p = this.getProb(r1, nr, l);
-	  //System.out.println("pnormal " + p);
-//	  if (!(p <= 1)){
-//		  System.out.println(" after return normal"  +p + s + " " + nr );
-//	  }
-	  int c = 0;
-	  int old = -1;
-	  Vector<Integer> ys = new Vector<Integer>();
-	  Vector<Integer> cs = new Vector<Integer>();
-	   for (int i = k[nr]; i < returned.length; i++){
-		  if (old != returned[i]){
-			   if (c > 0){
-				  ys.add(old);
-				  cs.add(c);
-				 }
-			   c = 1;
-				old = returned[i];
-		  } else {
-			  c++;
-		  }
-	  }
-	  if ( c > 0){
-		  ys.add(old);
-		  cs.add(c);
-	  }
-	  if (p > 0){
-		  if (returned[k[nr]] < nr - l){
-			  return 0;
-		  }
-		  //System.out.println("Got here");
-		 double[] nemptys = new double[k[nr]];
-		 nemptys[0] = 1 - Math.pow(1-Math.pow(2, -b+nr-1-l),n-2);
-		//System.out.println("nempty " + nemptys[0]);
-		 for (int i = 1; i < nemptys.length; i++){
-			 nemptys[i] = (nemptys[i-1]-Calc.binom((int) (n-2-i), i)*Math.pow(1-Math.pow(2, -b+nr-1-l),n-2-i)*
-					 Math.pow(Math.pow(2, -b+nr-1-l),i))/nemptys[i-1];
-		 }
-		 
-		 int last = 1;
-		 for (int i = 0; i < ys.size(); i++){
-			 int free;
-			 int r = (int)Math.pow(2, l-(nr-ys.get(i)));
-			 //System.out.println("r " + r);
-			 if (ys.get(i) < nr){
-				 free = r-last;
-				 
-			 }else {
-				 free = (int)Math.pow(2, l)-last;
-			 }
-			 double pdash = Math.pow(1-nemptys[0], free);
-			// System.out.println("pdash " + pdash);
-			 p = p*pdash; 
-			 if (ys.get(i) < nr){
-			 if (cs.get(i) == 1){
-				 double pc = this.getProbCombi1(r, (i == ys.size()-1), nemptys);
-				// System.out.println("pc "  + pc);
-				 p = p*pc;
-				 
-			 }
-			 if (cs.get(i) == 2){
-				 double pc = this.getProbCombi2(r, (i == ys.size()-1), nemptys);
-				 if (pc < 0){
-					 System.out.println("pc2 "  + pc + " " + ys.get(i)
-							 + " "+ nr);
-				 }
-				 p = p*pc;
-			 }
-			 }
-			 last = last + free + (int)Math.pow(2, l-(nr-ys.get(i)));
-		 }
-	  }
-
-	  return p;
-  }
-  
-  private double getProbCombi1(int regions, boolean atleast, double[] nemptys){
-	  double p = 0;
-	  if (atleast){
-		p = 1 - Math.pow(1-nemptys[0], regions);  
-	  } else {
-		  if (nemptys.length > 1){
-		      p = regions*Math.pow(1-nemptys[0], regions-1)*(nemptys[1]-nemptys[0]);
-		  }	else {
-			  p = regions*Math.pow(1-nemptys[0], regions-1)*(nemptys[0]); 
-		  }
-	  }
-	  return p;
-  }
-  
-  private double getProbCombi2(int regions, boolean atleast, double[] nemptys){
-	  if (regions == 1 && nemptys.length == 1) return 0;
-	  double p = 0;
-	  if (atleast){
-		if (nemptys.length > 1){
-			double help = (1-nemptys[0])/(1-nemptys[1]);
-			p = 1 - Math.pow(1-nemptys[1], regions)*
-					(Math.pow(help, regions)+regions*help*Math.pow(help, regions-1));
-		} else {
-			p = (1-Math.pow(1-nemptys[0], regions)-regions*(nemptys[0])*Math.pow(1-nemptys[0], regions-1));
-		}
-	  } else {
-		  if (nemptys.length > 1){
-			  double p1 = 0;
-			  //exactly one having two, all other zero
-			   if (nemptys.length > 2){
-                  p1 = regions*(nemptys[1]-nemptys[2])*
-                		  Math.pow(nemptys[1]-nemptys[2],regions-1)*
-                		  Math.pow((1-nemptys[0])/(1-nemptys[2]), regions-1);
-			  } else {
-				  p1 = regions*(nemptys[1])*Math.pow(nemptys[1],regions-1)*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1);
-			  }
-			  //two 1, all others zero
-			  double p2 = 0;
-			  if (regions > 1){
-				//  if (nemptys.length > 2){
-				     double h = (nemptys[0]-nemptys[1])/(1-nemptys[0]);
-				     p2 = Math.pow(1-nemptys[1],regions)*regions*(regions-1)/(double)2*Math.pow(h, 2)*Math.pow(1-h, regions-2);
-				  //}		  
-			  }
-			  p = p1+p2;
-		  } else {
-			  p = regions*(regions-1)/(double)2*Math.pow(nemptys[0], 2)*Math.pow(1-nemptys[0], regions-2);
-		  }
-	  }
-	  return p;
-  }
-  
-  private double getProbCombi3(int regions, boolean atleast, double[] nemptys){
-	  if (regions*nemptys.length < 3) return 0;
-	  double p = 0;
-	  if (atleast){
-		if (nemptys.length > 2){
-			p = 1- Math.pow(1-nemptys[2],regions);
-			p = p + Math.pow(1-nemptys[2],regions)*
-				((1-Math.pow((1-nemptys[1])/(1-nemptys[2]), regions))*
-				(1-Math.pow((1-nemptys[0])/(1-nemptys[2]), regions-1)+
-				Math.pow((1-nemptys[1])/(1-nemptys[2]), regions)*
-				(1-Math.pow((1-nemptys[0])/(1-nemptys[1]), regions)-
-				 regions*nemptys[0]/(1-nemptys[1])*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1)
-				- regions*(regions-1)/(double)2*Math.pow(nemptys[0]/(1-nemptys[1]), 2)*
-				Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-2))));
-		} else {
-			if (nemptys.length == 2){
-				p = (1-Math.pow((1-nemptys[1]), regions))*
-						(1-Math.pow((1-nemptys[0]), regions-1)+
-						Math.pow((1-nemptys[1]), regions)*
-						(1-Math.pow((1-nemptys[0])/(1-nemptys[1]), regions)-
-						 regions*nemptys[0]/(1-nemptys[1])*Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-1)
-						- regions*(regions-1)/(double)2*Math.pow(nemptys[0]/(1-nemptys[1]), 2)*
-						Math.pow((1-nemptys[0])/(1-nemptys[1]), regions-2)));
-			} else {
-				p = (1-Math.pow((1-nemptys[0]), regions)-
-						 regions*nemptys[0]*Math.pow((1-nemptys[0]), regions-1)
-						- regions*(regions-1)/(double)2*Math.pow(nemptys[0], 2)*
-						Math.pow((1-nemptys[0]), regions-2));
-			}
-		}
-	  } else {
-		  //not needed if alpha <= 4
-	  }
-	  return p;
-  }
-  
-  
-  
-  public double getProbSubbucketsC2(int[] returned, int nr, int l){
+  private double getProbSubbucketsC2(int[] returned, int nr, int l){
 	  int c0 = returned[0];
 	  int c1 = returned[1];
 	  double pall = 0;
@@ -971,7 +787,8 @@ public abstract class KadType {
 					  }
 					  //c) the other link: at least one contact in subbuckets at this level (countc)
 					  if (2*countc <= r+1){
-						  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+						  //p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+						  p = p*(1-getBiDivide(regions-2*countc,regions-1-r,regions-countc,regions-1-r));
 					  }
 					  
 			    }
@@ -1180,7 +997,8 @@ public abstract class KadType {
 						  //c) the other link: at least one contact in subbuckets at this level (countc)
 						  if (2*countc <= r+1){
 							 // double d = Calc.binom(regions-2*countc, regions-1-r);
-							  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+//							  p = p*(1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r));
+							  p = p*(1-getBiDivide(regions-2*countc,regions-1-r,regions-countc,regions-1-r));
 						  }
 						  
 			    	} else {
@@ -1211,18 +1029,21 @@ public abstract class KadType {
 						  //c) the other link: at least one contact in subbuckets at this level (countc)
 						double pe = 1;
 						  if (2*countc <= r+1){
-							  pe = 1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r);
+							 // pe = 1-Calc.binom(regions-2*countc, regions-1-r)/(double)Calc.binom(regions-countc, regions-1-r);
+							  pe = 1-getBiDivide(regions-2*countc,regions-1-r,regions-countc,regions-1-r);
 						  }
 						p = p*pe;
 						if (c1 == c2){
 							//there are at least two non-empty subbuckets with that prefix length
                             if (pe != 1) {
-									double pN = (pe - Calc.binom(regions - 2 * countc,
-											regions - 2 - r)
-											* Calc.binom(countc, 1)
-											/ (double) Calc.binom(regions - countc,
-													regions - 1 - r))
-											/ (pe);
+//									double pN = (pe - Calc.binom(regions - 2 * countc,
+//											regions - 2 - r)
+//											* Calc.binom(countc, 1)
+//											/ (double) Calc.binom(regions - countc,
+//													regions - 1 - r))
+//											/ (pe);
+                            	double pN = (pe-getBiDivide(regions-2*countc,regions-2-r,regions-countc,regions-1-r)
+                            			*countc)/pe;
 									// or if not, there are at least two links into the
 									// one region
 									double p2 = (1 - pN)
@@ -1232,11 +1053,13 @@ public abstract class KadType {
 								} else {
 									if (regions - countc >= regions-1-r){
 										if (2*countc <= r+2){
-											double pN = 1-Calc.binom(regions - 2 * countc,
-													regions - 2 - r)
-													* Calc.binom(countc, 1)
-													/ (double) Calc.binom(regions - countc,
-															regions - 1 - r);
+//											double pN = 1-Calc.binom(regions - 2 * countc,
+//													regions - 2 - r)
+//													* Calc.binom(countc, 1)
+//													/ (double) Calc.binom(regions - countc,
+//															regions - 1 - r);
+											double pN =1-getBiDivide(regions-2*countc,regions-2-r,regions-countc,regions-1-r)
+													*countc;
 											double p2 = (1 - pN)
 													* (1 - Math.pow(1 - 1 / (double) (regions
 															- r - 1), r + remainder));
@@ -1250,12 +1073,14 @@ public abstract class KadType {
 							//there is exactly one non-empty region and countc
 							double pE=1;
 							if (pe != 1) {
-								double pN = (pe - Calc.binom(regions - 2 * countc,
-										regions - 2 - r)
-										* Calc.binom(countc, 1)
-										/ (double) Calc.binom(regions - countc,
-												regions - 1 - r))
-										/ (pe);
+//								double pN = (pe - Calc.binom(regions - 2 * countc,
+//										regions - 2 - r)
+//										* Calc.binom(countc, 1)
+//										/ (double) Calc.binom(regions - countc,
+//												regions - 1 - r))
+//										/ (pe);
+								double pN = (pe -getBiDivide(regions-2*countc,regions-2-r,regions-countc,regions-1-r)
+										*countc)/pe;
 								// or if not, there are at least two links into the
 								// one region
 								double p2 = Math.pow(1 - 1 / (double) (regions
@@ -1264,11 +1089,13 @@ public abstract class KadType {
 							} else {
 								if (regions - countc >= regions-1-r){
 									if (2*countc <= r+2){
-										double pN = 1-Calc.binom(regions - 2 * countc,
-												regions - 2 - r)
-												* Calc.binom(countc, 1)
-												/ (double) Calc.binom(regions - countc,
-														regions - 1 - r);
+//										double pN = 1-Calc.binom(regions - 2 * countc,
+//												regions - 2 - r)
+//												* Calc.binom(countc, 1)
+//												/ (double) Calc.binom(regions - countc,
+//														regions - 1 - r);
+										double pN = 1- getBiDivide(regions-2*countc,regions-2-r,regions-countc,regions-1-r)
+												 *countc;
 										double p2 = Math.pow(1 - 1 / (double) (regions
 														- r - 1), r + remainder);
 										pE = (1-pN)*p2;
@@ -1281,18 +1108,20 @@ public abstract class KadType {
 							p = p*pE;
 							int countc2 = (int) Math.pow(2, addBit - (nr - c2-l));
 							if ( 2*countc  <= r+2) {
-								p = p* Calc.binom(regions-countc2, regions-r-2)/(double)Calc.binom(regions-2*countc,regions-r-2);
+								//p = p* Calc.binom(regions-countc2, regions-r-2)/(double)Calc.binom(regions-2*countc,regions-r-2);
+							    p=p*getBiDivide(regions-countc2,regions-2-r,regions-2*countc,regions-2-r);
 							} else {
 								p = 0;
 							}
 							// there is at least one non-empty region at c2
 							if (regions - 2 * countc2 >= regions - 2 - r) {
-								p = p
-										* (1 - Calc.binom(regions - 2 * countc2,
-												regions - 2 - r)
-												/ (double) Calc.binom(
-														regions - countc2, regions - 2
-																- r));
+//								p = p
+//										* (1 - Calc.binom(regions - 2 * countc2,
+//												regions - 2 - r)
+//												/ (double) Calc.binom(
+//														regions - countc2, regions - 2
+//																- r));
+								p = p*(1-getBiDivide(regions-2*countc2,regions-2-r,regions-countc2,regions-2-r));
 							}
 						}  
 			    	}
@@ -1412,6 +1241,24 @@ public abstract class KadType {
     
     public void setN(int n){
     	this.n = n;
+    }
+    
+    public static double getBiDivide(int a, int b, int c, int d){
+    	double p = 1;
+    	int m = Math.min(d, b);
+    	for (int i = 0; i < m; i++){
+    		p = p *(a-i)/(double)(c-i);
+    	}
+    	if (m == b){
+    		for (int i = m; i< d; i++){
+    			p = p *(i+1)/(double)(c-i);
+    		}
+    	} else {
+    		for (int i = m; i< b; i++){
+    			p = p *(a-i)/(double)(i+1);
+    		}
+    	}
+    	return p;
     }
     
 }
