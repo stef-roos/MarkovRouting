@@ -386,10 +386,23 @@ public abstract class KadType {
                         int regions = (int)Math.pow(2,addBits[d]);
                         double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
                         int index = Math.max(0, d-addBits[d]);
+                        Binom re = new Binom(regions-1,regionEm);
                         for (int r = 0; r < regions; r++){
-                                double pr = Calc.binomDist(regions-1, r, regionEm);
-                                for (int a = 0; a <= r+remainder[d]; a++){
-                                 double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+                                double pr = re.getNext();
+                                int start;
+                                Binom ra;
+                                if (r == regions-1){
+                                	ra = new Binom(1, 1,1);
+                                	start = r+remainder[d];
+                                } else{
+                                   ra = new Binom(r+remainder[d], 1/(double)(regions-r));
+                                   start = 0;
+                                }
+                                for (int a = start; a <= r+remainder[d]; a++){
+                                  double pa = pr*ra.getNext();
+//                                 if (!(pa <= 1)){
+//                                	 System.out.println(pa + " " + r + " " + a);
+//                                 }
                                  int links = 1 + a;
                         int exp = (int) ((n-2)*p[index]);
                         Binom bi = new Binom(n-2,p[index],exp);
@@ -429,10 +442,20 @@ public abstract class KadType {
                                 int regions = (int)Math.pow(2,addBits[d]);
                                 double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
                                 int index = Math.max(0, d-addBits[d]);
+                                Binom re = new Binom(regions-1,regionEm);
                                 for (int r = 0; r < regions; r++){
-                                        double pr = Calc.binomDist(regions-1, r, regionEm);
-                                        for (int a = 0; a <= r+remainder[d]; a++){
-                                         double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+                                        double pr = re.getNext();
+                                        int start;
+                                        Binom ra;
+                                        if (r == regions-1){
+                                        	ra = new Binom(1, 1,1);
+                                        	start = r+remainder[d];
+                                        } else{
+                                           ra = new Binom(r+remainder[d], 1/(double)(regions-r));
+                                           start = 0;
+                                        }
+                                        for (int a = start; a <= r+remainder[d]; a++){
+                                          double pa = pr*ra.getNext();
                                          int links = 1 + a;
                                 int exp = (int) ((n-2)*p[index]);
                                 Binom bi = new Binom(n-2,p[index],exp);
@@ -490,10 +513,20 @@ public abstract class KadType {
                         int regions = (int)Math.pow(2,addBits[d]);
                         double regionEm = Math.pow(1-p[d]/(double)regions, n-1);
                         int index = Math.max(0, d-addBits[d]);
+                        Binom re = new Binom(regions,regionEm);
                         for (int r = 0; r < regions; r++){
-                                double pr = Calc.binomDist(regions, r, regionEm);
-                                for (int a = 0; a <= r+remainder[d]; a++){
-                                 double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+                                double pr = re.getNext();
+                                int start;
+                                Binom ra;
+                                if (r == regions-1){
+                                	ra = new Binom(1, 1,1);
+                                	start = r+remainder[d];
+                                } else{
+                                   ra = new Binom(r+remainder[d], 1/(double)(regions-r));
+                                   start = 0;
+                                }
+                                for (int a = start; a <= r+remainder[d]; a++){
+                                  double pa = pr*ra.getNext();
                                  int links = 1 + a;
                         int exp = (int) ((n-1)*p[index]);
                         Binom bi = new Binom(n-1,p[index],exp);
@@ -536,10 +569,20 @@ public abstract class KadType {
                                 int regions = (int)Math.pow(2,addBits[d]);
                                 double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
                                 int index = Math.max(0, d-addBits[d]);
+                                Binom re = new Binom(regions,regionEm);
                                 for (int r = 0; r < regions; r++){
-                                        double pr = Calc.binomDist(regions, r, regionEm);
-                                        for (int a = 0; a <= r+remainder[d]; a++){
-                                         double pa = pr*Calc.binomDist(r+remainder[d], a,1/(double)(regions-r));
+                                        double pr = re.getNext();
+                                        int start;
+                                        Binom ra;
+                                        if (r == regions-1){
+                                        	ra = new Binom(1, 1,1);
+                                        	start = r+remainder[d];
+                                        } else{
+                                           ra = new Binom(r+remainder[d], 1/(double)(regions-r));
+                                           start = 0;
+                                        }
+                                        for (int a = start; a <= r+remainder[d]; a++){
+                                          double pa = pr*ra.getNext();
                                          int links = 1 + a;
                                 int exp = (int) ((n-1)*p[index]);
                                 Binom bi = new Binom(n-1,p[index],exp);
@@ -971,10 +1014,20 @@ public abstract class KadType {
 	  } 
 	  int regions = (int)Math.pow(2,addBit);
 		double regionEm = Math.pow(1-Math.pow(2, -b+nr-1-l)/(double)regions, n-2);
-		for (int r = 0; r < regions; r++){
-			double pr = Calc.binomDist(regions-1, r, regionEm);
-			for (int a = 0; a <= r+remainder; a++){
-				double pa = pr*Calc.binomDist(r+remainder, a,1/(double)(regions-r));
+		Binom re = new Binom(regions-1,regionEm);
+        for (int r = 0; r < regions; r++){
+                double pr = re.getNext();
+                int start;
+                Binom ra;
+                if (r == regions-1){
+                	ra = new Binom(1, 1,1);
+                	start = r+remainder;
+                } else{
+                   ra = new Binom(r+remainder, 1/(double)(regions-r));
+                   start = 0;
+                }
+                for (int a = start; a <= r+remainder; a++){
+                  double pa = pr*ra.getNext();
 			    int links = 1 + a;
 			    //more links into region than nodes selected
 			    if (c1 > improve && links > 1) {
@@ -1115,15 +1168,25 @@ public abstract class KadType {
 	  int regions = (int)Math.pow(2,addBit);
 		double regionEm = Math.pow(1-Math.pow(2, -b+nr-1-l)/(double)regions, n-2);
 		//System.out.println(regionEm + " " + nr + " " + Math.pow(2, b-nr-1-l)/(double)regions);
-		for (int r = 0; r < regions; r++){
-			if (r == regions-1){
-				if (inr != 3){
-					continue;
-				}
-			}
-			double pr = Calc.binomDist(regions-1, r, regionEm);
-			for (int a = 0; a <= r+remainder; a++){
-				double pa = pr*Calc.binomDist(r+remainder, a,1/(double)(regions-r));
+		Binom re = new Binom(regions-1,regionEm);
+            for (int r = 0; r < regions; r++){
+            	if (r == regions-1){
+    				if (inr != 3){
+    					continue;
+    				}
+    			}
+                    double pr = re.getNext();
+                    int start;
+                    Binom ra;
+                    if (r == regions-1){
+                    	ra = new Binom(1, 1,1);
+                    	start = r+remainder;
+                    } else{
+                       ra = new Binom(r+remainder, 1/(double)(regions-r));
+                       start = 0;
+                    }
+                    for (int a = start; a <= r+remainder; a++){
+                      double pa = pr*ra.getNext();
 				if (pa == 0) continue;
 			    int links = 1 + a;
 			    
