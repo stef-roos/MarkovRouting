@@ -1,5 +1,7 @@
 package kadtype;
 
+import util.Binom;
+
 
 /**
  * compute the accuracy when using less bits
@@ -45,5 +47,34 @@ public class Accuracy {
 		//unaccuracy happen only if more than k are nearer
 		return 1-t;
 	}
+   
+   public static double successNonRegion(int b, int[] k, int n){
+	   double p = 0;
+	   double rp = 0.5;
+	   for (int l = 0; l < k.length; l++){
+		   double p0 = Math.pow(1-rp, n-1);
+		   double p1 = 0;
+		   double pn = 0.5;
+		   for (int m = l+1; m < k.length; m++){
+			   double pl = 1/(1-rp)*pn*rp;
+			 // System.out.println("   " + m + " pl= " + pl);
+			   double psum = 1;
+			   Binom bi = new Binom(n-1,pl);
+
+			  // System.out.println("   test 0" + Math.pow(1-pl, n-1));
+			   for (int j = 0; j <= k[b-m]; j++){
+				   psum = psum - bi.getNext();
+			   }
+			  // System.out.println("   " + m + " psum= " + psum);
+			   p1 = p1 + pn*psum;
+			   pn = pn/2;
+		   }
+		   p = p + (1-p)*p0*p1;
+		 //  System.out.println(l + " p0= " + p0 + " p1=" + p1);
+		   rp = rp/2;
+	   }
+	   
+	   return p;
+   }
 
 }

@@ -31,6 +31,7 @@ public class TestSubbuckets {
 				}
 			}
 		}
+		kad.setRandomID(true);
 		double[] normal = kad.getRoutingLength(n);
 		kad.setSubbuckets(true);
 		//kad.setN(100);

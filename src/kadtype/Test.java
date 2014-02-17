@@ -23,12 +23,18 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		KadType kad = new KADUpper(13);
-		//kad.setRandomID(true);
-        double[] dist = kad.getRoutingLength(10000);
-		for (int i = 0; i < dist.length; i++){
-			System.out.println(i + " " + dist[i]);
+		int b = 15;
+		int[] k = new int[b+1];
+		for (int i = 0; i < k.length; i++){
+			k[i] = 10;
 		}
+		System.out.println(Accuracy.successNonRegion(b, k, 10000));
+//		KadType kad = new KADUpper(13);
+//		//kad.setRandomID(true);
+//        double[] dist = kad.getRoutingLength(10000);
+//		for (int i = 0; i < dist.length; i++){
+//			System.out.println(i + " " + dist[i]);
+//		}
 //        double[][] t = kad.getT2(100);
 //        for (int i = 0; i < t.length; i++){
 //        	for (int j = 0; j < t[0].length; j++){
