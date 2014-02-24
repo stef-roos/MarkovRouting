@@ -8,12 +8,8 @@ import java.util.Random;
 
 import util.Binom;
 import util.Calc;
-import attacksKad.FailureAlpha3Beta2Lower;
-import attacksKad.FailureAlpha3Beta2Upper;
-import attacksKad.FailureKADLower;
-import attacksKad.FailureKADUpper;
-import attacksKad.FailureKademliaLower;
-import attacksKad.FailureKademliaUpper;
+
+import combined.CombinedSystems;
 
 //import eclipse.Calc;
 
@@ -23,12 +19,11 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		int b = 15;
-		int[] k = new int[b+1];
-		for (int i = 0; i < k.length; i++){
-			k[i] = 10;
+		CombinedSystems kad = new CombinedSystems(new KademliaUpper(10,8), new KADUpper(10));
+		double[] dist = kad.getRoutingLength(1000);
+		for (int i = 0; i < dist.length; i++){
+			System.out.println(i + " " + dist[i]);
 		}
-		System.out.println(Accuracy.successNonRegion(b, k, 10000));
 //		KadType kad = new KADUpper(13);
 //		//kad.setRandomID(true);
 //        double[] dist = kad.getRoutingLength(10000);
