@@ -272,11 +272,11 @@ public abstract class KadType {
 	 * NEEDS TO BE OVERRIDEN IN CASE ltype==SPECIAL
 	 * @param n
 	 */
-	protected void setSuccess(int n) {
-		if (this.subbuckets || this.local){
-			this.setSuccessSubbuckets(n);
-			return;
-		}
+	public void setSuccess(int n) {
+//		if (this.subbuckets || this.local){
+//			this.setSuccessSubbuckets(n);
+//			return;
+//		}
 		if (this.randomID) {
 			this.setSuccessRandomID(n);
 		} else {
