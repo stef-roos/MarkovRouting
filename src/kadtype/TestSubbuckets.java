@@ -38,21 +38,21 @@ public class TestSubbuckets {
 
 		 double[] sub = kad.getRoutingLength(n);
 		  kad.setSubbuckets(false);
-		  kad.setLocal(true);
-		  double[] local = kad.getRoutingLength(n);
+		  //kad.setLocal(true);
+		//  double[] local = kad.getRoutingLength(n);
 		  try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(out));
-		    double[] exp = new double[3];
+		    double[] exp = new double[2];
 		 for (int i = 0; i < sub.length; i++){
 		 //System.out.println(i + " " + sub[i] );
-		 bw.write(i + " " + normal[i] + " " + sub[i] + " " +
-		 local[i]);
+		 bw.write(i + " " + normal[i] + " " + sub[i]);// + " " +
+		// local[i]);
 		 exp[0] = exp[0] + 1 - normal[i];
 		 exp[1] = exp[1] + 1 - sub[i];
-		 exp[2] = exp[2] + 1 - local[i];
+		// exp[2] = exp[2] + 1 - local[i];
 		 bw.newLine();
 		 }
-		 bw.write("#Expected " + exp[0] + " " + exp[1] + " " + exp[2]);
+		 bw.write("#Expected " + exp[0] + " " + exp[1] );//+ " " + exp[2]);
 		 bw.flush();
 		 bw.close();
 		  } catch (IOException e) {

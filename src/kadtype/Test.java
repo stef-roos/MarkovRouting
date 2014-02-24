@@ -8,8 +8,7 @@ import java.util.Random;
 
 import util.Binom;
 import util.Calc;
-
-import combined.CombinedSystems;
+import util.DivideUpon;
 
 //import eclipse.Calc;
 
@@ -19,11 +18,11 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		CombinedSystems kad = new CombinedSystems(new KademliaUpper(10,8), new KADUpper(10));
-		double[] dist = kad.getRoutingLength(1000);
-		for (int i = 0; i < dist.length; i++){
-			System.out.println(i + " " + dist[i]);
+		DivideUpon d = new DivideUpon(10,4);
+		for (int i = 0; i < 3; i++){
+			System.out.println(d.getNext());
 		}
+		System.out.println(9/(double)22);
 //		KadType kad = new KADUpper(13);
 //		//kad.setRandomID(true);
 //        double[] dist = kad.getRoutingLength(10000);

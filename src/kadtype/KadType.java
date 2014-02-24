@@ -5,7 +5,8 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import util.Binom;
-import util.Calc;
+import util.DivideUpon;
+import util.Hyper1;
 
 public abstract class KadType {
 	protected int b;
@@ -273,10 +274,10 @@ public abstract class KadType {
 	 * @param n
 	 */
 	public void setSuccess(int n) {
-//		if (this.subbuckets || this.local){
-//			this.setSuccessSubbuckets(n);
-//			return;
-//		}
+		if (this.subbuckets || this.local){
+			this.setSuccessSubbuckets(n);
+			return;
+		}
 		if (this.randomID) {
 			this.setSuccessRandomID(n);
 		} else {
@@ -360,6 +361,7 @@ public abstract class KadType {
 	private void setSuccessSubbuckets(int n){
 		if (this.randomID){
 			this.setSuccessSubbucketsRandom(n);
+			return;
 		}
         this.setN(n);
         this.success = new double[this.b+1];
@@ -509,108 +511,129 @@ public abstract class KadType {
                         q = q*0.5;
                 }
                 for (int d=b; d > 0;d--){
-                        //iterate over possible empty regions -> add links
-                        int regions = (int)Math.pow(2,addBits[d]);
-                        double regionEm = Math.pow(1-p[d]/(double)regions, n-1);
-                        int index = Math.max(0, d-addBits[d]);
-                        Binom re = new Binom(regions,regionEm);
-                        for (int r = 0; r < regions; r++){
-                                double pr = re.getNext();
-                                int start;
-                                Binom ra;
-                                if (r == regions-1){
-                                	ra = new Binom(1, 1,1);
-                                	start = r+remainder[d];
-                                } else{
-                                   ra = new Binom(r+remainder[d], 1/(double)(regions-r));
-                                   start = 0;
-                                }
-                                for (int a = start; a <= r+remainder[d]; a++){
-                                  double pa = pr*ra.getNext();
-                                 int links = 1 + a;
-                        int exp = (int) ((n-1)*p[index]);
-                        Binom bi = new Binom(n-1,p[index],exp);
-                        double binom;
-                 for (int i = exp; i < n; i++){
-                         binom = pa*bi.getNext();
-                         if (i < links){
-                         this.success[d] = this.success[d] + binom;
-                         } else{
-                                         this.success[d] = this.success[d] + binom*(double)(links)/(double)(i);
-                         }
-                 }
-                 bi.recompute(exp);
-                 for (int i = exp-1; i > -1; i--){
-                         binom = pa*bi.getBefore();
-                         if (i < links){
-                         this.success[d] = this.success[d] + binom;
-                         } else{
-                                         this.success[d] = this.success[d] + binom*(double)(links)/(double)(i);
-                         }
-                 }
-                        }
-                                
-                        }
-                        double pr = Calc.binomDist(regions, regions, regionEm);
-                        this.success[d] = this.success[d] + pr;
-                }
+                	int c = (int)Math.pow(2,addBits[d]);
+                	double factor = Math.pow(2,-addBits[d]);
+                	int exp = (int) ((n-1)*p[d]);
+    				Binom bi = new Binom(n-1,p[d],exp);
+    				double binom;
+    				if (exp > 0){
+    			  for (int i = exp; i < n; i++){
+    				  binom = bi.getNext();
+    				  Binom biSub = new Binom(i,factor);
+    				  double succi = 0;
+    				  //case 0
+    				  double zero = bi.getNext();
+    				  succi = succi + zero*Math.min(k[d]/i, 1);
+    				  //non-extremal case
+    				  for (int j = 1; j < i; j++){
+    					  double binomSub = biSub.getNext();
+    					 double succ1 = 1/(double)j;
+    					  double succ2 = 0; 
+    					  DivideUpon di = new DivideUpon(i-j,c);
+    					  for (int e = 1; e < c; e++){
+    						  double em = di.getNext();
+    						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)i);
+    						  		  
+    					  }
+    					  //System.out.println(succ1 + " " + succ2 + " " +);
+    					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
+    				  }
+    				  //case i
+    				  double all = bi.getNext();
+    				  succi = succi + all*Math.min(k[d]/i, 1);
+    				  success[d] = success[d] + binom*succi;
+    			  }
+    				}
+    			  bi.recompute(exp);
+    			  for (int i = exp-1; i > 0; i--){
+    				  binom = bi.getBefore();
+    				  Binom biSub = new Binom(i,factor);
+    				  double succi = 0;
+    				  //case 0
+    				  double zero = bi.getNext();
+    				  succi = succi + zero*Math.min(k[d]/i, 1);
+    				  //non-extremal case
+    				  for (int j = 1; j < i; j++){
+    					  double binomSub = biSub.getNext();
+    					  double succ1 = 1/(double)j;
+    					  double succ2 = 0; 
+    					  DivideUpon di = new DivideUpon(i-j,c);
+    					  for (int e = 1; e < c; e++){
+    						  double em = di.getNext();
+    						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)i);
+    						  		  
+    					  }
+    					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
+    				  }
+    				  //case i
+    				  double all = bi.getNext();
+    				  succi = succi + all*Math.min(k[d]/i, 1);
+    				  success[d] = success[d] + binom*succi;
+    				  
+    			  }
+    			  success[d] = success[d] + bi.getBefore();
+                }        
         }
-        if (this.ltype == LType.ALL){
-                //case: variable l: iterate over all l
-                for (int m = 0; m < l.length; m++){
-                        double[] p = new double[b+1];
-                        p[0] = 0;
-                        double q = Math.pow(2, -m);
-                        for (int d=b; d > 0;d--){
-                                p[d] = q;
-                                q = q*0.5;
-                        }
-                        for (int d=b; d > 0;d--){
-                                int regions = (int)Math.pow(2,addBits[d]);
-                                double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
-                                int index = Math.max(0, d-addBits[d]);
-                                Binom re = new Binom(regions,regionEm);
-                                for (int r = 0; r < regions; r++){
-                                        double pr = re.getNext();
-                                        int start;
-                                        Binom ra;
-                                        if (r == regions-1){
-                                        	ra = new Binom(1, 1,1);
-                                        	start = r+remainder[d];
-                                        } else{
-                                           ra = new Binom(r+remainder[d], 1/(double)(regions-r));
-                                           start = 0;
-                                        }
-                                        for (int a = start; a <= r+remainder[d]; a++){
-                                          double pa = pr*ra.getNext();
-                                         int links = 1 + a;
-                                int exp = (int) ((n-1)*p[index]);
-                                Binom bi = new Binom(n-1,p[index],exp);
-                                double binom;
-                         for (int i = exp; i < n; i++){
-                                 binom = pa*bi.getNext();
-                                 if (i < links){
-                                 this.success[d] = this.success[d] +l[d][m]* binom;
-                                 } else{
-                                                 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i);
-                                 }
-                         }
-                         bi.recompute(exp);
-                         for (int i = exp-1; i > -1; i--){
-                                 binom = pa*bi.getBefore();
-                                 if (i < links){
-                                 this.success[d] = this.success[d] + l[d][m]*binom;
-                                 } else{
-                                                 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i);
-                                 }
-                         }
-                                        }
-                                }
-                                double pr = Calc.binomDist(regions, regions, regionEm);
-                                this.success[d] = this.success[d] + pr;
-                        }
-                }
+        for (int i = 0; i < this.success.length; i++){
+        	System.out.println(this.success[i]);
         }
+//        if (this.ltype == LType.ALL){
+//                //case: variable l: iterate over all l
+//                for (int m = 0; m < l.length; m++){
+//                        double[] p = new double[b+1];
+//                        p[0] = 0;
+//                        double q = Math.pow(2, -m);
+//                        for (int d=b; d > 0;d--){
+//                                p[d] = q;
+//                                q = q*0.5;
+//                        }
+//                        for (int d=b; d > 0;d--){
+//                                int regions = (int)Math.pow(2,addBits[d]);
+//                                double regionEm = Math.pow(1-p[d]/(double)regions, n-2);
+//                                int index = Math.max(0, d-addBits[d]);
+//                                Binom re = new Binom(regions,regionEm);
+//                                for (int r = 0; r < regions; r++){
+//                                        double pr = re.getNext();
+//                                        int start;
+//                                        Binom ra;
+//                                        if (r == regions-1){
+//                                        	ra = new Binom(1, 1,1);
+//                                        	start = r+remainder[d];
+//                                        } else{
+//                                           ra = new Binom(r+remainder[d], 1/(double)(regions-r));
+//                                           start = 0;
+//                                        }
+//                                        for (int a = start; a <= r+remainder[d]; a++){
+//                                          double pa = pr*ra.getNext();
+//                                         int links = 1 + a;
+//                                int exp = (int) ((n-1)*p[index]);
+//                                Binom bi = new Binom(n-1,p[index],exp);
+//                                double binom;
+//                         for (int i = exp; i < n; i++){
+//                                 binom = pa*bi.getNext();
+//                                 if (i < links){
+//                                 this.success[d] = this.success[d] +l[d][m]* binom;
+//                                 } else{
+//                                                 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i);
+//                                 }
+//                         }
+//                         bi.recompute(exp);
+//                         for (int i = exp-1; i > -1; i--){
+//                                 binom = pa*bi.getBefore();
+//                                 if (i < links){
+//                                 this.success[d] = this.success[d] + l[d][m]*binom;
+//                                 } else{
+//                                                 this.success[d] = this.success[d] + l[d][m]*binom*(double)(links)/(double)(i);
+//                                 }
+//                         }
+//                                        }
+//                                }
+//                                double pr = Calc.binomDist(regions, regions, regionEm);
+//                                this.success[d] = this.success[d] + pr;
+//                        }
+//                }
+//        }
+//		
 		
 	}
 
