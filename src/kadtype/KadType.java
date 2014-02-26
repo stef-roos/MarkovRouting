@@ -516,14 +516,14 @@ public abstract class KadType {
                 	int exp = (int) ((n-1)*p[d]);
     				Binom bi = new Binom(n-1,p[d],exp);
     				double binom;
-    				if (exp > 0){
+    				//if (exp > 0){
     			  for (int i = exp; i < n; i++){
     				  binom = bi.getNext();
     				  Binom biSub = new Binom(i,factor);
     				  double succi = 0;
     				  //case 0
-    				  double zero = bi.getNext();
-    				  succi = succi + zero*Math.min(k[d]/i, 1);
+    				  double zero = biSub.getNext();
+    				  succi = succi + zero*Math.min(k[d]/(double)i, 1);
     				  //non-extremal case
     				  for (int j = 1; j < i; j++){
     					  double binomSub = biSub.getNext();
@@ -533,25 +533,27 @@ public abstract class KadType {
     					  for (int e = 1; e < c; e++){
     						  double em = di.getNext();
     						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)i);
-    						  		  
     					  }
     					  //System.out.println(succ1 + " " + succ2 + " " +);
     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
     				  }
     				  //case i
-    				  double all = bi.getNext();
-    				  succi = succi + all*Math.min(k[d]/i, 1);
+    				  double all = biSub.getNext();
+    				  succi = succi + all*Math.min(k[d]/(double)i, 1);
+//    				  if (succi > 1){
+//    					  System.out.println(succi + " d= " + d + " i="+i);
+//    				  }
     				  success[d] = success[d] + binom*succi;
     			  }
-    				}
+    				//}
     			  bi.recompute(exp);
     			  for (int i = exp-1; i > 0; i--){
     				  binom = bi.getBefore();
     				  Binom biSub = new Binom(i,factor);
     				  double succi = 0;
     				  //case 0
-    				  double zero = bi.getNext();
-    				  succi = succi + zero*Math.min(k[d]/i, 1);
+    				  double zero = biSub.getNext();
+    				  succi = succi + zero*Math.min(k[d]/(double)i, 1);
     				  //non-extremal case
     				  for (int j = 1; j < i; j++){
     					  double binomSub = biSub.getNext();
@@ -566,8 +568,8 @@ public abstract class KadType {
     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
     				  }
     				  //case i
-    				  double all = bi.getNext();
-    				  succi = succi + all*Math.min(k[d]/i, 1);
+    				  double all = biSub.getNext();
+    				  succi = succi + all*Math.min(k[d]/(double)i, 1);
     				  success[d] = success[d] + binom*succi;
     				  
     			  }

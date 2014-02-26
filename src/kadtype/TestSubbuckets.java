@@ -11,11 +11,16 @@ public class TestSubbuckets {
 	 */
 	public static void main(String[] args) {
 		
-		String mode = args[0]; 
-		int b = Integer.parseInt(args[1]);
-		int k = Integer.parseInt(args[2]);
-		int n = Integer.parseInt(args[3]);
-		String out = args[4];
+//		String mode = args[0]; 
+//		int b = Integer.parseInt(args[1]);
+//		int k = Integer.parseInt(args[2]);
+//		int n = Integer.parseInt(args[3]);
+//		String out = args[4];
+		String mode = "imdht"; 
+		int b = 8;
+		int k = 8;
+		int n = 100;
+		String out = "test.txt";
 		
 		KadType kad;
 		if (mode.equals("kademlia")){
