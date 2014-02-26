@@ -6,7 +6,6 @@ import java.util.Vector;
 
 import util.Binom;
 import util.DivideUpon;
-import util.Hyper1;
 
 public abstract class KadType {
 	protected int b;
@@ -213,6 +212,14 @@ public abstract class KadType {
 			processCDFsT1(t,d,d,1-t[0][d]);
 			}
 		}
+		for (int j = 0; j < t[0].length; j++){
+			double s = 0;
+			for (int i = 0; i < t.length; i++){
+				s = s + t[i][j];
+			}
+			System.out.println(s);
+		}
+		
 		if (this.local){
 			this.local = false;
 			this.setSuccess(n);
@@ -563,7 +570,6 @@ public abstract class KadType {
     					  for (int e = 1; e < c; e++){
     						  double em = di.getNext();
     						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)i);
-    						  		  
     					  }
     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
     				  }
@@ -576,9 +582,9 @@ public abstract class KadType {
     			  success[d] = success[d] + bi.getBefore();
                 }        
         }
-        for (int i = 0; i < this.success.length; i++){
-        	System.out.println(this.success[i]);
-        }
+//        for (int i = 0; i < this.success.length; i++){
+//        	System.out.println(this.success[i]);
+//        }
 //        if (this.ltype == LType.ALL){
 //                //case: variable l: iterate over all l
 //                for (int m = 0; m < l.length; m++){
