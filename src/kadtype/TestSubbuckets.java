@@ -4,7 +4,11 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import attacksKad.FailureKADUpper;
 import attacksKad.FailureKademliaUpper;
+import attacksKad.FailureKashmirUpper;
+
+import combined.CombinedSystems;
 
 public class TestSubbuckets {
 
@@ -12,7 +16,8 @@ public class TestSubbuckets {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		testStale();
+		Integer m = Integer.parseInt(args[0]);
+		testStale(m, args[1]);
 		System.exit(0);
 		
 		String mode = args[0]; 
@@ -70,14 +75,46 @@ public class TestSubbuckets {
 			}
 	}
 	
-	public static void testStale(){
-		KadType kad = new FailureKademliaUpper(10,8,0.182);
+	public static void testStale(int type, String out){
+		KadType kad=null;
+		int b = 22;
+		int n = 300000;
+		switch (type){
+		case 1: kad = new FailureKademliaUpper(b,8,0.182);
+		break;
+		case 2: kad = new FailureKademliaUpper(b,8,0.182);
 		kad.setSubbuckets(true);
-		 double[] sub = kad.getRoutingLength(100);
+		break;
+		case 3: kad = new FailureKADUpper(b,0.182);
+		break;
+		case 4: kad = new FailureKADUpper(b,0.182);
+		kad.setSubbuckets(true);
+		break;
+		case 5: kad = new FailureKashmirUpper(b,0.182);
+		break;
+		case 6: kad = new FailureKashmirUpper(b,0.182);
+		kad.setSubbuckets(true);
+		break;
+		}
+		KadType kad2 = new FailureKADUpper(b,0.182);
+		
+		CombinedSystems c = new CombinedSystems(kad,kad2);
+		 double[] sub = c.getRoutingLength(n);
+		 try{
+		 BufferedWriter bw = new BufferedWriter(new FileWriter(out));
+		    double[] exp = new double[2];
 		 for (int i = 0; i < sub.length; i++){
-			 System.out.println(sub[i]);
+			 bw.write(i + " " +sub[i]);
+			 bw.newLine();
+		 }
+		 bw.flush();
+		 bw.close();
+		 }catch (IOException e){
+			 e.printStackTrace();
 		 }
 	}
+
+	
 
 }
 
