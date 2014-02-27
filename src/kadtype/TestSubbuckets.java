@@ -4,23 +4,27 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import attacksKad.FailureKademliaUpper;
+
 public class TestSubbuckets {
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		testStale();
+		System.exit(0);
 		
-//		String mode = args[0]; 
-//		int b = Integer.parseInt(args[1]);
-//		int k = Integer.parseInt(args[2]);
-//		int n = Integer.parseInt(args[3]);
-//		String out = args[4];
-		String mode = "kademlia"; 
-		int b = 13;
-		int k = 8;
-		int n = 1000;
-		String out = "kademlia10000.txt";
+		String mode = args[0]; 
+		int b = Integer.parseInt(args[1]);
+		int k = Integer.parseInt(args[2]);
+		int n = Integer.parseInt(args[3]);
+		String out = args[4];
+//		String mode = "kad"; 
+//		int b = 13;
+//		int k = 8;
+//		int n = 1000;
+//		String out = "kad10000.txt";
 		
 		KadType kad;
 		if (mode.equals("kademlia")){
@@ -37,7 +41,7 @@ public class TestSubbuckets {
 			}
 		}
 		kad.setRandomID(true);
-		//double[] normal = kad.getRoutingLength(n);
+		double[] normal = kad.getRoutingLength(n);
 		kad.setSubbuckets(true);
 		//kad.setN(100);
 
@@ -45,28 +49,39 @@ public class TestSubbuckets {
 		  kad.setSubbuckets(false);
 		  //kad.setLocal(true);
 		//  double[] local = kad.getRoutingLength(n);
-//		  try {
-//			BufferedWriter bw = new BufferedWriter(new FileWriter(out));
-//		    double[] exp = new double[2];
-//		 for (int i = 0; i < sub.length; i++){
-//		 //System.out.println(i + " " + sub[i] );
-//		 bw.write(i + " " + normal[i] + " " + sub[i]);// + " " +
-//		// local[i]);
-//		 exp[0] = exp[0] + 1 - normal[i];
-//		 exp[1] = exp[1] + 1 - sub[i];
-//		// exp[2] = exp[2] + 1 - local[i];
-//		 bw.newLine();
-//		 }
-//		 bw.write("#Expected " + exp[0] + " " + exp[1] );//+ " " + exp[2]);
-//		 bw.flush();
-//		 bw.close();
-//		  } catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+		  try {
+			BufferedWriter bw = new BufferedWriter(new FileWriter(out));
+		    double[] exp = new double[2];
+		 for (int i = 0; i < sub.length; i++){
+		 //System.out.println(i + " " + sub[i] );
+		 bw.write(i + " " + normal[i] + " " + sub[i]);// + " " +
+		// local[i]);
+		 exp[0] = exp[0] + 1 - normal[i];
+		 exp[1] = exp[1] + 1 - sub[i];
+		// exp[2] = exp[2] + 1 - local[i];
+		 bw.newLine();
+		 }
+		 bw.write("#Expected " + exp[0] + " " + exp[1] );//+ " " + exp[2]);
+		 bw.flush();
+		 bw.close();
+		  } catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	}
+	
+	public static void testStale(){
+		KadType kad = new FailureKademliaUpper(10,8,0.182);
+		kad.setSubbuckets(true);
+		 double[] sub = kad.getRoutingLength(100);
+		 for (int i = 0; i < sub.length; i++){
+			 System.out.println(sub[i]);
+		 }
 	}
 
 }
+
+
 
 //for (int r = 0; r < 7; r++){
 //int nr = 8;
@@ -208,3 +223,5 @@ public class TestSubbuckets {
 // }
 //System.out.println(pall);
 //}
+
+
