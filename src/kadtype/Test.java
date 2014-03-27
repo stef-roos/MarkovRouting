@@ -18,12 +18,19 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		DivideUpon d = new DivideUpon(10,4);
-		for (int i = 0; i < 3; i++){
-			System.out.println(d.getNext());
-		}
-		System.out.println(9/(double)22);
-//		KadType kad = new KADUpper(13);
+		
+         KadType kad = new KademliaUpper(20,8);
+         kad.setRandomID(true);
+         kad.setSubbuckets(true);
+         double[][] t = kad.getT1(100000);
+         System.out.println("T1");
+         for (int i = 0; i < t[0].length; i++){
+        	 double sum = 0;
+        	 for (int j = 0; j < t.length; j++){
+        		 sum = sum + t[j][i];
+        	 }
+        	 System.out.println(i + " " + sum);
+         }
 //		//kad.setRandomID(true);
 //        double[] dist = kad.getRoutingLength(10000);
 //		for (int i = 0; i < dist.length; i++){

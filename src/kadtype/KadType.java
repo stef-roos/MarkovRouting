@@ -200,6 +200,8 @@ public abstract class KadType {
      */
 	public double[][] getT1(int n){
 		//if (!this.randomID){
+		if (this.success == null)
+		this.setSuccess(n);
 		int[] lookup = new int[alpha];
 		lookup[this.alpha-1] = b+1;
 		double[][] t = new double[getIndex(lookup)][b+1];
@@ -539,7 +541,11 @@ public abstract class KadType {
     					  DivideUpon di = new DivideUpon(i-j,c);
     					  for (int e = 1; e < c; e++){
     						  double em = di.getNext();
-    						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)i);
+    						  if (i-e-1 > 0){
+    						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)(i-e-1));
+    						  } else {
+    							  succ2 = succ2+em;
+    						  }
     					  }
     					  //System.out.println(succ1 + " " + succ2 + " " +);
     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
@@ -582,9 +588,10 @@ public abstract class KadType {
     			  success[d] = success[d] + bi.getBefore();
                 }        
         }
-//        for (int i = 0; i < this.success.length; i++){
-//        	System.out.println(this.success[i]);
-//        }
+        for (int i = 0; i < this.success.length; i++){
+        	System.out.println(this.success[i]);
+        }
+        //System.exit(0);
         if (this.ltype == LType.ALL){
                 //case: variable l: iterate over all l
                 for (int m = 0; m < l.length; m++){
