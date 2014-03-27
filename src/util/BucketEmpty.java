@@ -3,7 +3,14 @@ package util;
 public class BucketEmpty {
 
 	public static void main(String[] args) {
-		System.out.println(kad(10000, 128));
+		System.out.println(kad(10000,128));
+//		int n = 10000;
+//		Binom bi = new Binom(n,9.794319294809011E-4);
+//		double sum = 0;
+//		for (int i = 0; i <=10; i++){
+//			sum = sum +bi.getNext();
+//		}
+//		System.out.println(sum);
 	}
 
 	public static double kademlia(int n, int k, int b) {
@@ -48,7 +55,7 @@ public class BucketEmpty {
 			}
 			p = p * 0.5;
 			//System.out.println(i + " " + pmorek);
-			double pdash3 = p / 8;
+			double pdash3 = p * 2;
 			double pdash4 = pdash3 * 0.5;
 			double pempty3 = Math.pow(1 - pdash3, n);
 			double pempty4 = Math.pow(1 - pdash4, n);
@@ -92,14 +99,17 @@ public class BucketEmpty {
                    if (j == 1){
                 	   pemptyn1 = pempty3;
                 	   Binom bi2 = new Binom(n, pdash4 / (1 - pdash3));
+                	 //  System.out.println(pdash4 + " " + (1 - pdash3-pdash4));
    					pemptyn2 = bi2.getNext();
    					c2 = 1 - pemptyn2;
    					for (int l = 1; l < 11; l++) {
    						c2 = c2 - bi2.getNext();
    					}
    					Binom bi3 = new Binom(n, pdash4 / (1 - pdash3 - pdash4));
-   					System.out.println(pdash4 / (1 - pdash3-pdash4));
+   					
    					pemptyn3 = bi3.getNext();
+   					//System.out.println(pdash4 / (1 - pdash3-pdash4) + " " + pdash4 / (1 - pdash3));
+   					//System.out.println(pemptyn2 + " " + pemptyn3);
    					c3 = 1 - pemptyn3;
    					for (int l = 1; l < 11; l++) {
    						c3 = c3 - bi3.getNext();

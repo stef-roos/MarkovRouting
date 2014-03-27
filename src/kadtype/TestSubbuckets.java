@@ -16,15 +16,12 @@ public class TestSubbuckets {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Integer m = Integer.parseInt(args[0]);
-		testStale(m, args[1]);
-		System.exit(0);
-		
 		String mode = args[0]; 
 		int b = Integer.parseInt(args[1]);
 		int k = Integer.parseInt(args[2]);
 		int n = Integer.parseInt(args[3]);
 		String out = args[4];
+		String ty = args[5];
 //		String mode = "kad"; 
 //		int b = 13;
 //		int k = 8;
@@ -46,8 +43,9 @@ public class TestSubbuckets {
 			}
 		}
 		kad.setRandomID(true);
-		double[] normal = kad.getRoutingLength(n);
-		kad.setSubbuckets(true);
+		if (ty.equals("uni")){
+		  kad.setSubbuckets(true);
+		}
 		//kad.setN(100);
 
 		 double[] sub = kad.getRoutingLength(n);
@@ -56,17 +54,16 @@ public class TestSubbuckets {
 		//  double[] local = kad.getRoutingLength(n);
 		  try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(out));
-		    double[] exp = new double[2];
+		    double[] exp = new double[1];
 		 for (int i = 0; i < sub.length; i++){
 		 //System.out.println(i + " " + sub[i] );
-		 bw.write(i + " " + normal[i] + " " + sub[i]);// + " " +
+		 bw.write(i + " " + sub[i]);// + " " +
 		// local[i]);
-		 exp[0] = exp[0] + 1 - normal[i];
-		 exp[1] = exp[1] + 1 - sub[i];
+		 exp[0] = exp[0] + 1 - sub[i];
 		// exp[2] = exp[2] + 1 - local[i];
 		 bw.newLine();
 		 }
-		 bw.write("#Expected " + exp[0] + " " + exp[1] );//+ " " + exp[2]);
+		 bw.write("#Expected " + exp[0]);//+ " " + exp[2]);
 		 bw.flush();
 		 bw.close();
 		  } catch (IOException e) {
