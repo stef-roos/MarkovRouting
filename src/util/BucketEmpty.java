@@ -1,16 +1,30 @@
 package util;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class BucketEmpty {
 
 	public static void main(String[] args) {
-		System.out.println(kad(10000,128));
-//		int n = 10000;
-//		Binom bi = new Binom(n,9.794319294809011E-4);
-//		double sum = 0;
-//		for (int i = 0; i <=10; i++){
-//			sum = sum +bi.getNext();
+		System.out.println(kad(1000,128));
+//		int step = 1000;
+//		int max = 10000000;
+//		int cur = step;
+//		try{
+//		BufferedWriter bw = new BufferedWriter(new FileWriter("accuracy.txt"));
+//		while (cur <= max){
+//			String line = cur + " " + kademlia(cur,8,128) + " " + imdht(cur,128) + " " + kad(cur,128);
+//			bw.write(line);
+//			bw.newLine();
+//			cur = cur+step;
 //		}
-//		System.out.println(sum);
+//		bw.flush();
+//		bw.close();
+//		}catch (IOException e){
+//			e.printStackTrace();
+//		}
+
 	}
 
 	public static double kademlia(int n, int k, int b) {
@@ -40,10 +54,10 @@ public class BucketEmpty {
 
 	public static double kad(int n, int b) {
 		double max = 0;
-		double p = 0.5/16;
-		for (int i = 1; i <= b; i++) {
+		double p = 0.5/8;
+		for (int i = 1; i < b; i++) {
 			double pmorek = 0;
-			double q = 0.5 * p;
+			double q = p;
 			for (int j = i + 1; j < b; j++) {
 				double c = 1;
 				Binom bi = new Binom(n, q / (1 - p));
@@ -59,6 +73,25 @@ public class BucketEmpty {
 			double pdash4 = pdash3 * 0.5;
 			double pempty3 = Math.pow(1 - pdash3, n);
 			double pempty4 = Math.pow(1 - pdash4, n);
+			if (i == 1){
+				double rest = 1;
+				double[] em = new double[8];
+				double[] cs = new double[8];
+				for (int j = 0; j < 8; j++){
+					Binom bi2 = new Binom(n, p / (rest));
+					em[j] = bi2.getNext();
+					cs[j] = 1-em[j];
+					for (int l = 1; l < 11; l++){
+						cs[j] = cs[j] - bi2.getNext();
+					}
+					rest = rest - p;
+				}
+				max = 5*pmorek;
+				for (int j = 7; j > 0; j--){
+					max = max*em[j] + cs[j];
+				}
+				max = max*em[0];
+			}else {
 			for (int j = 0; j < 3; j++) {
 				double c2 = 1;
 				double c3 = 1;
@@ -91,7 +124,7 @@ public class BucketEmpty {
 					}
 					Binom bi5 = new Binom(n, pdash4 / (1 - pdash3 * 3 - pdash4));
 					pemptyn5 = bi5.getNext();
-					c3 = 1 - pemptyn5;
+					c5 = 1 - pemptyn5;
 					for (int l = 1; l < 11; l++) {
 						c5 = c5 - bi5.getNext();
 					}
@@ -122,7 +155,7 @@ public class BucketEmpty {
    					}
    					Binom bi5 = new Binom(n, pdash3 / (1 - pdash3 * 2 - pdash4*2));
    					pemptyn5 = bi5.getNext();
-   					c3 = 1 - pemptyn5;
+   					c5 = 1 - pemptyn5;
    					for (int l = 1; l < 11; l++) {
    						c5 = c5 - bi5.getNext();
    					} 
@@ -148,7 +181,7 @@ public class BucketEmpty {
    					}
    					Binom bi5 = new Binom(n, pdash3 / (1 - pdash3 * 2 - pdash4*2));
    					pemptyn5 = bi5.getNext();
-   					c3 = 1 - pemptyn5;
+   					c5 = 1 - pemptyn5;
    					for (int l = 1; l < 11; l++) {
    						c5 = c5 - bi5.getNext();
    					} 
@@ -160,17 +193,18 @@ public class BucketEmpty {
 						* (c2 + pemptyn2
 								* (c3 + pemptyn3
 										* (c4 + pemptyn4
-												* (c5 + pemptyn5 * pmorek))));
-				System.out.println(j);
-				System.out.println(pemptyn1);
-				System.out.println(c2 + " " +pemptyn2);
-				System.out.println(c3 + " " +pemptyn3);
-				System.out.println(c4 + " " +pemptyn4);
-				System.out.println(c5 + " " +pemptyn5);
-				System.out.println(i + " " +maxA);
+												* (c5 + pemptyn5 * pmorek*5))));
+//				System.out.println(j);
+//				System.out.println(pemptyn1);
+//				System.out.println(c2 + " " +pemptyn2);
+//				System.out.println(c3 + " " +pemptyn3);
+//				System.out.println(c4 + " " +pemptyn4);
+//				System.out.println(c5 + " " +pemptyn5);
+//				System.out.println(i + " " +maxA);
 				if (maxA > max) {
 					max = maxA;
 				}
+			}
 			}
 
 			// double c4 = 1;
