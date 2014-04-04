@@ -12,7 +12,7 @@ public class DivideUpon {
 	}
 	
 	public double getNext(){
-		if (p <= 0){
+		if (p <= 0 || !(p < 1)){
 			p = 1;
 			int m = Math.min(c-2, l-1);
 			for (int i = 0; i< m; i++){

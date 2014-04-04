@@ -523,24 +523,29 @@ public abstract class KadType {
                 	int c = (int)Math.pow(2,addBits[d]);
                 	double factor = Math.pow(2,-addBits[d]);
                 	int exp = (int) ((n-1)*p[d]);
+                	if (exp == 0) exp = 1;
     				Binom bi = new Binom(n-1,p[d],exp);
     				double binom;
     				//if (exp > 0){
-    			  for (int i = exp; i < n; i++){
+    			 for (int i = exp; i < n; i++){
     				  binom = bi.getNext();
-    				  Binom biSub = new Binom(i,factor);
+    				  int expf = (int) (i*factor);
+    				  if (expf == 0) expf=1;
+    				  Binom biSub = new Binom(i,factor,expf);
+    				  
     				  double succi = 0;
-    				  //case 0
-    				  double zero = biSub.getNext();
-    				  succi = succi + zero*Math.min(k[d]/(double)i, 1);
+    				
     				  //non-extremal case
-    				  for (int j = 1; j < i; j++){
+    				  for (int j = expf; j < i; j++){
     					  double binomSub = biSub.getNext();
     					 double succ1 = 1/(double)j;
     					  double succ2 = 0; 
     					  DivideUpon di = new DivideUpon(i-j,c);
     					  for (int e = 1; e < c; e++){
     						  double em = di.getNext();
+    						  if (!(em <= 1.001)){
+    							  System.out.println(em + " " + i + " " + j + " " + e);
+    						  }
     						  if (i-e-1 > 0){
     						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)(i-e-1));
     						  } else {
@@ -552,7 +557,31 @@ public abstract class KadType {
     				  }
     				  //case i
     				  double all = biSub.getNext();
-    				  succi = succi + all*Math.min(k[d]/(double)i, 1);
+    				  succi = succi + all*Math.min(k[d]/(double)i, 1);   	
+    				  
+    				//case 0
+    				  biSub.recompute(expf);
+    				  for (int j = expf-1; j > 0; j--){
+    					  double binomSub = biSub.getBefore();
+     					 double succ1 = 1/(double)j;
+     					  double succ2 = 0; 
+     					  DivideUpon di = new DivideUpon(i-j,c);
+     					  for (int e = 1; e < c; e++){
+     						  double em = di.getNext();
+     						  if (!(em <= 1.001)){
+     							  System.out.println(em + " " + i + " " + j + " " + e);
+     						  }
+     						  if (i-e-1 > 0){
+     						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)(i-e-1));
+     						  } else {
+     							  succ2 = succ2+em;
+     						  }
+     					  }
+     					  //System.out.println(succ1 + " " + succ2 + " " +);
+     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
+    				  }
+    				  double zero = biSub.getBefore();
+    				  succi = succi + zero*Math.min(k[d]/(double)i, 1);
 //    				  if (succi > 1){
 //    					  System.out.println(succi + " d= " + d + " i="+i);
 //    				  }
@@ -562,26 +591,59 @@ public abstract class KadType {
     			  bi.recompute(exp);
     			  for (int i = exp-1; i > 0; i--){
     				  binom = bi.getBefore();
-    				  Binom biSub = new Binom(i,factor);
+    				  int expf = (int) (i*factor);
+    				  if (expf == 0) expf=1;
+    				  Binom biSub = new Binom(i,factor,expf);
+    				  
     				  double succi = 0;
-    				  //case 0
-    				  double zero = biSub.getNext();
-    				  succi = succi + zero*Math.min(k[d]/(double)i, 1);
+    				
     				  //non-extremal case
-    				  for (int j = 1; j < i; j++){
+    				  for (int j = expf; j < i; j++){
     					  double binomSub = biSub.getNext();
-    					  double succ1 = 1/(double)j;
+    					 double succ1 = 1/(double)j;
     					  double succ2 = 0; 
     					  DivideUpon di = new DivideUpon(i-j,c);
     					  for (int e = 1; e < c; e++){
     						  double em = di.getNext();
-    						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)i);
+    						  if (!(em <= 1.001)){
+    							  System.out.println(em + " " + i + " " + j + " " + e);
+    						  }
+    						  if (i-e-1 > 0){
+    						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)(i-e-1));
+    						  } else {
+    							  succ2 = succ2+em;
+    						  }
     					  }
+    					  //System.out.println(succ1 + " " + succ2 + " " +);
     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
     				  }
     				  //case i
     				  double all = biSub.getNext();
-    				  succi = succi + all*Math.min(k[d]/(double)i, 1);
+    				  succi = succi + all*Math.min(k[d]/(double)i, 1);   	
+    				  
+    				//case 0
+    				  biSub.recompute(expf);
+    				  for (int j = expf-1; j > 0; j--){
+    					  double binomSub = biSub.getBefore();
+     					 double succ1 = 1/(double)j;
+     					  double succ2 = 0; 
+     					  DivideUpon di = new DivideUpon(i-j,c);
+     					  for (int e = 1; e < c; e++){
+     						  double em = di.getNext();
+     						  if (!(em <= 1.001)){
+     							  System.out.println(em + " " + i + " " + j + " " + e);
+     						  }
+     						  if (i-e-1 > 0){
+     						  succ2 = succ2 +em*Math.min(1, (remainder[d]+c-1-e)*1/(double)(i-e-1));
+     						  } else {
+     							  succ2 = succ2+em;
+     						  }
+     					  }
+     					  //System.out.println(succ1 + " " + succ2 + " " +);
+     					  succi = succi + binomSub*(succ1+(1-succ1)*succ2);
+    				  }
+    				  double zero = biSub.getBefore();
+    				  succi = succi + zero*Math.min(k[d]/(double)i, 1);
     				  success[d] = success[d] + binom*succi;
     				  
     			  }
