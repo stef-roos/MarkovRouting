@@ -586,11 +586,13 @@ public abstract class KadType {
     				  
     			  }
     			  success[d] = success[d] + bi.getBefore();
-                }        
+    			  System.out.println(d + " " +this.success[d]);
+                }  
+                
         }
-        for (int i = 0; i < this.success.length; i++){
-        	System.out.println(this.success[i]);
-        }
+//        for (int i = 0; i < this.success.length; i++){
+//        	System.out.println(this.success[i]);
+//        }
         //System.exit(0);
         if (this.ltype == LType.ALL){
                 //case: variable l: iterate over all l

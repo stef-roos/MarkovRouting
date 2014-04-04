@@ -18,6 +18,19 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+//		int n = 100000;
+//		double p = 0.0000001;
+//		int exp = (int) ((int)n*p);
+//		Binom bi = new Binom(n-1,p,exp);
+//		double sum = 0;
+//		for (int i = exp; i < n; i++){
+//			sum = sum + bi.getNext();
+//		}
+//		bi.recompute(exp);
+//		  for (int i = exp-1; i > 0; i--){
+//			  sum = sum + bi.getBefore();
+//		  }
+//		System.out.println(sum);
 		
          KadType kad = new KademliaUpper(20,8);
          kad.setRandomID(true);
